@@ -1,11 +1,38 @@
 Package: AZASRS
 Type: Package
-Title: What the Package Does (Title Case)
+Title: ASRS Database R API
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Scott Stoltzman
+Description: Retrieves data from the database and performs operations.
+License: To be used exclusively by Arizona State Retirement Systems Employees
 Encoding: UTF-8
 LazyData: true
+Imports: 
+    broom,
+    cli,
+    crayon,
+    dplyr,
+    dbplyr,
+    forcats,
+    ggplot2,
+    haven,
+    hms,
+    httr,
+    jsonlite,
+    lubridate,
+    magrittr,
+    modelr,
+    purrr,
+    readr,
+    readxl,
+    reprex,
+    rlang,
+    rstudioapi,
+    rvest,
+    stringr,
+    tibble,
+    tidyr,
+    xml2,
+    RSQLite,
+    DBI
+RoxygenNote: 6.0.1.9000
