@@ -4,7 +4,7 @@
 \alias{pull_historicalmv}
 \title{Query historical market value data}
 \usage{
-pull_historicalmv(db_con = db_connect())
+pull_historicalmv()
 }
 \arguments{
 \item{db_con}{database connection}

@@ -4,7 +4,7 @@
 \alias{pull_categories}
 \title{Query category data}
 \usage{
-pull_categories(db_con = db_connect())
+pull_categories()
 }
 \arguments{
 \item{db_con}{database connection}

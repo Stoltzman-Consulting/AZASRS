@@ -4,7 +4,7 @@
 \alias{pull_cashflow}
 \title{Query cashflow data}
 \usage{
-pull_cashflow(db_con = db_connect())
+pull_cashflow()
 }
 \arguments{
 \item{db_con}{database connection}

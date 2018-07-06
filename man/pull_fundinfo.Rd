@@ -4,7 +4,7 @@
 \alias{pull_fundinfo}
 \title{Query fundinfo data}
 \usage{
-pull_fundinfo(db_con = db_connect())
+pull_fundinfo()
 }
 \arguments{
 \item{db_con}{database connection}
