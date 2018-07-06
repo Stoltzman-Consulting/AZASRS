@@ -2,7 +2,7 @@
 
 # Global variables
 #' @export
-AZASRS_DATABASE_LOCATION = "../DB_Application/asrs_temporary.db"
+AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\asrs_temporary_db.db"
 
 #' @export
 AZASRS_DATABASE_DRIVER = RSQLite::SQLite()
@@ -45,6 +45,7 @@ pull_cashflow = function(db_con = db_connect()){
   querystring = paste0("SELECT * FROM cashflow")
   rs = DBI::dbSendQuery(db_con, querystring)
   dat = DBI::dbFetch(rs)
+  DBI::dbDisconnect(db_con)
   return(dat)
 }
 
@@ -61,6 +62,7 @@ pull_nav = function(db_con = db_connect(), from_date='2018-01-01'){
   querystring = paste0("SELECT * FROM nav WHERE date >= '", from_date,"'")
   rs = DBI::dbSendQuery(db_con, querystring)
   dat = DBI::dbFetch(rs)
+  DBI::dbDisconnect(db_con)
   return(dat)
 }
 
@@ -76,6 +78,7 @@ pull_fundinfo = function(db_con = db_connect()){
   querystring = paste0("SELECT * FROM fundinfo")
   rs = DBI::dbSendQuery(db_con, querystring)
   dat = DBI::dbFetch(rs)
+  DBI::dbDisconnect(db_con)
   return(dat)
 }
 
@@ -91,6 +94,7 @@ pull_categories = function(db_con = db_connect()){
   querystring = paste0("SELECT * FROM category")
   rs = DBI::dbSendQuery(db_con, querystring)
   dat = DBI::dbFetch(rs)
+  DBI::dbDisconnect(db_con)
   return(dat)
 }
 
@@ -106,6 +110,7 @@ pull_historicalmv = function(db_con = db_connect()){
   querystring = paste0("SELECT * FROM historical_mv")
   rs = DBI::dbSendQuery(db_con, querystring)
   dat = DBI::dbFetch(rs)
+  DBI::dbDisconnect(db_con)
   return(dat)
 }
 
