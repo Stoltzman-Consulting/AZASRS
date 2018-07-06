@@ -1,4 +1,6 @@
 #' @importFrom magrittr %>%
+#' @import DBI
+#' @import RSQLite
 
 # Global variables
 #' @export
@@ -21,7 +23,7 @@ pull_cashflow = function(){
   res = DBI::dbSendQuery(db_con, querystring)
   dat = DBI::dbFetch(res)
   DBI::dbClearResult(res)
-  dbDisconnect(db_con)
+  DBI::dbDisconnect(db_con)
   return(dat)
 }
 
@@ -40,7 +42,7 @@ pull_nav = function(from_date='2018-01-01'){
   res = DBI::dbSendQuery(db_con, querystring)
   dat = DBI::dbFetch(res)
   DBI::dbClearResult(res)
-  dbDisconnect(db_con)
+  DBI::dbDisconnect(db_con)
   return(dat)
 }
 
@@ -58,7 +60,7 @@ pull_fundinfo = function(){
   res = DBI::dbSendQuery(db_con, querystring)
   dat = DBI::dbFetch(res)
   DBI::dbClearResult(res)
-  dbDisconnect(db_con)
+  DBI::dbDisconnect(db_con)
   return(dat)
 }
 
@@ -76,7 +78,7 @@ pull_categories = function(){
   res = DBI::dbSendQuery(db_con, querystring)
   dat = DBI::dbFetch(res)
   DBI::dbClearResult(res)
-  dbDisconnect(db_con)
+  DBI::dbDisconnect(db_con)
   return(dat)
 }
 
@@ -94,7 +96,7 @@ pull_historicalmv = function(){
   res = DBI::dbSendQuery(db_con, querystring)
   dat = DBI::dbFetch(res)
   DBI::dbClearResult(res)
-  dbDisconnect(db_con)
+  DBI::dbDisconnect(db_con)
   return(dat)
 }
 
