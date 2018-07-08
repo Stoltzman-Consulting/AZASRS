@@ -4,12 +4,12 @@
 \alias{pull_nav}
 \title{Query nav data}
 \usage{
-pull_nav(from_date = "2018-01-01")
+pull_nav()
 }
 \arguments{
-\item{from_date}{starting date ( >= ) at which data must be more recent than}
-
 \item{db_con}{database connection}
+
+\item{from_date}{starting date ( >= ) at which data must be more recent than}
 }
 \value{
 nav dataframe (date, shortname, amount)
