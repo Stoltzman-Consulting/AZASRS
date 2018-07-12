@@ -14,6 +14,7 @@ get_valdate = function(){
   DBI::dbDisconnect(db_con)
   valdate = dat[!is.na(dat)][1]
   valdate = as.Date(valdate, format = "%m/%d/%Y")
+  valdate = as.Date(valdate)
   return(valdate)
 }
 
@@ -23,10 +24,13 @@ get_valdate = function(){
 #' Queries values with filters
 #'
 #' @param db_con database connection
-#' @param shortname shortname
+#' @param shortname character - shortname is the symbol
 #' @return date, shortname, amount
 #' @export
 get_filtered_nav = function(shortname){
+  # Ensure argument
+  stopifnot(class(shortname) == 'character' & length(shortname) == 1)
+
   db_con = DBI::dbConnect(drv = AZASRS_DATABASE_DRIVER, dbname = AZASRS_DATABASE_LOCATION)
   querystring = paste0("SELECT date, shortname, amount FROM nav WHERE shortname = '", shortname, "'")
   res = DBI::dbSendQuery(db_con, querystring)
