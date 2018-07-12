@@ -4,7 +4,7 @@
 \alias{pull_benchmark}
 \title{Query benchmark data}
 \usage{
-pull_benchmark()
+pull_benchmark(shortname = "")
 }
 \arguments{
 \item{db_con}{database connection}
@@ -13,5 +13,5 @@ pull_benchmark()
 dataframe of shortname, longname, date, price (adds in log price of ODCE as Fixed8)
 }
 \description{
-SELECT statement to retrieve all historical_mv data
+SELECT statement to retrieve all benchmark
 }
