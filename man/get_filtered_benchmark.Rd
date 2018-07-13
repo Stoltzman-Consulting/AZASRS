@@ -4,7 +4,7 @@
 \alias{get_filtered_benchmark}
 \title{Query filtered benchmark data}
 \usage{
-get_filtered_benchmark(shortname = "")
+get_filtered_benchmark(shortname)
 }
 \arguments{
 \item{db_con}{database connection}

@@ -4,7 +4,7 @@
 \alias{pull_benchmark}
 \title{Query benchmark data}
 \usage{
-pull_benchmark(shortname = "")
+pull_benchmark()
 }
 \arguments{
 \item{db_con}{database connection}

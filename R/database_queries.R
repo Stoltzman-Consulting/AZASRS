@@ -1,12 +1,13 @@
 #' @importFrom magrittr %>%
 #' @import DBI
 #' @import RSQLite
+#' @import zoo
 
 
 # Global variables
 #' @export
-AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\asrs_temporary_db.db"
-#AZASRS_DATABASE_LOCATION = "C:\\Users\\scotts\\Documents\\GitHub\\DB_Application\\asrs_temporary.db"
+#AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\asrs_temporary_db.db"
+AZASRS_DATABASE_LOCATION = "C:\\Users\\scotts\\Documents\\GitHub\\DB_Application\\asrs_temporary.db"
 
 
 #' @export
@@ -22,9 +23,11 @@ AZASRS_DATABASE_DRIVER = RSQLite::SQLite()
 #' @export
 pull_cashflow = function(){
   db_con = DBI::dbConnect(drv = AZASRS_DATABASE_DRIVER, dbname = AZASRS_DATABASE_LOCATION)
+
   querystring = paste0("SELECT * FROM cashflow")
   res = DBI::dbSendQuery(db_con, querystring)
-  dat = DBI::dbFetch(res)
+  dat = DBI::dbFetch(res) %>% tibble::as_tibble()
+
   DBI::dbClearResult(res)
   DBI::dbDisconnect(db_con)
   return(dat)
@@ -41,9 +44,11 @@ pull_cashflow = function(){
 #' @export
 pull_nav = function(){
   db_con = DBI::dbConnect(drv = AZASRS_DATABASE_DRIVER, dbname = AZASRS_DATABASE_LOCATION)
+
   querystring = paste0("SELECT * FROM nav")
   res = DBI::dbSendQuery(db_con, querystring)
-  dat = DBI::dbFetch(res)
+  dat = DBI::dbFetch(res) %>% tibble::as_tibble()
+
   DBI::dbClearResult(res)
   DBI::dbDisconnect(db_con)
   return(dat)
@@ -59,9 +64,11 @@ pull_nav = function(){
 #' @export
 pull_fundinfo = function(){
   db_con = DBI::dbConnect(drv = AZASRS_DATABASE_DRIVER, dbname = AZASRS_DATABASE_LOCATION)
+
   querystring = paste0("SELECT * FROM fundinfo")
   res = DBI::dbSendQuery(db_con, querystring)
-  dat = DBI::dbFetch(res)
+  dat = DBI::dbFetch(res) %>% tibble::as_tibble()
+
   DBI::dbClearResult(res)
   DBI::dbDisconnect(db_con)
   return(dat)
@@ -75,7 +82,7 @@ pull_fundinfo = function(){
 #' @param db_con database connection
 #' @return dataframe of shortname, longname, date, price (adds in log price of ODCE as Fixed8)
 #' @export
-pull_benchmark = function(shortname = ''){
+pull_benchmark = function(){
   db_con = DBI::dbConnect(drv = AZASRS_DATABASE_DRIVER, dbname = AZASRS_DATABASE_LOCATION)
 
   querystring = paste0("SELECT * FROM benchmark")

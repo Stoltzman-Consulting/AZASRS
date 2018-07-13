@@ -10,11 +10,11 @@
 #' @param benchmark_symbol benchmark to compare against - this overrides benchmark_type
 #' @return dataframe of years/dates, IRR benchmark, IRR priv
 #' @export
-trailing_period_irr_portfolio = function(shortname = 'Total PE',
-                                         portfolio_name = 'PE',
-                                         comparison_years = c(1,3,5),
-                                         benchmark_type = 'benchmark',
-                                         benchmark_symbol = 'DEFAULT_FROM_FUNDINFO'){
+trailing_period_irr = function(shortname = 'Total PE',
+                               portfolio_name = 'PE',
+                               comparison_years = c(1,3,5),
+                               benchmark_type = 'benchmark',
+                               benchmark_symbol = 'DEFAULT_FROM_FUNDINFO'){
 
   # Database queries
   valdate = get_valdate()

@@ -10,11 +10,11 @@ get_valdate = function(){
   querystring = paste0("SELECT csdate FROM fundinfo")
   res = DBI::dbSendQuery(db_con, querystring)
   dat = DBI::dbFetch(res)
-  DBI::dbClearResult(res)
-  DBI::dbDisconnect(db_con)
   valdate = dat[!is.na(dat)][1]
   valdate = as.Date(valdate, format = "%m/%d/%Y")
   valdate = as.Date(valdate)
+  DBI::dbClearResult(res)
+  DBI::dbDisconnect(db_con)
   return(valdate)
 }
 
@@ -28,13 +28,13 @@ get_valdate = function(){
 #' @return date, shortname, amount
 #' @export
 get_filtered_nav = function(shortname){
-  # Ensure argument
+  # Check parameter types
   stopifnot(class(shortname) == 'character' & length(shortname) == 1)
 
   db_con = DBI::dbConnect(drv = AZASRS_DATABASE_DRIVER, dbname = AZASRS_DATABASE_LOCATION)
   querystring = paste0("SELECT date, shortname, amount FROM nav WHERE shortname = '", shortname, "'")
   res = DBI::dbSendQuery(db_con, querystring)
-  dat = DBI::dbFetch(res)
+  dat = DBI::dbFetch(res) %>% tibble::as_tibble()
   df = dat %>% tidyr::drop_na()
   DBI::dbClearResult(res)
   DBI::dbDisconnect(db_con)
@@ -51,10 +51,13 @@ get_filtered_nav = function(shortname){
 #' @return date, shortname, amount
 #' @export
 get_filtered_cashflow = function(shortname){
+  # Check parameter types
+  stopifnot(class(shortname) == 'character' & length(shortname) == 1)
+
   db_con = DBI::dbConnect(drv = AZASRS_DATABASE_DRIVER, dbname = AZASRS_DATABASE_LOCATION)
   querystring = paste0("SELECT date, shortname, amount FROM cashflow WHERE shortname = '", shortname, "'")
   res = DBI::dbSendQuery(db_con, querystring)
-  dat = DBI::dbFetch(res)
+  dat = DBI::dbFetch(res) %>% tibble::as_tibble()
   df = dat %>% tidyr::drop_na()
   DBI::dbClearResult(res)
   DBI::dbDisconnect(db_con)
@@ -69,19 +72,16 @@ get_filtered_cashflow = function(shortname){
 #' @param db_con database connection
 #' @return dataframe of shortname, longname, date, price (adds in log price of ODCE as Fixed8)
 #' @export
-get_filtered_benchmark = function(shortname = ''){
+get_filtered_benchmark = function(shortname){
+  # Check parameter types
+  stopifnot(class(shortname) == 'character' & length(shortname) == 1)
+
   db_con = DBI::dbConnect(drv = AZASRS_DATABASE_DRIVER, dbname = AZASRS_DATABASE_LOCATION)
-  if(shortname == ''){
-    querystring = paste0("SELECT date, shortname, longname, price FROM benchmark")
-  } else{
-    querystring = paste0("SELECT date, shortname, longname, price FROM benchmark WHERE shortname = '", shortname , "'")
-  }
+  querystring = paste0("SELECT date, shortname, longname, price FROM benchmark WHERE shortname = '", shortname , "'")
   res = DBI::dbSendQuery(db_con, querystring)
-  dat = DBI::dbFetch(res)
-  DBI::dbClearResult(res)
-
+  dat = DBI::dbFetch(res) %>% tibble::as_tibble()
   ### INSERT functions to add log, exp, days365 etc?
-
+  DBI::dbClearResult(res)
   DBI::dbDisconnect(db_con)
   return(dat)
 }

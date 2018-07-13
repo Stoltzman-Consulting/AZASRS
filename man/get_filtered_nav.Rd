@@ -7,7 +7,7 @@
 get_filtered_nav(shortname)
 }
 \arguments{
-\item{shortname}{shortname}
+\item{shortname}{character - shortname is the symbol}
 
 \item{db_con}{database connection}
 }
