@@ -68,6 +68,8 @@ get_filtered_cashflow = function(shortname){
 #' Query filtered benchmark data
 #'
 #' SELECT statement to retrieve benchmark data filtered by shortname
+#' If 'Fixed 8' is desired, it can be entered as a shortname but it does not come from the database
+#' Fixed 8 is calculated off of the length of ODCE returned from the database
 #'
 #' @param db_con database connection
 #' @param convert_365 boolean to use na.approx to interpolate values with days365 function

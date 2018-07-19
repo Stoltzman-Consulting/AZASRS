@@ -4,9 +4,13 @@
 \alias{get_filtered_benchmark}
 \title{Query filtered benchmark data}
 \usage{
-get_filtered_benchmark(shortname)
+get_filtered_benchmark(shortname, convert_365 = FALSE, return_zoo = FALSE)
 }
 \arguments{
+\item{convert_365}{boolean to use na.approx to interpolate values with days365 function}
+
+\item{return_zoo}{boolean to return a zoo object instead of a tibble}
+
 \item{db_con}{database connection}
 }
 \value{
