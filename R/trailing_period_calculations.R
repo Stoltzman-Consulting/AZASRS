@@ -60,7 +60,7 @@ trailing_period_irr = function(shortname = 'Total PE',
   val.z = zoo::zoo(val$amount, as.Date(val$date))
   cf.z = zoo::zoo(cf$amount, cf$date)
 
-  pe.qtr = pestats(cf.combine.z, benchmark.z[time(cf.combine.z)])
+  pe.qtr = asrsMethods::pestats(cf.combine.z, benchmark.z[time(cf.combine.z)])
 
   irr.bench.c = pe.qtr$ind.irr
   irr.priv.c = pe.qtr$irr
@@ -71,13 +71,13 @@ trailing_period_irr = function(shortname = 'Total PE',
     yr = as.Date(yr)
 
     cf.yr = cf.z[time(cf.z)<=valdate&time(cf.z)>yr]
-    dat = mergesum.z(-1*val.z[yr], cf.yr, val.z[valdate])
-    irr.yr <- irr.z(dat, gips = TRUE)
+    dat = asrsMethods::mergesum.z(-1*val.z[yr], cf.yr, val.z[valdate])
+    irr.yr <- asrsMethods::irr.z(dat, gips = TRUE)
     irr.priv.c <- c(irr.priv.c, irr.yr)
 
-    fvfactor = as.numeric(lastinvec(benchmark.z))/benchmark.z
+    fvfactor = as.numeric(asrsMethods::lastinvec(benchmark.z))/benchmark.z
     cf.fv = dat * fvfactor
-    alpha = log(1+irr.z(cf.fv, gips = TRUE))
+    alpha = log(1 + asrsMethods::irr.z(cf.fv, gips = TRUE))
     logpe.irr = log(1 + irr.yr)
     logdm.irr = logpe.irr - alpha
     irr.bench.c = c(irr.bench.c, -1+exp(logdm.irr))
