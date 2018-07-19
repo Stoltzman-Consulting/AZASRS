@@ -70,17 +70,47 @@ get_filtered_cashflow = function(shortname){
 #' SELECT statement to retrieve benchmark data filtered by shortname
 #'
 #' @param db_con database connection
+#' @param convert_365 boolean to use na.approx to interpolate values with days365 function
+#' @param return_zoo boolean to return a zoo object instead of a tibble
 #' @return dataframe of shortname, longname, date, price (adds in log price of ODCE as Fixed8)
 #' @export
-get_filtered_benchmark = function(shortname){
+get_filtered_benchmark = function(shortname, convert_365 = FALSE, return_zoo = FALSE){
   # Check parameter types
   stopifnot(class(shortname) == 'character' & length(shortname) == 1)
+
+  if(gsub(' ', '', tolower(shortname)) == 'fixed8'){
+    fixed8 = TRUE
+    shortname = 'ODCE'
+  } else{
+    fixed8 = FALSE
+  }
 
   db_con = DBI::dbConnect(drv = AZASRS_DATABASE_DRIVER, dbname = AZASRS_DATABASE_LOCATION)
   querystring = paste0("SELECT date, shortname, longname, price FROM benchmark WHERE shortname = '", shortname , "'")
   res = DBI::dbSendQuery(db_con, querystring)
   dat = DBI::dbFetch(res) %>% tibble::as_tibble()
-  ### INSERT functions to add log, exp, days365 etc?
+
+  ### INSERT functions to add log, exp, days365 etc.
+
+  if(fixed8 == TRUE){
+    dat = dat %>%
+      dplyr::mutate(shortname = 'fixed8',
+                    longname = 'Fixed 8')
+    dat$price = exp(cumsum(rep(log(1.08)/365, nrow(dat))))
+  }
+
+  if(return_zoo == TRUE){ ### relies on price and date columns (names important)
+    dat = zoo::zoo(dat$price, as.Date(dat$date))
+  }
+
+  if(convert_365 == TRUE){ ### relies on price and date columns (names important)
+    dat_z = zoo::zoo(dat$price, as.Date(dat$date))
+    dat_z_365 = interpolateDays365(dat_z)
+    dat = dat_z_365
+  }
+
+  # Build in days365
+
   DBI::dbClearResult(res)
   DBI::dbDisconnect(db_con)
   return(dat)
