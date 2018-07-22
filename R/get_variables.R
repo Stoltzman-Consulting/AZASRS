@@ -80,26 +80,12 @@ get_filtered_benchmark = function(shortname, convert_365 = FALSE, return_zoo = F
   # Check parameter types
   stopifnot(class(shortname) == 'character' & length(shortname) == 1)
 
-  if(gsub(' ', '', tolower(shortname)) == 'fixed8'){
-    fixed8 = TRUE
-    shortname = 'ODCE'
-  } else{
-    fixed8 = FALSE
-  }
-
   db_con = DBI::dbConnect(drv = AZASRS_DATABASE_DRIVER, dbname = AZASRS_DATABASE_LOCATION)
   querystring = paste0("SELECT date, shortname, longname, price FROM benchmark WHERE shortname = '", shortname , "'")
   res = DBI::dbSendQuery(db_con, querystring)
   dat = DBI::dbFetch(res) %>% tibble::as_tibble()
 
   ### INSERT functions to add log, exp, days365 etc.
-
-  if(fixed8 == TRUE){
-    dat = dat %>%
-      dplyr::mutate(shortname = 'fixed8',
-                    longname = 'Fixed 8')
-    dat$price = exp(cumsum(rep(log(1.08)/365, nrow(dat))))
-  }
 
   if(return_zoo == TRUE){ ### relies on price and date columns (names important)
     dat = zoo::zoo(dat$price, as.Date(dat$date))
@@ -111,9 +97,77 @@ get_filtered_benchmark = function(shortname, convert_365 = FALSE, return_zoo = F
     dat = dat_z_365
   }
 
-  # Build in days365
-
   DBI::dbClearResult(res)
   DBI::dbDisconnect(db_con)
   return(dat)
 }
+
+
+#' Get benchmark returns
+#'
+#' Queries benchmark with returns, add basis points by adding _p250 or _p350 to the end of each shortname
+#'
+#' @param db_con database connection
+#' @param shortnames a list of shortnames c("ODCE", "Fixed 8", "RGBDAL_p250")
+#' @return dataframe of benchmark returns
+#' @export
+get_filtered_benchmark_returns = function(shortnames){
+
+  stopifnot(class(shortnames) == 'character' & length(shortnames) >= 1)
+
+  db_con = DBI::dbConnect(drv = AZASRS_DATABASE_DRIVER, dbname = AZASRS_DATABASE_LOCATION)
+
+  df = tibble::tibble(date = character(),
+                      symbol = character(),
+                      return = double())
+  for(shortname in shortnames){
+
+    inputname = shortname
+    bp_add = 1.000 # no additional points added
+
+    if(tolower(gsub(' ', '', inputname)) == 'fixed8'){
+      shortname = 'ODCE'  # Fixed 8 is always based off of the start date of ODCE data
+    }
+
+    if(endsWith(shortname, '_p250')){
+      bp_add = 1.025 # 250 basis points added
+      shortname = gsub('_p250', '', shortname)
+    }
+
+    if(endsWith(shortname, '_p350')){
+      bp_add = 1.035 # 350 basis points added
+      shortname = gsub('_p350', '', shortname)
+    }
+
+    querystring = paste0("SELECT date, symbol, shortname, longname, price FROM benchmark WHERE shortname = '", shortname , "'")
+    res = DBI::dbSendQuery(db_con, querystring)
+    dat = DBI::dbFetch(res) %>% tibble::as_tibble()
+    DBI::dbClearResult(res)
+
+    if(tolower(gsub(' ', '', inputname)) == 'fixed8'){
+      dat$price = exp(cumsum(rep(log(1.08)/365, nrow(dat))))
+    }
+
+    dat = dat %>%
+      dplyr::select(date, price) %>%
+      dplyr::mutate(price = log(price),
+             price = price - dplyr::lag(price)) %>%
+      tidyr::replace_na(list(price = 0))
+    dat$price = exp(cumsum(dat$price + (log(bp_add)/365)))
+
+    dat_z = zoo::zoo(dat$price, as.Date(dat$date))
+    dat_z_365 = interpolateDays365(dat_z)
+
+    tmp = tibble::tibble(symbol = inputname,
+                         date = as.character(zoo::index(dat_z_365)),
+                         return = dat_z_365)
+
+    df = df %>% dplyr::bind_rows(tmp)
+
+  }
+
+  DBI::dbDisconnect(db_con)
+
+  return(df)
+}
+
