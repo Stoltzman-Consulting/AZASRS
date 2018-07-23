@@ -151,7 +151,7 @@ get_filtered_benchmark_returns = function(shortnames){
     dat = dat %>%
       dplyr::select(date, price) %>%
       dplyr::mutate(price = log(price),
-             price = price - dplyr::lag(price)) %>%
+                    price = price - dplyr::lag(price)) %>%
       tidyr::replace_na(list(price = 0))
     dat$price = exp(cumsum(dat$price + (log(bp_add)/365)))
 
@@ -163,7 +163,6 @@ get_filtered_benchmark_returns = function(shortnames){
                          return = dat_z_365)
 
     df = df %>% dplyr::bind_rows(tmp)
-
   }
 
   DBI::dbDisconnect(db_con)
