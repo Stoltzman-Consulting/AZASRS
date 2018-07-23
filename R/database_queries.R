@@ -16,6 +16,23 @@ AZASRS_DATABASE_DRIVER = RSQLite::SQLite()
 
 #' Query cashflow data
 #'
+#' SELECT statement of your choosing
+#'
+#' @param sql_query SQL statement
+#' @return results from a SQL query as a data frame
+#' @export
+raw_sql_query = function(sql_query){
+  db_con = DBI::dbConnect(drv = AZASRS_DATABASE_DRIVER, dbname = AZASRS_DATABASE_LOCATION)
+  res = DBI::dbSendQuery(db_con, sql_query)
+  dat = DBI::dbFetch(res) %>% tibble::as_tibble()
+  DBI::dbClearResult(res)
+  DBI::dbDisconnect(db_con)
+  return(dat)
+}
+
+
+#' Query cashflow data
+#'
 #' SELECT statement to retrieve all cashflow data
 #'
 #' @param db_con database connection
