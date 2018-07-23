@@ -4,7 +4,7 @@
 \alias{get_filtered_cashflow}
 \title{Get cashflow}
 \usage{
-get_filtered_cashflow(shortname)
+get_filtered_cashflow(shortname, convert_365 = FALSE, return_zoo = FALSE)
 }
 \arguments{
 \item{shortname}{shortname}

@@ -4,7 +4,7 @@
 \alias{get_filtered_nav}
 \title{Get nav values}
 \usage{
-get_filtered_nav(shortname)
+get_filtered_nav(shortname, convert_365 = FALSE, return_zoo = FALSE)
 }
 \arguments{
 \item{shortname}{character - shortname is the symbol}

@@ -27,7 +27,7 @@ get_valdate = function(){
 #' @param shortname character - shortname is the symbol
 #' @return date, shortname, amount
 #' @export
-get_filtered_nav = function(shortname){
+get_filtered_nav = function(shortname, convert_365 = FALSE, return_zoo = FALSE){
   # Check parameter types
   stopifnot(class(shortname) == 'character' & length(shortname) == 1)
 
@@ -35,10 +35,21 @@ get_filtered_nav = function(shortname){
   querystring = paste0("SELECT date, shortname, amount FROM nav WHERE shortname = '", shortname, "'")
   res = DBI::dbSendQuery(db_con, querystring)
   dat = DBI::dbFetch(res) %>% tibble::as_tibble()
-  df = dat %>% tidyr::drop_na()
+  dat = dat %>% tidyr::drop_na()
   DBI::dbClearResult(res)
   DBI::dbDisconnect(db_con)
-  return(df)
+
+  if(return_zoo == TRUE){ ### relies on amount and date columns (names important)
+    dat = zoo::zoo(dat$amount, as.Date(dat$date))
+  }
+
+  if(convert_365 == TRUE){ ### relies on amount and date columns (names important)
+    dat_z = zoo::zoo(dat$amount, as.Date(dat$date))
+    dat_z_365 = interpolateDays365(dat_z)
+    dat = dat_z_365
+  }
+
+  return(dat)
 }
 
 
@@ -50,7 +61,7 @@ get_filtered_nav = function(shortname){
 #' @param shortname shortname
 #' @return date, shortname, amount
 #' @export
-get_filtered_cashflow = function(shortname){
+get_filtered_cashflow = function(shortname, convert_365 = FALSE, return_zoo = FALSE){
   # Check parameter types
   stopifnot(class(shortname) == 'character' & length(shortname) == 1)
 
@@ -58,10 +69,21 @@ get_filtered_cashflow = function(shortname){
   querystring = paste0("SELECT date, shortname, amount FROM cashflow WHERE shortname = '", shortname, "'")
   res = DBI::dbSendQuery(db_con, querystring)
   dat = DBI::dbFetch(res) %>% tibble::as_tibble()
-  df = dat %>% tidyr::drop_na()
+  dat = dat %>% tidyr::drop_na()
   DBI::dbClearResult(res)
   DBI::dbDisconnect(db_con)
-  return(df)
+
+  if(return_zoo == TRUE){ ### relies on amount and date columns (names important)
+    dat = zoo::zoo(dat$amount, as.Date(dat$date))
+  }
+
+  if(convert_365 == TRUE){ ### relies on amount and date columns (names important)
+    dat_z = zoo::zoo(dat$amount, as.Date(dat$date))
+    dat_z_365 = interpolateDays365(dat_z)
+    dat = dat_z_365
+  }
+
+  return(dat)
 }
 
 
@@ -81,12 +103,11 @@ get_filtered_benchmark = function(shortname, convert_365 = FALSE, return_zoo = F
   stopifnot(class(shortname) == 'character' & length(shortname) == 1)
 
   db_con = DBI::dbConnect(drv = AZASRS_DATABASE_DRIVER, dbname = AZASRS_DATABASE_LOCATION)
-  querystring = paste0("SELECT date, shortname, longname, price FROM benchmark WHERE shortname = '", shortname , "'")
+  querystring = paste0("SELECT date, shortname, price FROM benchmark WHERE shortname = '", shortname , "'")
   res = DBI::dbSendQuery(db_con, querystring)
-  dat = DBI::dbFetch(res) %>% tibble::as_tibble()
+  dat = DBI::dbFetch(res) %>% tibble::as_tibble() %>% tidyr::drop_na()
 
   ### INSERT functions to add log, exp, days365 etc.
-
   if(return_zoo == TRUE){ ### relies on price and date columns (names important)
     dat = zoo::zoo(dat$price, as.Date(dat$date))
   }

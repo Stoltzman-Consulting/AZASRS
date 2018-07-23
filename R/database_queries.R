@@ -6,8 +6,8 @@
 
 # Global variables
 #' @export
-#AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\asrs_temporary_db.db"
-AZASRS_DATABASE_LOCATION = "C:\\Users\\scotts\\Documents\\GitHub\\DB_Application\\asrs_temporary.db"
+AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\asrs_temporary_db.db"
+#AZASRS_DATABASE_LOCATION = "C:\\Users\\scotts\\Documents\\GitHub\\DB_Application\\asrs_temporary.db"
 
 
 #' @export
@@ -104,7 +104,7 @@ pull_benchmark = function(){
 
   querystring = paste0("SELECT * FROM benchmark")
   res = DBI::dbSendQuery(db_con, querystring)
-  dat = DBI::dbFetch(res)
+  dat = DBI::dbFetch(res) %>% tibble::as_tibble()
   DBI::dbClearResult(res)
 
   ### INSERT functions to add log, exp, days365 etc?

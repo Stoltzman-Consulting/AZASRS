@@ -18,4 +18,6 @@ dataframe of shortname, longname, date, price (adds in log price of ODCE as Fixe
 }
 \description{
 SELECT statement to retrieve benchmark data filtered by shortname
+If 'Fixed 8' is desired, it can be entered as a shortname but it does not come from the database
+Fixed 8 is calculated off of the length of ODCE returned from the database
 }
