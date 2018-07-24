@@ -14,16 +14,16 @@ get_cashflow = function(from_date = '2017-01-01', short_name = '', return_type =
     df = dplyr::tbl(db_con, "cashflow") %>%
       dplyr::select(date, shortname, amount) %>%
       dplyr::filter(date >= from_date) %>%
-      dplyr::mutate(date = as.Date(date)) %>%
-      dplyr::arrange(date)
+      tibble::as_tibble()
+    DBI::dbDisconnect(db_con)
 
   } else {
     df = dplyr::tbl(db_con, "cashflow") %>%
       dplyr::select(date, shortname, amount) %>%
       dplyr::filter(date >= from_date) %>%
       dplyr::filter(shortname == short_name) %>%
-      dplyr::mutate(date = as.Date(date)) %>%
-      dplyr::arrange(date)
+      tibble::as_tibble()
+    DBI::dbDisconnect(db_con)
 
   }
 

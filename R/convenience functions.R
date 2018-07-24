@@ -11,22 +11,22 @@ interpolateDays365 = function(zoo_object){
 }
 
 
-#' For the express use within get_variables functions
+#' Temporary patch for x.all
 #' @export
-modify_365_zoo = function(data_frame, return_zoo, convert_365){
+get_x.all = function(){
+  cf = get_cashflow()
+  nav = pull_nav()
+  fi = pull_fundinfo()
+  df_nav = nav %>%
+    dplyr::left_join(fi, by = c('shortname' = 'short')) %>%
+    dplyr::mutate(type = 'V')
+  df_cf = cf %>%
+    dplyr::left_join(fi, by = c('shortname' = 'short'))%>%
+    dplyr::mutate(type = 'C')
+  df = dplyr::bind_rows(df_nav, df_cf)
+  return(df)
+}
 
-  dat = data_frame
-
-  if(return_zoo == TRUE){ ### relies on price and date columns (names important)
-    dat = zoo::zoo(dat$price, as.Date(dat$date))
-  }
-
-  if(convert_365 == TRUE){ ### relies on price and date columns (names important)
-    dat_z = zoo::zoo(dat$price, as.Date(dat$date))
-    dat_z_365 = interpolateDays365(dat_z)
-    dat = dat_z_365
-  }
-
-  return(dat)
-
+get_y.v.hv = function(){
+  df = pull_nav()
 }

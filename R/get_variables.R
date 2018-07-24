@@ -190,4 +190,3 @@ get_filtered_benchmark_returns = function(shortnames){
 
   return(df)
 }
-
