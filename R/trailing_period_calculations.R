@@ -45,7 +45,7 @@ trailing_period_irr = function(shortname = 'Total PE',
   # Calculation and manipulation
   cf.combine = cf %>%
     dplyr::filter(date <= valdate) %>%
-    dplyr::filter(date >= prev_qtr) %>%
+    dplyr::filter(date > prev_qtr) %>%
     dplyr::bind_rows(val %>% dplyr::filter(date == as.character(valdate) | date == as.character(prev_qtr))) %>%
     dplyr::group_by(date) %>%
     dplyr::summarize(amount = sum(amount)) %>%
@@ -90,3 +90,5 @@ trailing_period_irr = function(shortname = 'Total PE',
 
   return(irr_df)
 }
+
+
