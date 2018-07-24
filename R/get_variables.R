@@ -144,20 +144,16 @@ get_filtered_benchmark_returns = function(shortnames){
   for(shortname in shortnames){
 
     inputname = shortname
-    bp_add = 1.000 # no additional points added
+
+    if(grepl('_p', inputname) == TRUE){
+      bp_add = 1 + ((as.numeric(strsplit(inputname, '_p')[[1]][2]) / 100) / 100)
+      shortname = gsub("_p.*", "", inputname)
+    } else {
+      bp_add = 1.000 # no additional points added
+    }
 
     if(tolower(gsub(' ', '', inputname)) == 'fixed8'){
       shortname = 'ODCE'  # Fixed 8 is always based off of the start date of ODCE data
-    }
-
-    if(endsWith(shortname, '_p250')){
-      bp_add = 1.025 # 250 basis points added
-      shortname = gsub('_p250', '', shortname)
-    }
-
-    if(endsWith(shortname, '_p350')){
-      bp_add = 1.035 # 350 basis points added
-      shortname = gsub('_p350', '', shortname)
     }
 
     querystring = paste0("SELECT date, symbol, shortname, longname, price FROM benchmark WHERE shortname = '", shortname , "'")
