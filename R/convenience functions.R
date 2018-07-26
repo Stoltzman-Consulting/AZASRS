@@ -10,23 +10,16 @@ interpolateDays365 = function(zoo_object){
   return(z_final)
 }
 
-
-#' Temporary patch for x.all
 #' @export
-get_x.all = function(){
-  cf = get_cashflow()
-  nav = pull_nav()
-  fi = pull_fundinfo()
-  df_nav = nav %>%
-    dplyr::left_join(fi, by = c('shortname' = 'short')) %>%
-    dplyr::mutate(type = 'V')
-  df_cf = cf %>%
-    dplyr::left_join(fi, by = c('shortname' = 'short'))%>%
-    dplyr::mutate(type = 'C')
-  df = dplyr::bind_rows(df_nav, df_cf)
-  return(df)
-}
+quarters_between_dates = function(start_date, end_date) {
 
-get_y.v.hv = function(){
-  df = pull_nav()
+  if(class(start_date) == 'character' & class(end_date) == 'character'){
+    start_date = as.Date(start_date)
+    end_date = as.Date(end_date)
+  }
+
+  Vec = as.Date(levels(cut(seq.Date(start_date, end_date, by = "month"),
+                            breaks = "quarter")))
+
+  return(Vec[-1] - 1)
 }
