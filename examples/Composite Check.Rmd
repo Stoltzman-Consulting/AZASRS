@@ -1,0 +1,72 @@
+---
+title: "Composite Check"
+author: "Scott Stoltzman"
+date: "October 11, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library('AZASRS')
+library('tidyverse')
+library('dbplyr')
+library('knitr')
+library('kableExtra')
+con = dbCon
+```
+
+## Example 1 - US Large Cap Equity - Check against total - Using individual tables
+
+### US large equity accounts  
+
+```{r}
+a1 = a_i(con) %>% 
+  left_join(ca(con), by = c('category_id' = 'id')) %>% 
+  filter(name == 'Large') %>% 
+  select(ssbt_id) %>%
+  left_join(b_o_r_d(con), by = c('ssbt_id' = 'ssbt_id')) %>%
+  select(effective_date, ssbt_id, ending_market_value) %>%
+  as_tibble() %>% 
+  spread(key = ssbt_id, value = ending_market_value) %>%
+  replace(., is.na(.), 0) %>%
+  mutate(sumFunds = rowSums(.[,-1])) %>%
+  select(effective_date, sumFunds)
+
+a1 %>% 
+  head() %>%
+  kable()
+```
+
+
+#### Composite totals
+```{r}
+a2 = s_c_i(con) %>%
+  left_join(ca(con), by = c('category_id' = 'id')) %>% 
+  filter(name == 'Large') %>% 
+  left_join(s_c(con), by = c('ssbt_composite_id' = 'ssbt_composite_id')) %>%
+  left_join(a_i(con), by = c('ssbt_id' = 'ssbt_id')) %>%
+  select(ssbt_id) %>%
+  left_join(b_o_r_d(con), by = c('ssbt_id' = 'ssbt_id')) %>%
+  select(effective_date, ending_market_value) %>%
+  group_by(effective_date) %>%
+  summarize(sumFunds = sum(ending_market_value)) %>%
+  as_tibble() %>%
+  replace(., is.na(.), 0)
+
+a2 %>% 
+  head() %>%
+  kable()
+```
+
+#### Difference between composite totals and equity accounts
+```{r}
+a3 = a2 %>% 
+  left_join(a1, by = c('effective_date' = 'effective_date')) %>%
+  mutate(Delta = sumFunds.x - sumFunds.y)
+
+a3 %>%
+  kable()
+```
+
+
+
