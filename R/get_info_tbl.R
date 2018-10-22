@@ -25,10 +25,10 @@ get_tbl_info = function(tbl_name, ..., con = AZASRS_DATABASE_CONNECTION()){
   usr_tbl = dplyr::tbl(con, tbl_name)
 
   dat = usr_tbl %>%
-    dplyr::left_join(tbl_category(con), by = c('category_id' = 'id')) %>% mutate(name.category = name) %>%
-    dplyr::left_join(tbl_portfolio(con), by = c('portfolio_id' = 'id')) %>% mutate(name.portfolio = name.y) %>%
-    dplyr::left_join(tbl_asset_class(con), by = c('asset_class_id' = 'id')) %>% mutate(name.asset_class = name) %>%
-    dplyr::left_join(tbl_sub_portfolio(con), by = c('sub_portfolio_id' = 'id')) %>% mutate(name.sub_portfolio = name.y.y)
+    dplyr::left_join(tbl_category(con), by = c('category_id' = 'id')) %>% dplyr::mutate(name.category = name) %>%
+    dplyr::left_join(tbl_portfolio(con), by = c('portfolio_id' = 'id')) %>% dplyr::mutate(name.portfolio = name.y) %>%
+    dplyr::left_join(tbl_asset_class(con), by = c('asset_class_id' = 'id')) %>% dplyr::mutate(name.asset_class = name) %>%
+    dplyr::left_join(tbl_sub_portfolio(con), by = c('sub_portfolio_id' = 'id')) %>%dplyr:: mutate(name.sub_portfolio = name.y.y)
 
   if("category" %in% param_names){ dat = dat %>% dplyr::filter(name.category == params$category) }
   if("portfolio" %in% param_names){ dat = dat %>% dplyr::filter(name.portfolio == params$portfolio) }
@@ -36,7 +36,7 @@ get_tbl_info = function(tbl_name, ..., con = AZASRS_DATABASE_CONNECTION()){
   if("sub_portfolio" %in% param_names){ dat = dat %>% dplyr::filter(name.sub_portfolio == params$sub_portfolio) }
 
   dat = dat %>%
-    select(ssbt_id, description, name.category, name.portfolio, name.asset_class, name.sub_portfolio)
+    dplyr::select(ssbt_id, description, name.category, name.portfolio, name.asset_class, name.sub_portfolio)
 
   return(dat %>% tibble::as_tibble())
 }
