@@ -36,7 +36,8 @@ get_tbl_info = function(tbl_name, ..., con = AZASRS_DATABASE_CONNECTION()){
   if("sub_portfolio" %in% param_names){ dat = dat %>% dplyr::filter(name.sub_portfolio == params$sub_portfolio) }
 
   dat = dat %>%
-    dplyr::select(ssbt_id, description, name.category, name.portfolio, name.asset_class, name.sub_portfolio)
+    dplyr::select(name.asset_class, name.category, name.portfolio, name.sub_portfolio, description, ssbt_id) %>%
+    dplyr::rename(asset_class = name.asset_class, category = name.category, portfolio = name.portfolio, sub_portfolio = name.sub_portfolio)
 
   return(dat %>% tibble::as_tibble())
 }
