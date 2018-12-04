@@ -1,7 +1,8 @@
 
 # Global variables
 #' @export
-AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\asrs.db"
+#AZASRS_DATABASE_LOCATION = "C:\\Users\\scotts\\Documents\\GitHub\\ASRS-Application\\database\\asrs.db"
+AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\asrs_new.db"
 
 #' @export
 AZASRS_DATABASE_DRIVER = RSQLite::SQLite()
@@ -35,6 +36,24 @@ tbl_category = function(con){dplyr::tbl(con, "category")}
 
 #' @export
 tbl_portfolio = function(con){dplyr::tbl(con, "portfolio")}
+
+#' @export
+tbl_previous_saa = function(con){dplyr::tbl(con, "previous_saa")}
+
+#' @export
+tbl_sponsor = function(con){dplyr::tbl(con, "sponsor")}
+
+#' @export
+tbl_saa_benchmark = function(con){dplyr::tbl(con, "saa_benchmark")}
+
+#' @export
+tbl_imp_benchmark = function(con){dplyr::tbl(con, "imp_benchmark")}
+
+#' @export
+tbl_ticker = function(con){dplyr::tbl(con, "ticker")}
+
+#' @export
+tbl_city = function(con){dplyr::tbl(con, "city")}
 
 #' @export
 tbl_benchmark_info = function(con){dplyr::tbl(con, "benchmark_info")}

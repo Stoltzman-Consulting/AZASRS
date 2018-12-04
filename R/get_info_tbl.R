@@ -23,21 +23,38 @@ get_tbl_info = function(tbl_name, ..., con = AZASRS_DATABASE_CONNECTION()){
   # s_p = dplyr::tbl(con, "sub_portfolio")
 
   usr_tbl = dplyr::tbl(con, tbl_name)
+  dat = usr_tbl
 
   dat = usr_tbl %>%
-    dplyr::left_join(tbl_category(con), by = c('category_id' = 'id')) %>% dplyr::mutate(name.category = name) %>%
-    dplyr::left_join(tbl_portfolio(con), by = c('portfolio_id' = 'id')) %>% dplyr::mutate(name.portfolio = name.y) %>%
-    dplyr::left_join(tbl_asset_class(con), by = c('asset_class_id' = 'id')) %>% dplyr::mutate(name.asset_class = name) %>%
-    dplyr::left_join(tbl_sub_portfolio(con), by = c('sub_portfolio_id' = 'id')) %>%dplyr:: mutate(name.sub_portfolio = name.y.y)
+    dplyr::left_join(tbl_category(con), by = c('category_id' = 'id')) %>%
+    dplyr::left_join(tbl_portfolio(con), by = c('portfolio_id' = 'id')) %>%
+    dplyr::left_join(tbl_asset_class(con), by = c('asset_class_id' = 'id')) %>%
+    dplyr::left_join(tbl_sub_portfolio(con), by = c('sub_portfolio_id' = 'id'))
 
-  if("category" %in% param_names){ dat = dat %>% dplyr::filter(name.category == params$category) }
-  if("portfolio" %in% param_names){ dat = dat %>% dplyr::filter(name.portfolio == params$portfolio) }
-  if("asset_class" %in% param_names){ dat = dat %>% dplyr::filter(name.asset_class == params$asset_class) }
-  if("sub_portfolio" %in% param_names){ dat = dat %>% dplyr::filter(name.sub_portfolio == params$sub_portfolio) }
+  if(tbl_name == "account_info"){
+    dat = dat %>%
+      dplyr::left_join(tbl_previous_saa(con), by = c('previous_saa_id' = 'id')) %>%
+      dplyr::left_join(tbl_sponsor(con), by = c('sponsor_id' = 'id')) %>%
+      dplyr::left_join(tbl_saa_benchmark(con), by = c('saa_benchmark_id' = 'id')) %>%
+      dplyr::left_join(tbl_imp_benchmark(con), by = c('imp_benchmark_id' = 'id')) %>%
+      dplyr::left_join(tbl_ticker(con), by = c('ticker_id' = 'id')) %>%
+      dplyr::left_join(tbl_city(con), by = c('city_id' = 'id'))
+  }
+
+  if("category" %in% param_names){ dat = dat %>% dplyr::filter(category == params$category) }
+  if("portfolio" %in% param_names){ dat = dat %>% dplyr::filter(portfolio == params$portfolio) }
+  if("asset_class" %in% param_names){ dat = dat %>% dplyr::filter(asset_class == params$asset_class) }
+  if("sub_portfolio" %in% param_names){ dat = dat %>% dplyr::filter(sub_portfolio == params$sub_portfolio) }
+  if("previous_saa" %in% param_names){ dat = dat %>% dplyr::filter(previous_saa == params$previous_saa) }
+  if("sponsor" %in% param_names){ dat = dat %>% dplyr::filter(sponsor == params$sponsor) }
+  if("saa_benchmark" %in% param_names){ dat = dat %>% dplyr::filter(saa_benchmark == params$saa_benchmark) }
+  if("imp_benchmark" %in% param_names){ dat = dat %>% dplyr::filter(imp_benchmark == params$imp_benchmark) }
+  if("ticker" %in% param_names){ dat = dat %>% dplyr::filter(ticker == params$ticker) }
+  if("city" %in% param_names){ dat = dat %>% dplyr::filter(city == params$city) }
 
   dat = dat %>%
-    dplyr::select(name.asset_class, name.category, name.portfolio, name.sub_portfolio, description, ssbt_id) %>%
-    dplyr::rename(asset_class = name.asset_class, category = name.category, portfolio = name.portfolio, sub_portfolio = name.sub_portfolio)
+    dplyr::select(-benchmark_info_id, -asset_class_id, -portfolio_id, -sub_portfolio_id,
+                  -category_id, -previous_saa_id, -sponsor_id, -saa_benchmark_id, -imp_benchmark_id, -ticker_id, -city_id)
 
   return(dat %>% tibble::as_tibble())
 }
