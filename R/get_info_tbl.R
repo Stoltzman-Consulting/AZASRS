@@ -2,10 +2,10 @@
 #' Query major info tables from database
 #'
 #' @param tbl_name is the name of the major info table (choose one): pm_fund_info, ssbt_composite_info, account_info
-#' @param ... are for filtering the tables, can take values: category, portfolio, asset_class, sub_portfolio
+#' @param ... are for filtering the tables, can take values: category, portfolio, asset_class, sub_portfolio, previous_saa, sponsor, saa_benchmark, imp_benchmark, ticker, city
 #' @return Returns a tibble of all of the data
 #' @examples
-#' get_tbl_info('pm_fund_info', sub_portfolio = 'Equity')
+#' get_tbl_info('pm_fund_info', sub_portfolio = 'Domestic')
 #' @export
 get_tbl_info = function(tbl_name, ..., con = AZASRS_DATABASE_CONNECTION()){
 
@@ -15,12 +15,6 @@ get_tbl_info = function(tbl_name, ..., con = AZASRS_DATABASE_CONNECTION()){
 
   params = list(...)
   param_names = names(params)
-
-  # Always joining to info tables
-  # ca = dplyr::tbl(con, "category")
-  # po = dplyr::tbl(con, "portfolio")
-  # a_c = dplyr::tbl(con, "asset_class")
-  # s_p = dplyr::tbl(con, "sub_portfolio")
 
   usr_tbl = dplyr::tbl(con, tbl_name)
   dat = usr_tbl
