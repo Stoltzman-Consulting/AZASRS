@@ -35,16 +35,12 @@ get_tbl_info = function(tbl_name, ..., con = AZASRS_DATABASE_CONNECTION()){
       dplyr::left_join(tbl_city(con), by = c('city_id' = 'id'))
   }
 
-  if("category" %in% param_names){ dat = dat %>% dplyr::filter(category == params$category) }
-  if("portfolio" %in% param_names){ dat = dat %>% dplyr::filter(portfolio == params$portfolio) }
-  if("asset_class" %in% param_names){ dat = dat %>% dplyr::filter(asset_class == params$asset_class) }
-  if("sub_portfolio" %in% param_names){ dat = dat %>% dplyr::filter(sub_portfolio == params$sub_portfolio) }
-  if("previous_saa" %in% param_names){ dat = dat %>% dplyr::filter(previous_saa == params$previous_saa) }
-  if("sponsor" %in% param_names){ dat = dat %>% dplyr::filter(sponsor == params$sponsor) }
-  if("saa_benchmark" %in% param_names){ dat = dat %>% dplyr::filter(saa_benchmark == params$saa_benchmark) }
-  if("imp_benchmark" %in% param_names){ dat = dat %>% dplyr::filter(imp_benchmark == params$imp_benchmark) }
-  if("ticker" %in% param_names){ dat = dat %>% dplyr::filter(ticker == params$ticker) }
-  if("city" %in% param_names){ dat = dat %>% dplyr::filter(city == params$city) }
+  if(len(param_names) > 0){
+    for(param in param_names){
+      dat = dat %>%
+        dplyr::filter(quote(param) == params[params[param]])
+    }
+  }
 
   dat = dat %>%
     dplyr::select(-benchmark_info_id, -asset_class_id, -portfolio_id, -sub_portfolio_id,
