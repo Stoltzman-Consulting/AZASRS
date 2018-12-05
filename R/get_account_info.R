@@ -1,21 +1,16 @@
 
-#' Query major info tables from database
+#' Query account info table from database
 #'
-#' @param tbl_name is the name of the major info table (choose one): pm_fund_info, ssbt_composite_info, account_info
 #' @param ... are for filtering the tables, can take values: category, portfolio, asset_class, sub_portfolio, previous_saa, sponsor, saa_benchmark, imp_benchmark, ticker, city
 #' @return Returns a tibble of all of the data
 #' @examples
-#' get_tbl_info('pm_fund_info', sub_portfolio = 'Domestic')
+#' get_account_info(asset_class == 'Equities', category == 'Large')
 #' @export
-get_tbl_info = function(tbl_name, ..., con = AZASRS_DATABASE_CONNECTION()){
+get_account_info = function(..., con = AZASRS_DATABASE_CONNECTION()){
 
-  if(!(tbl_name %in% c("pm_fund_info", "ssbt_composite_info", "account_info"))){
-    return("Table name must be one the following: 'pm_fund_info', 'ssbt_composite_info', 'account_info'")
-  }
+  tbl_name = 'account_info'
 
-  params = list(...)
-  param_names = names(params)
-
+  args = rlang::enexprs(...)
   usr_tbl = dplyr::tbl(con, tbl_name)
   dat = usr_tbl
 
@@ -35,16 +30,14 @@ get_tbl_info = function(tbl_name, ..., con = AZASRS_DATABASE_CONNECTION()){
       dplyr::left_join(tbl_city(con), by = c('city_id' = 'id'))
   }
 
-  if(len(param_names) > 0){
-    for(param in param_names){
-      dat = dat %>%
-        dplyr::filter(quote(param) == params[params[param]])
-    }
-  }
-
   dat = dat %>%
     dplyr::select(-benchmark_info_id, -asset_class_id, -portfolio_id, -sub_portfolio_id,
                   -category_id, -previous_saa_id, -sponsor_id, -saa_benchmark_id, -imp_benchmark_id, -ticker_id, -city_id)
+
+  if(length(args) > 0){
+    dat = dat %>%
+      dplyr::filter(!!! args)
+  }
 
   return(dat %>% tibble::as_tibble())
 }
