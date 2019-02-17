@@ -9,7 +9,6 @@
 get_account_info = function(..., con = AZASRS_DATABASE_CONNECTION()){
 
   args = rlang::enexprs(...)
-  tbl_name = 'account_info'
 
   dat = tbl_account_info(con)
 
@@ -20,12 +19,14 @@ get_account_info = function(..., con = AZASRS_DATABASE_CONNECTION()){
     dplyr::left_join(tbl_sub_portfolio(con), by = c('sub_portfolio_id' = 'sub_portfolio_id')) %>%
     dplyr::left_join(tbl_previous_saa(con), by = c('previous_saa_id' = 'previous_saa_id')) %>%
     dplyr::left_join(tbl_sponsor(con), by = c('sponsor_id' = 'sponsor_id')) %>%
-    dplyr::left_join(tbl_saa_benchmark(con), by = c('saa_benchmark_id' = 'saa_benchmark_id')) %>%
-    dplyr::left_join(tbl_imp_benchmark(con), by = c('imp_benchmark_id' = 'imp_benchmark_id'))
+    dplyr::left_join(tbl_benchmark_info(con), by = c('saa_benchmark_id' = 'benchmark_info_id')) %>%
+    dplyr::left_join(tbl_benchmark_info(con), by = c('imp_benchmark_id' = 'benchmark_info_id'))
 
   dat = dat %>%
-    dplyr::select(-asset_class_id, -portfolio_id, -sub_portfolio_id,
-                  -category_id, -previous_saa_id, -sponsor_id, -saa_benchmark_id, -imp_benchmark_id, -previous_saa_id)
+    dplyr::select(-asset_class_id, -portfolio_id, -sub_portfolio_id, -saa_benchmark_id,
+                  -benchmark_description.x, -benchmark_description.y, -imp_benchmark_id,
+                  -category_id, -previous_saa_id, -sponsor_id, -previous_saa_id) %>%
+    dplyr::rename(saa_benchmark_id = benchmark_id.x, imp_benchmark_id = benchmark_id.y)
 
   if(length(args) > 0){
     dat = dat %>%
