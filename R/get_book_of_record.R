@@ -20,11 +20,9 @@ get_book_of_record = function(record_type, frequency, ..., con = AZASRS_DATABASE
       dat = tbl_book_of_record_composite_monthly(con)
     }
 
-    if(length(args) > 0){
-      ssbt_i = get_account_info(..., con = con)
-      dat = ai %>%
-        dplyr::left_join(dat, by = c('ssbt_composite_info_id' = 'ssbt_composite_info_id'), copy = TRUE)
-    }
+    ssbt_i = get_ssbt_composite_info(...)
+    dat = ssbt_i %>%
+      dplyr::left_join(dat, by = c('ssbt_composite_info_id' = 'ssbt_composite_info_id'), copy = TRUE)
 
   }
 
