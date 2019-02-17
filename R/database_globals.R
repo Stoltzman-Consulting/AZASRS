@@ -40,7 +40,7 @@ tbl_category = function(con){dplyr::tbl(con, "category")}
 tbl_city = function(con){dplyr::tbl(con, "city")}
 
 #' @export
-tbl_pm_cashflow_daily = function(con){dplyr::tbl(con, "pm_cashflow_daily")}
+tbl_pm_cash_flow_daily = function(con){dplyr::tbl(con, "pm_cash_flow_daily")}
 
 #' @export
 tbl_pm_fund_info = function(con){dplyr::tbl(con, "pm_fund_info")}
