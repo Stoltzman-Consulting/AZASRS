@@ -6,11 +6,11 @@
 #' @examples
 #' get_ssbt_composite_info(asset_class == 'Equities', category == 'Large')
 #' @export
-get_ssbt_composite_info = function(..., con = AZASRS_DATABASE_CONNECTION()){
+get_ssbt_composite_info = function(...){
 
   args = rlang::enexprs(...)
 
-  dat = ssbt_composite_info(con)
+  dat = ssbt_composite_info()
 
   if(length(args) > 0){
     dat = dat %>%

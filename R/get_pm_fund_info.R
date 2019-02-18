@@ -6,11 +6,11 @@
 #' @examples
 #' get_pm_fund_info(asset_class == 'Equities', category == 'Large')
 #' @export
-get_pm_fund_info = function(..., con = AZASRS_DATABASE_CONNECTION()){
+get_pm_fund_info = function(...){
 
   args = rlang::enexprs(...)
 
-  dat = pm_fund_info(con)
+  dat = pm_fund_info()
 
   if(length(args) > 0){
     dat = dat %>%
