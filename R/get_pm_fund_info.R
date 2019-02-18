@@ -1,16 +1,16 @@
 
-#' Query account info table from database
+#' Query pm_fund_info table from database
 #'
 #' @param ... are for filtering the tables, can take values: category, portfolio, asset_class, sub_portfolio, previous_saa, sponsor, saa_benchmark, imp_benchmark, ticker, city
 #' @return Returns a tibble of all of the data
 #' @examples
-#' get_account_info(asset_class == 'Equities', category == 'Large')
+#' get_pm_fund_info(asset_class == 'Equities', category == 'Large')
 #' @export
-get_account_info = function(...){
+get_pm_fund_info = function(...){
 
   args = rlang::enexprs(...)
 
-  dat = account_info()
+  dat = pm_fund_info()
 
   if(length(args) > 0){
     dat = dat %>%
