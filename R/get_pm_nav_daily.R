@@ -11,10 +11,10 @@ get_pm_nav_daily = function(..., con = AZASRS_DATABASE_CONNECTION()){
 
   dat = tbl_pm_nav_daily(con)
 
-  pmfi = get_pm_fund_info()
+  pmfi = pm_fund_info(con = con, return_tibble=FALSE)
 
   dat = dat %>%
-    dplyr::left_join(pmfi, by = c('pm_fund_info_id' = 'pm_fund_info_id'), copy = TRUE)
+    dplyr::left_join(pmfi, by = c('pm_fund_info_id' = 'pm_fund_info_id'))
 
   if(length(args) > 0){
     dat = dat %>%
