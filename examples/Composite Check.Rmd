@@ -20,7 +20,7 @@ composite_to_check = 'ASRSA060'
 
 ### Process:  
 
-We are looking to compare tables: `book_of_record_composite_daily` and `book_of_record_account_daily` to `ending_market_value` is consistent across tables. This shows aggregating by account will lead to the same output as utilizing the composite data. Therefore, you can feel comfortable creating your own composites by selecting accounts and aggregating them.
+We are looking to compare tables: `book_of_record_composite_daily` and `book_of_record_account_daily` to `ending_market_value` is consistent across tables. This shows aggregating by account will lead to the same output as utilizing the composite data. Therefore, you can feel comfortable creating your own composites by selecting accounts and aggregating them. 
 
 #### Assumptions:  
 
