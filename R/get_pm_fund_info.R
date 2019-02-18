@@ -10,17 +10,7 @@ get_pm_fund_info = function(..., con = AZASRS_DATABASE_CONNECTION()){
 
   args = rlang::enexprs(...)
 
-  dat = tbl_pm_fund_info(con)
-
-  dat = dat %>%
-    dplyr::left_join(tbl_category(con), by = c('category_id' = 'category_id')) %>%
-    dplyr::left_join(tbl_portfolio(con), by = c('portfolio_id' = 'portfolio_id')) %>%
-    dplyr::left_join(tbl_sponsor(con), by = c('sponsor_id' = 'sponsor_id')) %>%
-    dplyr::left_join(tbl_city(con), by = c('city_id' = 'city_id')) %>%
-    dplyr::left_join(tbl_benchmark_info(con), by = c('benchmark_info_id' = 'benchmark_info_id'))
-
-  dat = dat %>%
-    dplyr::select(-category_id, -portfolio_id, -sponsor_id, -city_id, -benchmark_info_id)
+  dat = pm_fund_info(con)
 
   if(length(args) > 0){
     dat = dat %>%

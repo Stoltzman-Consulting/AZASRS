@@ -10,58 +10,79 @@ AZASRS_DATABASE_DRIVER = RSQLite::SQLite()
 #' @export
 AZASRS_DATABASE_CONNECTION = function(){ return(dplyr::src_sqlite(AZASRS_DATABASE_LOCATION)) }
 
+# All existing views
+#' @export
+account_info = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
+  dat = dplyr::tbl(con, "all_account_info")
+  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
+  return(dat)}
+
+#' @export
+ssbt_composite_info = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
+  dat = dplyr::tbl(con, "all_ssbt_composite_info")
+  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
+  return(dat)}
+
+#' @export
+pm_fund_info = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
+  dat = dplyr::tbl(con, "all_pm_fund_info")
+  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
+  return(dat)}
+
+
+
 # All existing tables
 
 #' @export
-tbl_account_info = function(con){df = dplyr::tbl(con, "account_info")}
+tbl_account_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "account_info")}
 
 #' @export
-tbl_asset_class = function(con){dplyr::tbl(con, "asset_class")}
+tbl_asset_class = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "asset_class")}
 
 #' @export
-tbl_benchmark_info = function(con){dplyr::tbl(con, "benchmark_info")}
+tbl_benchmark_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "benchmark_info")}
 
 #' @export
-tbl_book_of_record_account_daily = function(con){dplyr::tbl(con, "book_of_record_account_daily")}
+tbl_book_of_record_account_daily = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "book_of_record_account_daily")}
 
 #' @export
-tbl_book_of_record_account_monthly = function(con){dplyr::tbl(con, "book_of_record_account_monthly")}
+tbl_book_of_record_account_monthly = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "book_of_record_account_monthly")}
 
 #' @export
-tbl_book_of_record_composite_daily = function(con){dplyr::tbl(con, "book_of_record_composite_daily")}
+tbl_book_of_record_composite_daily = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "book_of_record_composite_daily")}
 
 #' @export
-tbl_book_of_record_composite_monthly = function(con){dplyr::tbl(con, "book_of_record_composite_monthly")}
+tbl_book_of_record_composite_monthly = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "book_of_record_composite_monthly")}
 
 #' @export
-tbl_category = function(con){dplyr::tbl(con, "category")}
+tbl_category = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "category")}
 
 #' @export
-tbl_city = function(con){dplyr::tbl(con, "city")}
+tbl_city = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "city")}
 
 #' @export
-tbl_pm_cash_flow_daily = function(con){dplyr::tbl(con, "pm_cash_flow_daily")}
+tbl_pm_cash_flow_daily = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "pm_cash_flow_daily")}
 
 #' @export
-tbl_pm_fund_info = function(con){dplyr::tbl(con, "pm_fund_info")}
+tbl_pm_fund_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "pm_fund_info")}
 
 #' @export
-tbl_pm_nav_daily = function(con){dplyr::tbl(con, "pm_nav_daily")}
+tbl_pm_nav_daily = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "pm_nav_daily")}
 
 #' @export
-tbl_portfolio = function(con){dplyr::tbl(con, "portfolio")}
+tbl_portfolio = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "portfolio")}
 
 #' @export
-tbl_previous_saa = function(con){dplyr::tbl(con, "previous_saa")}
+tbl_previous_saa = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "previous_saa")}
 
 #' @export
-tbl_sponsor = function(con){dplyr::tbl(con, "sponsor")}
+tbl_sponsor = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "sponsor")}
 
 #' @export
-tbl_ssbt_composite_info = function(con){dplyr::tbl(con, "ssbt_composite_info")}
+tbl_ssbt_composite_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "ssbt_composite_info")}
 
 #' @export
-tbl_ssbt_composite_info_account_info = function(con){dplyr::tbl(con, "ssbt_composite_info_account_info")}
+tbl_ssbt_composite_info_account_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "ssbt_composite_info_account_info")}
 
 #' @export
-tbl_sub_portfolio = function(con){dplyr::tbl(con, "sub_portfolio")}
+tbl_sub_portfolio = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "sub_portfolio")}
