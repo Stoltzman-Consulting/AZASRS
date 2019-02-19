@@ -1,8 +1,9 @@
 
 # Global variables
 #' @export
-AZASRS_DATABASE_LOCATION = "C:\\Users\\scotts\\Desktop\\2018 Database Project\\Database\\asrs_database.db"
-#AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\asrs_new.db"
+AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\asrs_new.db"
+# AZASRS_DATABASE_LOCATION = "C:\\Users\\scotts\\Desktop\\2018 Database Project\\Database\\asrs_database.db" ##For local development only
+
 
 #' @export
 AZASRS_DATABASE_DRIVER = RSQLite::SQLite()
