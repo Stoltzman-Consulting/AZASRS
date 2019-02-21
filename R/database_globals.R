@@ -1,8 +1,8 @@
 
 # Global variables
 #' @export
-AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\Database\\asrs_database.db"
-# AZASRS_DATABASE_LOCATION = "C:\\Users\\scotts\\Desktop\\2018 Database Project\\Database\\asrs_database.db" ##For local development only
+#AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\Database\\asrs_database.db"
+AZASRS_DATABASE_LOCATION = "C:\\Users\\scotts\\Desktop\\2018 Database Project\\Database\\asrs_database.db" ##For local development only
 
 
 #' @export
@@ -30,7 +30,19 @@ pm_fund_info = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
   if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
   return(dat)}
 
+#' @export
+benchmark_daily_return = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
+  dat = tbl_benchmark_daily_return(con) %>%
+    left_join(tbl_benchmark_info(con), by = 'benchmark_info_id')
+  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
+  return(dat)}
 
+#' @export
+benchmark_monthly_return = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
+  dat = tbl_benchmark_monthly_return(con) %>%
+    left_join(tbl_benchmark_info(con), by = 'benchmark_info_id')
+  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
+  return(dat)}
 
 # All existing tables
 
@@ -41,7 +53,13 @@ tbl_account_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, 
 tbl_asset_class = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "asset_class")}
 
 #' @export
+tbl_benchmark_daily_return = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "benchmark_daily_return")}
+
+#' @export
 tbl_benchmark_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "benchmark_info")}
+
+#' @export
+tbl_benchmark_monthly_return = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "benchmark_monthly_return")}
 
 #' @export
 tbl_book_of_record_account_daily = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "book_of_record_account_daily")}

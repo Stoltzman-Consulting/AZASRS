@@ -707,8 +707,8 @@ ASRSA075
 </table>
 </div>
 </div>
-<div id="difference-between-composite-totals-and-equity-accounts" class="section level4">
-<h4>Difference between composite totals and equity accounts</h4>
+<div id="difference-between-composite-and-accounts" class="section level4">
+<h4>Difference between composite and accounts</h4>
 <pre class="r"><code>check = comps %&gt;% 
   left_join(accts, by = 'ssbt_composite_id', suffix = c(&quot;.composites&quot;, &quot;.accounts&quot;)) %&gt;%
   mutate(Delta = sumFunds.composites - sumFunds.accounts,
