@@ -2,7 +2,11 @@
 title: "Reproducing Performance Recon V3"
 author: "Scott"
 date: "February 21, 2019"
-output: pdf_document
+output:
+  pdf_document: default
+  html_notebook: default
+  html_document:
+    df_print: paged
 ---
 
 ```{r load_packages, message=FALSE, warning=FALSE, include=FALSE}
@@ -21,6 +25,7 @@ library(bookdown)
 library(kableExtra)
 library(formattable)
 library("DBI")
+source("recon_functions/helpers.R")
 options(scipen = 999)
 #Toggle for writing data frames to the excel files
 write_file <- TRUE
@@ -38,59 +43,147 @@ path.rds <- "P:/IMD/IMD Vista/ASSET ALLOCATION REPORTS/R Scripts/Daily_Recon/RDS
 ```
 
 
-```{r load_MYSS_data}
+```{r load_MYSS_data, message=FALSE, warning=FALSE}
+# TODO: convert to view
 daily.data.account = tbl_book_of_record_account_daily(con) %>%
   left_join(tbl_account_info(con), by = 'account_info_id') %>%
   rename(account_daily_return = daily_return) %>%
-  select(account_info_id, effective_date, account_daily_return, beginning_market_value, ending_market_value, account_id, benchmark_info_id) %>%
+  select(account_info_id, effective_date, account_daily_return, 
+         beginning_market_value, ending_market_value, net_cash_flow,
+         account_id, fund_description, benchmark_info_id) %>%
   left_join(tbl_benchmark_daily_return(con), by = c('benchmark_info_id', 'effective_date')) %>% 
   rename(benchmark_daily_return = daily_return) %>%
-  select(account_id, effective_date, beginning_market_value, ending_market_value, account_daily_return, benchmark_daily_return) %>% as_tibble()
+  select(account_id, effective_date, 
+         beginning_market_value, ending_market_value, net_cash_flow,
+         account_daily_return, benchmark_daily_return, fund_description) %>% 
+  rename(Name = fund_description, ID = account_id) %>%
+  as_tibble()
 
+# TODO: convert to view
 daily.data.composite = tbl_book_of_record_composite_daily(con) %>%
   left_join(tbl_ssbt_composite_info(con), by = 'ssbt_composite_info_id') %>%
-  rename(composite_daily_return = daily_return) %>%
+  rename(composite_daily_return = daily_return, Name = ssbt_composite_description, ID = ssbt_composite_id) %>%
   left_join(tbl_benchmark_daily_return(con), by = c('benchmark_info_id', 'effective_date')) %>%
+  rename(benchmark_daily_return = daily_return) %>%
   as_tibble()
   
+daily.data = daily.data.account %>% rename(daily_return = account_daily_return) %>%
+ bind_rows(daily.data.composite %>% 
+             rename(daily_return = composite_daily_return)) %>%
+ filter(effective_date >= fytd.bgn, effective_date <= fytd.end) %>%
+ rename(Date = effective_date,
+       b.mv = beginning_market_value,
+       e.mv = ending_market_value,
+       cf = net_cash_flow,
+       r.day = daily_return,
+       b.day = benchmark_daily_return) %>%
+ select(Date, Name, ID, b.mv, e.mv, cf, r.day, b.day)
+
+daily.data[is.na(daily.data)] = 0 
  
+# CHECK: daily.data is accurate
 
-daily.data = bind_rows(daily.data.composite, daily.data.account) %>%
-  rename(Date = effective_date,
-         b.mv = beginning_market_value,
-         e.mv = ending_market_value,
-         cf = net_cash_flow,
-         r.day = daily_return) %>% 
+# TODO: convert to view
+monthly.data.account = tbl_book_of_record_account_monthly(con) %>%
+  left_join(tbl_account_info(con), by = 'account_info_id') %>%
+  rename(account_monthly_return = monthly_return,
+         account_fiscal_ytd_return = fiscal_ytd_return) %>%
+  select(account_info_id, effective_date, account_monthly_return, account_fiscal_ytd_return, 
+         beginning_market_value, ending_market_value, net_cash_flow,
+         account_id, fund_description, benchmark_info_id) %>%
+  left_join(tbl_benchmark_monthly_return(con), by = c('benchmark_info_id', 'effective_date')) %>% 
+  rename(benchmark_monthly_return = monthly_return, benchmark_fiscal_ytd_return = fiscal_ytd_return) %>%
+  left_join(tbl_benchmark_info(con), by = 'benchmark_info_id') %>%
+  rename(b.Name = benchmark_description) %>%
+  select(account_id, b.Name, effective_date, 
+         beginning_market_value, ending_market_value, net_cash_flow,
+         account_monthly_return, benchmark_monthly_return, 
+         benchmark_fiscal_ytd_return, account_fiscal_ytd_return,
+         fund_description) %>% 
+  rename(Name = fund_description, ID = account_id) %>%
   as_tibble()
-a = daily.data %>% select(Date, ID, r.day)
 
-daily.data <- read_excel(path.r.long, sheet = "10r.Daily.All.Accounts") %>% 
-   mutate(
-      Date = ymd(`Effective Date`, tz = "America/Los_Angeles"),
-      ID = `Account ID`,
-      b.mv = `Beginning Mkt Value`,
-      e.mv = `Ending Market Value`,
-      cf = `Net Cash Flow`,
-      r.day = `1 Day` / 100,
-      b.day = `1 Day(Benchmark)` / 100) %>%
-   filter(Date >= fytd.bgn, Date <= fytd.end) %>%
-   select(Date, Name, ID, b.mv, e.mv, cf, r.day, b.day) %>% 
-   drop_na(b.mv)
+# TODO: convert to view
+monthly.data.composite = tbl_book_of_record_composite_monthly(con) %>%
+  left_join(tbl_ssbt_composite_info(con), by = 'ssbt_composite_info_id') %>%
+  rename(composite_monthly_return = monthly_return, composite_fiscal_ytd_return = fiscal_ytd_return, 
+         Name = ssbt_composite_description, ID = ssbt_composite_id) %>%
+  left_join(tbl_benchmark_monthly_return(con), by = c('benchmark_info_id', 'effective_date')) %>%
+  rename(benchmark_monthly_return = monthly_return, benchmark_fiscal_ytd_return = fiscal_ytd_return) %>%
+  left_join(tbl_benchmark_info(con), by = 'benchmark_info_id') %>%
+  rename(b.Name = benchmark_description) %>%
+  as_tibble()
+  
+monthly.data = monthly.data.account %>% 
+  rename(monthly_return = account_monthly_return,
+         fiscal_ytd_return = account_fiscal_ytd_return) %>%
+ bind_rows(monthly.data.composite %>% 
+             rename(monthly_return = composite_monthly_return,
+                    fiscal_ytd_return = composite_fiscal_ytd_return)) %>%
+ filter(effective_date >= fytd.bgn, effective_date <= fytd.end) %>%
+ rename(Date = effective_date,
+       r.MTD = monthly_return,
+       b.MTD = benchmark_monthly_return,
+       r.FYTD = fiscal_ytd_return,
+       b.FYTD = benchmark_fiscal_ytd_return) %>%
+ select(Date, Name, ID, b.Name, r.MTD, b.MTD, r.FYTD, b.FYTD)
 
-monthly.data <- read_excel(path.r.long, sheet = "12r.MYSS.monthly") %>% 
-   mutate(
-      Date = `Effective Date`,
-      ID = `Account ID`,
-      b.Name = `Benchmark Name`,
-      r.MTD = `1 Month` / 100,
-      b.MTD = `1 Month(Benchmark)` / 100,
-      r.FYTD = `Fiscal YTD` / 100,
-      b.FYTD = `Fiscal YTD(Benchmark)` / 100) %>% 
-   select(Date, Name, ID, b.Name, r.MTD, b.MTD, r.FYTD, b.FYTD)
-
-month.bgn <- floor_date(max(parse_date_time2(monthly.data$Date, orders = "mdy")), "month")
-month.end <- ceiling_date(max(parse_date_time2(monthly.data$Date, orders = "mdy")), "month") - 1
-
-policy.tree <- read_excel(path.tree, sheet = "Policy Tree")
-
+monthly.data[is.na(monthly.data)] = 0 
+sum(monthly.data$b.MTD)
+# CHECK: monthly.data is accurate
 ```
+
+# Daily Return Verification
+This section verifies State Street's daily return calculation for all accounts greater than $500. The ASRS uses a beginning ofday convention for daily cash flows under the following formula:
+$$\frac{Ending_{NAV}}{\left(Beginng_{NAV} + Cash Flow\right)} - 1$$
+
+The table identifies any portfolio where the daily State Street return calculation differs by more than 1/100 of a basis point.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+return.calculation <- daily.data %>% 
+   filter(e.mv > 500, b.mv > 500) %>% 
+   mutate(
+      r.ASRS = calc.return(b.mv, e.mv, cf),
+      Delta = round(r.day - r.ASRS, digits = 6)) %>% 
+   select(Date, Name, ID, r.day, r.ASRS, Delta) %>% 
+   filter(Delta > .000001)
+
+kable(return.calculation, "latex", longtable = T, booktabs = T, align = "l") %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Daily Return Verification"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+```
+
+
+# Monthly Return Verification
+This section verifies State Street's monthly return calculation for each portoflio in total fund. The test verifies that the monthly reported return matches the compounded daily return. 
+$$Return_{monthly} = (1 + r_0)(1 + r_1)...(1 + r_t)- 1$$
+
+The table identifies any portfolio that differs by more to 1/100 of a basis point.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+r.mtd.calc = daily.data %>% 
+   filter(Date >= month.bgn, Date <= month.end) %>% 
+   group_by(ID) %>% 
+   summarise(r.MTD.calc = last(cumprod(1 + r.day)) - 1) %>% 
+   left_join(monthly.data %>% select(ID, Name, Date, r.MTD), by = "ID") %>% 
+   mutate(Delta = round(r.MTD.calc - r.MTD, digits = 8),
+          Error = abs(Delta) > 0.000001) %>% 
+   select(Date, ID, Name, r.MTD.calc, r.MTD, Delta, Error)
+
+kable(r.mtd.calc %>% filter(Error == TRUE), "latex", longtable = T, booktabs = T, align = "l") %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Monthly Return Verification"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+# r.mtd.calc %>% filter(Error == T)
+```
+
+
+
+
+
+
