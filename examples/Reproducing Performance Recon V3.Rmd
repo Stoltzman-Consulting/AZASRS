@@ -9,6 +9,8 @@ output:
     df_print: paged
 ---
 
+# TODO: all monthly.data is in database as last day of month in calendar (what is this like for Feb??)
+
 ```{r load_packages, message=FALSE, warning=FALSE, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, include=FALSE)
 library(tidyverse)
@@ -77,12 +79,11 @@ daily.data = daily.data.account %>% rename(daily_return = account_daily_return) 
        cf = net_cash_flow,
        r.day = daily_return,
        b.day = benchmark_daily_return) %>%
- select(Date, Name, ID, b.mv, e.mv, cf, r.day, b.day)
+  select(Date, Name, ID, b.mv, e.mv, cf, r.day, b.day) %>%
+  mutate(Date = ymd(Date, tz = "America/Los_Angeles"))
 
-daily.data[is.na(daily.data)] = 0 
+#daily.data[is.na(daily.data)] = 0 
  
-# CHECK: daily.data is accurate
-
 # TODO: convert to view
 monthly.data.account = tbl_book_of_record_account_monthly(con) %>%
   left_join(tbl_account_info(con), by = 'account_info_id') %>%
@@ -126,11 +127,11 @@ monthly.data = monthly.data.account %>%
        b.MTD = benchmark_monthly_return,
        r.FYTD = fiscal_ytd_return,
        b.FYTD = benchmark_fiscal_ytd_return) %>%
- select(Date, Name, ID, b.Name, r.MTD, b.MTD, r.FYTD, b.FYTD)
+  select(Date, Name, ID, b.Name, r.MTD, b.MTD, r.FYTD, b.FYTD) %>%
+  mutate(Date = ymd(Date, tz = "America/Los_Angeles"))
 
-monthly.data[is.na(monthly.data)] = 0 
-sum(monthly.data$b.MTD)
-# CHECK: monthly.data is accurate
+#monthly.data[is.na(monthly.data)] = 0 
+# CHECK: PASS monthly.data and daily.data are accurate
 ```
 
 # Daily Return Verification
@@ -164,6 +165,10 @@ $$Return_{monthly} = (1 + r_0)(1 + r_1)...(1 + r_t)- 1$$
 The table identifies any portfolio that differs by more to 1/100 of a basis point.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+month.bgn <- floor_date(monthly.data$Date, "month")
+month.end <- ceiling_date(monthly.data$Date, "month") - 1
+
 r.mtd.calc = daily.data %>% 
    filter(Date >= month.bgn, Date <= month.end) %>% 
    group_by(ID) %>% 
@@ -180,6 +185,308 @@ kable(r.mtd.calc %>% filter(Error == TRUE), "latex", longtable = T, booktabs = T
   kable_styling(latex_options = c("repeat_header"))
 
 # r.mtd.calc %>% filter(Error == T)
+# CHECK: FAIL - NA's introduced look at NOTIONAL - LARGE (does not appear even) - does work if remove NA 
+```
+
+# Fiscal YTD Return Verification
+This section verifies State Street's FYTD return calculation for each portoflio in total fund. The test verifies that the FYTD reported return matches the compounded daily return.
+$$Return_{FYTD} = (1 + r_0)(1 + r_1)...(1 + r_t)- 1$$
+
+The table identifies any portfolio that differs by more to 1/100 of a basis point.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+r.fytd.calc = daily.data %>% 
+   filter(Date >= fytd.bgn, Date <= month.end) %>% 
+   group_by(ID) %>% 
+   summarise(r.FYTD.calc = last(cumprod(1 + r.day)) - 1) %>% 
+   left_join(monthly.data %>% select(ID, Name, Date, r.FYTD), by = "ID") %>% 
+   mutate(Delta = round(r.FYTD.calc - r.FYTD, digits = 8),
+          Error = abs(Delta) > 0.000001) %>% 
+   select(Date, ID, Name, r.FYTD.calc, r.FYTD, Delta, Error)
+
+#print(r.fytd.calc)
+#sum(r.fytd.calc$Error, na.rm = T)
+#print(r.fytd.calc %>% filter(Error == TRUE))
+
+kable(r.fytd.calc %>% filter(Error == TRUE), 
+      "latex", longtable = T, booktabs = T, align = "l") %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("FYTD Return Verification"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+# r.fytd.calc %>% filter(Error == T)
+#CHECK: FAIL - NA values introduced - name mismatch... "US LC EQUITIZATION" vs. "NOTIONAL - LARGE"
+```
+
+
+\newpage
+# Total Fund Reconciliation
+## Total Fund by Portfolios
+This section compare ending market values, beginning market values and cash flows for the total fund composite versus the sum of the underlying portfolios. A subsequent return check compares State Street's daily composite return versus the underlying portfolio. The tables below identify market value difference of more than $250 and return difference of more than 1/10th of a basis point.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+x <- "ASRSA001"
+
+y = account_info(con) %>%
+  select(account_id) %>% 
+  unique() %>%
+  rename(SSBT_ID = account_id)
+  
+
+total.fund.portfolio <- daily.test(x, y, z = TRUE)
+#saveRDS(total.fund.portfolio, paste0(path.rds, x, ".by.portfolio.rds"))
+
+kable(total.fund.portfolio$e.mv.test.df %>% filter(Error == TRUE),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Total Fund Ending Market Value Verification"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+kable(total.fund.portfolio$b.mv.test.df %>% filter(Error == TRUE),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Total Fund Begining Market Value Verification"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+kable(total.fund.portfolio$cf.test.df %>% filter(Error == TRUE),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Total Fund Cash Flow Verification"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+kable(total.fund.portfolio$r.check %>% 
+      filter(Error == TRUE) %>% 
+   select(Date, ID, r.StateStreet, r.ASRS, Delta, Error),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Total Fund Return Verification"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+# CHECK: PASS (however, it does have an extra date, could filter if necessary)
+```
+
+\newpage
+## Total Fund by Composites
+This section compare ending market values, beginning market values and cash flows for the total fund composite versus the sum of the underlying sub-composites. A subsequent return check compares State Street's daily composite return versus the underlying sub-composites. The tables below identify market value difference of more than $250 and return difference of more than 1/10th of a basis point.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+x <- "ASRSA001"
+
+# By Composite
+y <- c("ASRSA040","ASRSA030","ASRSA054","ASRSA007","ASRSA019","ASRSA060")
+
+total.fund.composite <- daily.test(x, y, z = TRUE)
+#saveRDS(total.fund.composite, paste0(path.rds, x, ".by.composite.rds"))
+
+kable(total.fund.composite$e.mv.test.df %>% filter(Error == TRUE),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Ending Market Value"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+kable(total.fund.composite$b.mv.test.df %>% filter(Error == TRUE),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Beginning Market Value"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+kable(total.fund.composite$cf.test.df %>% filter(Error == TRUE),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Cash Flow"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+kable(total.fund.composite$r.check %>% 
+   filter(Error == TRUE) %>% 
+   select(Date, ID, r.StateStreet, r.ASRS, Delta, Error),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Return Verification"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+# CHECK: PASS - 
+```
+
+
+
+
+\newpage
+# Reconcilation by Portfolio
+## Total Equity by Portfolios
+This section compare ending market values, beginning market values and cash flows for the total equity composite versus the sum of the underlying portfolios. A subsequent return check compares State Street's daily composite return versus the underlying portfolio. The tables below identify market value difference of more than $250 and return difference of more than 1/10th of a basis point.
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Total Equity
+x <- "ASRSA007"
+
+y = account_info() %>%
+  rename(SSBT_ID = account_id) %>%
+  filter(asset_class == 'Equities') %>%
+  select(SSBT_ID) %>%
+  unique()
+
+total.equity.check <- daily.test(x, y, z = TRUE)
+
+kable(total.equity.check$e.mv.test.df %>% filter(Error == TRUE),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Ending Market Value"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+
+kable(total.equity.check$b.mv.test.df %>% filter(Error == TRUE),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Beginning Market Value"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+
+kable(total.equity.check$cf.test.df %>% filter(Error == TRUE),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Cash Flow"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+
+kable(total.equity.check$r.check %>% 
+   filter(Error == TRUE) %>% 
+   select(Date, ID, r.StateStreet, r.ASRS, Delta, Error),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Return Verification"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+# CHECK: PASS - would still need to possibly filter out dates
+```
+
+\newpage
+## Interest Rate Sensitive by Portfolios
+This section compare ending market values, beginning market values and cash flows for the core bond composite versus the sum of the underlying portfolios. A subsequent return check compares State Street's daily composite return versus the underlying portfolio. The tables below identify market value difference of more than $250 and return difference of more than 1/10th of a basis point.
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# Interest Rate Sensitive
+x <- "ASRSA030"
+y = account_info() %>%
+  rename(SSBT_ID = account_id) %>%
+  filter(asset_class == 'Interest Rate Sensitive') %>%
+  select(SSBT_ID) %>%
+  unique()
+
+core.bonds.check <- daily.test(x, y, z = TRUE, write_to_excel = write_file)
+
+kable(core.bonds.check$e.mv.test.df %>% filter(Error == TRUE),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Ending Market Value"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+kable(core.bonds.check$b.mv.test.df %>% filter(Error == TRUE),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Beginning Market Value"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+kable(core.bonds.check$cf.test.df %>% filter(Error == TRUE),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Cash Flow"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+kable(core.bonds.check$r.check %>% 
+   filter(Error == TRUE) %>% 
+   select(Date, ID, r.StateStreet, r.ASRS, Delta, Error),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Return Verification"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+# CHECK: PASS except for Delta sign is flipped...
+```
+
+
+\newpage
+## Credit by Portfolios
+This section compare ending market values, beginning market values and cash flows for the credit composite versus the sum of the underlying portfolios. A subsequent return check compares State Street's daily composite return versus the underlying portfolio. The tables below identify market value difference of more than $250 and return difference of more than 1/10th of a basis point.
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Credit
+x <- "ASRSA054"
+y = account_info() %>%
+  rename(SSBT_ID = account_id) %>%
+  filter(asset_class == 'Credit') %>%
+  select(SSBT_ID) %>%
+  unique()
+
+credit.check <- daily.test(x, y, z = TRUE)
+
+kable(credit.check$e.mv.test.df %>% filter(Error == TRUE),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Ending Market Value"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+kable(credit.check$b.mv.test.df %>% filter(Error == TRUE),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Beginning Market Value"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+kable(credit.check$cf.test.df %>% filter(Error == TRUE),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Cash Flow"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+kable(credit.check$r.check %>% 
+   filter(Error == TRUE) %>% 
+   select(Date, ID, r.StateStreet, r.ASRS, Delta, Error),
+      "latex", longtable = T, booktabs = T, align = "r",
+      format.args = list(decimal.mark = ".", big.mark = ",")) %>%
+  kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
+                font_size = 7) %>% 
+  add_header_above(c("Return Verification"), bold = T, italic = T) %>% 
+  kable_styling(latex_options = c("repeat_header"))
+
+# CHECK: PASS
 ```
 
 
