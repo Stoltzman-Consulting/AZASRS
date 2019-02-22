@@ -41,7 +41,7 @@ path.rds <- "P:/IMD/IMD Vista/ASSET ALLOCATION REPORTS/R Scripts/Daily_Recon/RDS
 ```{r load_MYSS_data}
 daily.data.account = tbl_book_of_record_account_daily(con) %>%
   left_join(tbl_account_info(con), by = 'account_info_id') %>%
-  rename(benchmark_info_id = saa_benchmark_id, account_daily_return = daily_return) %>%
+  rename(account_daily_return = daily_return) %>%
   select(account_info_id, effective_date, account_daily_return, beginning_market_value, ending_market_value, account_id, benchmark_info_id) %>%
   left_join(tbl_benchmark_daily_return(con), by = c('benchmark_info_id', 'effective_date')) %>% 
   rename(benchmark_daily_return = daily_return) %>%
