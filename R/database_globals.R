@@ -1,15 +1,17 @@
 
 # Global variables
 #' @export
-AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\Database\\asrs_database.db"
-#AZASRS_DATABASE_LOCATION = "C:\\Users\\scotts\\Desktop\\2018 Database Project\\Database\\asrs_database.db" ##For local development only
-
-
-#' @export
-AZASRS_DATABASE_DRIVER = RSQLite::SQLite()
+#AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\Database\\asrs_database.db"
+AZASRS_DATABASE_LOCATION = "C:\\Users\\scotts\\Desktop\\2018 Database Project\\Database\\asrs_database.db" ##For local development only
 
 #' @export
 AZASRS_DATABASE_CONNECTION = function(){ return(dplyr::src_sqlite(AZASRS_DATABASE_LOCATION)) }
+
+#' @export
+AZASRS_TEST_DATA_DIRECTORY = "P:/IMD/2018 Database Project/Application Data/etl_check_data/"
+
+#' @export
+SHOW_ALL_TABLES = dplyr::src_tbls(AZASRS_DATABASE_CONNECTION())
 
 # All existing views
 #' @export
@@ -44,8 +46,31 @@ benchmark_monthly_return = function(con = AZASRS_DATABASE_CONNECTION(), return_t
   if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
   return(dat)}
 
-# All existing tables
+#' @export
+daily_data_account = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
+  dat = dplyr::tbl(con, "daily_data_account")
+  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
+  return(dat)}
 
+#' @export
+daily_data_composite = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
+  dat = dplyr::tbl(con, "daily_data_composite")
+  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
+  return(dat)}
+
+#' @export
+monthly_data_account = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
+  dat = dplyr::tbl(con, "monthly_data_account")
+  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
+  return(dat)}
+
+#' @export
+monthly_data_composite = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
+  dat = dplyr::tbl(con, "monthly_data_composite")
+  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
+  return(dat)}
+
+# All existing tables
 #' @export
 tbl_account_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "account_info")}
 

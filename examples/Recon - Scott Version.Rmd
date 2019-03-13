@@ -19,59 +19,10 @@ fytd.end <- ymd("2018-09-30")
 ```
 
 ```{r load_MYSS_data, message=FALSE, warning=FALSE}
-# TODO: convert to view
-daily.data.account = tbl_book_of_record_account_daily(con) %>%
-  left_join(tbl_account_info(con), by = 'account_info_id') %>%
-  rename(account_daily_return = daily_return) %>%
-  select(account_info_id, effective_date, account_daily_return, 
-         beginning_market_value, ending_market_value, net_cash_flow,
-         account_id, fund_description, benchmark_info_id) %>%
-  left_join(tbl_benchmark_daily_return(con), by = c('benchmark_info_id', 'effective_date')) %>% 
-  rename(benchmark_daily_return = daily_return) %>%
-  select(account_id, effective_date, 
-         beginning_market_value, ending_market_value, net_cash_flow,
-         account_daily_return, benchmark_daily_return, fund_description) %>% 
-  rename(Name = fund_description, ID = account_id) %>%
-  as_tibble()
-
-# TODO: convert to view
-daily.data.composite = tbl_book_of_record_composite_daily(con) %>%
-  left_join(tbl_ssbt_composite_info(con), by = 'ssbt_composite_info_id') %>%
-  rename(composite_daily_return = daily_return, Name = ssbt_composite_description, ID = ssbt_composite_id) %>%
-  left_join(tbl_benchmark_daily_return(con), by = c('benchmark_info_id', 'effective_date')) %>%
-  rename(benchmark_daily_return = daily_return) %>%
-  as_tibble()
-  
-# TODO: convert to view
-monthly.data.account = tbl_book_of_record_account_monthly(con) %>%
-  left_join(tbl_account_info(con), by = 'account_info_id') %>%
-  rename(account_monthly_return = monthly_return,
-         account_fiscal_ytd_return = fiscal_ytd_return) %>%
-  select(account_info_id, effective_date, account_monthly_return, account_fiscal_ytd_return, 
-         beginning_market_value, ending_market_value, net_cash_flow,
-         account_id, fund_description, benchmark_info_id) %>%
-  left_join(tbl_benchmark_monthly_return(con), by = c('benchmark_info_id', 'effective_date')) %>% 
-  rename(benchmark_monthly_return = monthly_return, benchmark_fiscal_ytd_return = fiscal_ytd_return) %>%
-  left_join(tbl_benchmark_info(con), by = 'benchmark_info_id') %>%
-  rename(b.Name = benchmark_description) %>%
-  select(account_id, b.Name, effective_date, 
-         beginning_market_value, ending_market_value, net_cash_flow,
-         account_monthly_return, benchmark_monthly_return, 
-         benchmark_fiscal_ytd_return, account_fiscal_ytd_return,
-         fund_description) %>% 
-  rename(Name = fund_description, ID = account_id) %>%
-  as_tibble()
-
-# TODO: convert to view
-monthly.data.composite = tbl_book_of_record_composite_monthly(con) %>%
-  left_join(tbl_ssbt_composite_info(con), by = 'ssbt_composite_info_id') %>%
-  rename(composite_monthly_return = monthly_return, composite_fiscal_ytd_return = fiscal_ytd_return, 
-         Name = ssbt_composite_description, ID = ssbt_composite_id) %>%
-  left_join(tbl_benchmark_monthly_return(con), by = c('benchmark_info_id', 'effective_date')) %>%
-  rename(benchmark_monthly_return = monthly_return, benchmark_fiscal_ytd_return = fiscal_ytd_return) %>%
-  left_join(tbl_benchmark_info(con), by = 'benchmark_info_id') %>%
-  rename(b.Name = benchmark_description) %>%
-  as_tibble()
+daily.data.account = daily_data_account()
+daily.data.composite = daily_data_composite()
+monthly.data.account = monthly_data_account()
+monthly.data.composite = monthly_data_composite()
   
 
 daily.data = daily.data.account %>% rename(daily_return = account_daily_return) %>%

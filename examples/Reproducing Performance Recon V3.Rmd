@@ -45,6 +45,11 @@ path.rds <- "P:/IMD/IMD Vista/ASSET ALLOCATION REPORTS/R Scripts/Daily_Recon/RDS
 ```
 
 
+```{r}
+
+```
+
+
 ```{r load_MYSS_data, message=FALSE, warning=FALSE}
 # TODO: convert to view
 daily.data.account = tbl_book_of_record_account_daily(con) %>%
@@ -176,7 +181,8 @@ r.mtd.calc = daily.data %>%
    left_join(monthly.data %>% select(ID, Name, Date, r.MTD), by = "ID") %>% 
    mutate(Delta = round(r.MTD.calc - r.MTD, digits = 8),
           Error = abs(Delta) > 0.000001) %>% 
-   select(Date, ID, Name, r.MTD.calc, r.MTD, Delta, Error)
+   select(Date, ID, Name, r.MTD.calc, r.MTD, Delta, Error) %>%
+  filter(Error == TRUE)
 
 kable(r.mtd.calc %>% filter(Error == TRUE), "latex", longtable = T, booktabs = T, align = "l") %>%
   kable_styling(latex_options = "striped", full_width = FALSE, position = "left",
@@ -202,7 +208,8 @@ r.fytd.calc = daily.data %>%
    left_join(monthly.data %>% select(ID, Name, Date, r.FYTD), by = "ID") %>% 
    mutate(Delta = round(r.FYTD.calc - r.FYTD, digits = 8),
           Error = abs(Delta) > 0.000001) %>% 
-   select(Date, ID, Name, r.FYTD.calc, r.FYTD, Delta, Error)
+   select(Date, ID, Name, r.FYTD.calc, r.FYTD, Delta, Error) %>%
+  filter(Error == TRUE)
 
 #print(r.fytd.calc)
 #sum(r.fytd.calc$Error, na.rm = T)
@@ -233,7 +240,8 @@ y = account_info(con) %>%
   select(account_id) %>% 
   unique() %>%
   rename(SSBT_ID = account_id)
-  
+
+
 
 total.fund.portfolio <- daily.test(x, y, z = TRUE)
 #saveRDS(total.fund.portfolio, paste0(path.rds, x, ".by.portfolio.rds"))
@@ -489,6 +497,11 @@ kable(credit.check$r.check %>%
 # CHECK: PASS
 ```
 
+
+
+```{r}
+
+```
 
 
 
