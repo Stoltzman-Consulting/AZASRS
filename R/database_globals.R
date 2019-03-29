@@ -11,7 +11,7 @@ AZASRS_DATABASE_CONNECTION = function(){ return(dplyr::src_sqlite(AZASRS_DATABAS
 AZASRS_TEST_DATA_DIRECTORY = "P:/IMD/2018 Database Project/Application Data/etl_check_data/"
 
 #' @export
-SHOW_ALL_TABLES = dplyr::src_tbls(AZASRS_DATABASE_CONNECTION())
+SHOW_ALL_TABLES = print(dplyr::src_tbls(AZASRS_DATABASE_CONNECTION()))
 
 # All existing views
 #' @export

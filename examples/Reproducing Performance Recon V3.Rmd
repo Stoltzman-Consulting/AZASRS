@@ -30,7 +30,7 @@ library("DBI")
 source("recon_functions/helpers.R")
 options(scipen = 999)
 #Toggle for writing data frames to the excel files
-write_file <- TRUE
+write_file <- FALSE
 ```
 
 ```{r global_file_locations, message=FALSE, warning=FALSE}

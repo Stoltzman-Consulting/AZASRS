@@ -9,12 +9,10 @@ get_pm_cash_flow_daily = function(..., con = AZASRS_DATABASE_CONNECTION()){
 
   args = rlang::enexprs(...)
 
-  dat = tbl_pm_cash_flow_daily(con)
-
-  pmfi = get_pm_fund_info()
-
-  dat = dat %>%
-    dplyr::left_join(pmfi, by = c('pm_fund_info_id' = 'pm_fund_info_id'), copy = TRUE)
+  dat = tbl_pm_cash_flow_daily(con) %>%
+    left_join(tbl_pm_fund_info(con), by = 'pm_fund_info_id') %>%
+    as_tibble() %>%
+    select(effective_date, pm_fund_id, cash_flow)
 
   if(length(args) > 0){
     dat = dat %>%

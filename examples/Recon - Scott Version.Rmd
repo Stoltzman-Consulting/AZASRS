@@ -10,13 +10,31 @@ knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
 library('tidyverse')
 library('lubridate')
 library('AZASRS')
+library('compare')
 ```
 
 ```{r constants}
 con = AZASRS_DATABASE_CONNECTION() # allows passing of database object for lazy querying
 fytd.bgn <- ymd("2018-07-01")
 fytd.end <- ymd("2018-09-30")
+
+path.etl_check_data = "P:/IMD/2018 Database Project/Application Data/etl_check_data/"
+
+save_test_data = function(df, filename){
+  output_path = paste0(path.etl_check_data, filename, '.rda')
+  save(df, file = output_path)
+  }
+
+load_test_data = function(filename){
+  input_path = paste0(path.etl_check_data, filename, '.rda')
+  load(input_path)
+  }
+
+# 'not in' function (opposite of %in%)
+'%ni%' <- Negate('%in%')
 ```
+
+
 
 ```{r load_MYSS_data, message=FALSE, warning=FALSE}
 daily.data.account = daily_data_account()
@@ -38,8 +56,6 @@ daily.data = daily.data.account %>% rename(daily_return = account_daily_return) 
   select(Date, Name, ID, b.mv, e.mv, cf, r.day, b.day) %>%
   mutate(Date = ymd(Date, tz = "America/Los_Angeles"))
 
-#daily.data[is.na(daily.data)] = 0 
-
 
 monthly.data = monthly.data.account %>% 
   rename(monthly_return = account_monthly_return,
@@ -55,10 +71,53 @@ monthly.data = monthly.data.account %>%
        b.FYTD = benchmark_fiscal_ytd_return) %>%
   select(Date, Name, ID, b.Name, r.MTD, b.MTD, r.FYTD, b.FYTD) %>%
   mutate(Date = ymd(Date, tz = "America/Los_Angeles"))
-
-#monthly.data[is.na(monthly.data)] = 0 
-# CHECK: PASS monthly.data and daily.data are accurate
 ```
+
+
+```{r check_daily_data}
+## Checking
+daily.data[is.na(daily.data)] = 0
+daily.data.scott = daily.data
+load_test_data('daily.data.kerry')
+
+a1 = daily.data.scott %>% select(ID)
+b1 = daily.data.kerry %>% select(ID)
+comparison = anti_join(a1, b1)
+bad_ids = comparison %>% select(ID) %>% unique() %>% pull()
+print(paste("These IDs are not in common"), str(bad_ids))
+
+a2 = daily.data.scott %>% filter(ID %ni% bad_ids)
+b2 = daily.data.scott %>% filter(ID %ni% bad_ids)
+daily.comparison = anti_join(a2, b2)
+```
+```{r}
+print(daily.comparison)
+```
+
+
+```{r}
+monthly.data[is.na(monthly.data)] = 0
+monthly.data.scott = monthly.data
+load_test_data('monthly.data.kerry')
+
+a1 = monthly.data.scott %>% select(ID)
+b1 = monthly.data.kerry %>% select(ID)
+comparison = anti_join(a1, b1)
+bad_ids = comparison %>% select(ID) %>% unique() %>% pull()
+print(paste("These IDs are not in common"), str(bad_ids))
+
+a2 = monthly.data.scott %>% filter(ID %ni% bad_ids)
+b2 = monthly.data.scott %>% filter(ID %ni% bad_ids)
+monthly.comparison = anti_join(a2, b2)
+```
+
+
+
+```{r}
+monthly.comparison
+```
+
+
 
 ```{r warning=FALSE}
 comps = tbl_book_of_record_composite_daily(con)  %>%
@@ -82,6 +141,9 @@ ca = comps %>%
               select(ssbt_composite_info_id, ssbt_composite_id, asset_class_id), 
             by = 'ssbt_composite_info_id') %>%
   left_join(tbl_asset_class(con), by = 'asset_class_id')
+```
+
+```{r}
 ca
 ```
 
