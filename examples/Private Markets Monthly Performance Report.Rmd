@@ -1,0 +1,60 @@
+---
+title: "Private Markets Monthly Performance Report"
+author: "Scott Stoltzman"
+date: "May 10, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Private Markets Monthly Performance Report
+
+Revamping "private markets monthly report - MC-JD.R"
+
+```{r load_libraries_and_constants, include=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
+library(asrsMethods)
+library(asrsPalettes)
+library(AZASRS)
+library(zoo)
+library(xts)
+library(tidyverse)
+library(lubridate)
+library(reshape2)
+library(scales)
+library(knitr)
+library(gridExtra)
+library(kableExtra)
+library(xtable)
+library(magrittr)
+library(readxl)
+library(tbl2xts)
+
+con = AZASRS_DATABASE_CONNECTION()
+
+```
+
+
+```{r pme}
+cash_flow = get_pm_cash_flow_daily()
+nav = get_pm_nav_daily()
+benchmark_daily_return = get_benchmark_daily_return()
+valdate = value_date()
+
+pmfi = tbl_pm_fund_info_benchmark_info(con) %>%
+  left_join(tbl_pm_fund_info(con), by = 'pm_fund_info_id') %>%
+  left_join(tbl_benchmark_info(con), by = 'benchmark_info_id') %>%
+  select(pm_fund_id, benchmark_id) %>%
+  as_tibble()
+AZASRS_DATABASE_DISCONNECT(con)
+
+PME = AZASRS::calc_pme_df(cash_flow, nav, benchmark_daily_return, benchmarks, valdate, pmfi)
+pmeData = PME %>%
+  select(pm_fund_id, pme) %>%
+  filter(pm_fund_id != '') %>%
+  filter(!is.na(pm_fund_id)) %>%
+  spread(pm_fund_id, pme)
+pmeData
+```
+

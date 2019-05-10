@@ -1,6 +1,6 @@
 
 #' @export
-tibble_to_zoo_list = function(tibb, omit_na = FALSE){
+tibble_to_zoo_list = function(tibb, omit_na = TRUE){
   listify = function(x){
     ts_list = list()
     columns = colnames(x)
@@ -19,3 +19,7 @@ tibble_to_zoo_list = function(tibb, omit_na = FALSE){
     listify()
   return(dat)
 }
+
+
+
+

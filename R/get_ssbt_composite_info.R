@@ -10,7 +10,7 @@ get_ssbt_composite_info = function(...){
 
   args = rlang::enexprs(...)
 
-  dat = ssbt_composite_info()
+  dat = tbl_ssbt_composite_info()
 
   if(length(args) > 0){
     dat = dat %>%

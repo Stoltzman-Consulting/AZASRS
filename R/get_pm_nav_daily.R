@@ -9,7 +9,7 @@ get_pm_nav_daily = function(..., con = AZASRS_DATABASE_CONNECTION()){
 
   args = rlang::enexprs(...)
 
-  dat = tbl_pm_nav_daily(con)
+  dat = tbl_pm_fund_nav_daily(con)
 
   pmfi = pm_fund_info(con = con, return_tibble=FALSE)
 

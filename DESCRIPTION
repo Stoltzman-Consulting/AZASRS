@@ -35,7 +35,8 @@ Imports:
     xml2,
     RSQLite,
     DBI,
-    tsbox
+    tsbox,
+    asrsMethods
 RoxygenNote: 6.0.1.9000
 Suggests: knitr,
     rmarkdown,

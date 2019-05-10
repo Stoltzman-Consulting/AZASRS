@@ -14,10 +14,10 @@ get_book_of_record = function(record_type, frequency, ..., con = AZASRS_DATABASE
 
   if(record_type == 'composite'){
     if(frequency == 'daily'){
-      dat = tbl_book_of_record_composite_daily(con)
+      dat = tbl_ssbt_composite_book_of_record_daily(con)
     }
     else if(frequency == 'monthly'){
-      dat = tbl_book_of_record_composite_monthly(con)
+      dat = tbl_ssbt_composite_book_of_record_monthly(con)
     }
 
     ssbt_i = get_ssbt_composite_info(...)
@@ -28,10 +28,10 @@ get_book_of_record = function(record_type, frequency, ..., con = AZASRS_DATABASE
 
   if(record_type == 'account'){
     if(frequency == 'daily'){
-      dat = tbl_book_of_record_account_daily(con)
+      dat = tbl_account_book_of_record_daily(con)
     }
     else if(frequency == 'monthly'){
-      dat = tbl_book_of_record_account_monthly(con)
+      dat = tbl_account_book_of_record_monthly(con)
     }
 
     ai = get_account_info(...)
