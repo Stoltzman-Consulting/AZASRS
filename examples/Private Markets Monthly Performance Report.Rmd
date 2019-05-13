@@ -39,7 +39,7 @@ con = AZASRS_DATABASE_CONNECTION()
 ```{r pme}
 cash_flow = get_pm_cash_flow_daily()
 nav = get_pm_nav_daily()
-benchmark_daily_return = get_benchmark_daily_return()
+bdi = benchmark_daily_index()
 valdate = value_date()
 
 pmfi = tbl_pm_fund_info_benchmark_info(con) %>%
@@ -49,7 +49,7 @@ pmfi = tbl_pm_fund_info_benchmark_info(con) %>%
   as_tibble()
 AZASRS_DATABASE_DISCONNECT(con)
 
-PME = AZASRS::calc_pme_df(cash_flow, nav, benchmark_daily_return, benchmarks, valdate, pmfi)
+PME = calc_pme_df(cash_flow, nav,  bdi, valdate, pmfi)
 pmeData = PME %>%
   select(pm_fund_id, pme) %>%
   filter(pm_fund_id != '') %>%

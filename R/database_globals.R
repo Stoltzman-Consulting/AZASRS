@@ -37,6 +37,13 @@ benchmark_daily_return = function(con = AZASRS_DATABASE_CONNECTION(), return_tib
   return(dat)}
 
 #' @export
+benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
+  dat = tbl_benchmark_daily_index(con) %>%
+    dplyr::left_join(tbl_benchmark_info(con), by = 'benchmark_info_id')
+  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
+  return(dat)}
+
+#' @export
 benchmark_monthly_return = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
   dat = tbl_benchmark_monthly_return(con) %>%
     dplyr::left_join(tbl_benchmark_info(con), by = 'benchmark_info_id')
@@ -113,6 +120,9 @@ tbl_account_sponsor = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(co
 
 #' @export
 tbl_account_sub_portfolio = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "account_sub_portfolio")}
+
+#' @export
+tbl_benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "benchmark_daily_index")}
 
 #' @export
 tbl_benchmark_daily_return = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "benchmark_daily_return")}

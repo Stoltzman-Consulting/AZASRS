@@ -61,25 +61,25 @@ calc_appreciation_df = function(cash_flow, nav, valdate){
 
 
 #' @export
-calc_benchmark_daily_return_df = function(benchmark_daily_return){
-  latest_benchmark_daily_return = benchmark_daily_return %>%
+calc_benchmark_daily_index_df = function(benchmark_daily_index){
+  latest_benchmark_daily_index = benchmark_daily_index %>%
     dplyr::group_by(benchmark_id) %>%
     dplyr::summarize(effective_date = max(effective_date)) %>%
-    dplyr::left_join(benchmark_daily_return, by = c('benchmark_id', 'effective_date')) %>%
-    dplyr::rename(latest_daily_return = daily_return) %>%
-    dplyr::select(benchmark_id, latest_daily_return)
+    dplyr::left_join(benchmark_daily_index, by = c('benchmark_id', 'effective_date')) %>%
+    dplyr::rename(latest_daily_index = index_value) %>%
+    dplyr::select(benchmark_id, latest_daily_index)
 
-  final_benchmark_daily_return = benchmark_daily_return %>%
-    dplyr::left_join(latest_benchmark_daily_return, by = 'benchmark_id') %>%
-    dplyr::mutate(final_daily_return = latest_daily_return / daily_return)
+  final_benchmark_daily_index = benchmark_daily_index %>%
+    dplyr::left_join(latest_benchmark_daily_index, by = 'benchmark_id') %>%
+    dplyr::mutate(final_daily_index = latest_daily_index / index_value)
 
-  return(final_benchmark_daily_return)
+  return(final_benchmark_daily_index)
 }
 
 
 #' @export
-calc_pme_df = function(cash_flow, nav, benchmark_daily_return, benchmarks, valdate, pmfi){
-  bench_index = calc_benchmark_daily_return_df(benchmark_daily_return) %>%
+calc_pme_df = function(cash_flow, nav, benchmark_daily_index, valdate, pmfi){
+  bench_index = calc_benchmark_daily_index_df(benchmark_daily_index) %>%
     dplyr::mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d'))
 
   nav_filtered = nav %>%
@@ -97,8 +97,10 @@ calc_pme_df = function(cash_flow, nav, benchmark_daily_return, benchmarks, valda
 
   pme = cash_flow_mod %>%
     dplyr::group_by(pm_fund_id) %>%
-    dplyr::summarize(dist_no_nav = sum(distributions*final_daily_return),
-              contrib = sum(contributions*final_daily_return)) %>%
+    dplyr::summarize(dist_no_nav = sum(distributions*final_daily_index),
+              contrib = sum(contributions*final_daily_index)) %>%
     dplyr::left_join(nav_filtered, by = 'pm_fund_id') %>%
     dplyr::mutate(pme = (dist_no_nav + nav)/contrib)
+
+  return(pme)
 }
