@@ -1,12 +1,28 @@
 
 #' @export
-calc_tvpi_df = function(cash_flow){
+calc_tvpi_df = function(cash_flow, nav){
+  # formula --> (Distributions + Valuations) / Contributions
+  dat_nav = nav %>%
+    group_by(pm_fund_id) %>%
+    filter(effective_date == max(effective_date))
   dat = cash_flow %>%
+    dplyr::filter(effective_date <= max(dat_nav$effective_date)) %>%
     dplyr::group_by(pm_fund_id) %>%
-    dplyr::summarize(tvpi = asrsMethods::tvpi(cash_flow))
+    summarize(contributions = sum(contributions), distributions = sum(distributions)) %>%
+    dplyr::left_join(dat_nav, by = 'pm_fund_id') %>%
+    dplyr::select(pm_fund_id, nav, contributions, distributions) %>%
+    dplyr::group_by(pm_fund_id) %>%
+    dplyr::summarize(tvpi = sum(distributions + nav) / sum(abs(contributions)) )
   return(dat)
-}
-
+  # Previously used by Karl below
+  # Karl's calculation (may be incorrect, does not take into account anything other than cash_flow)
+  #' calc_tvpi_df = function(cash_flow){
+  #'   # dat = cash_flow %>%
+  #'   #   dplyr::group_by(pm_fund_id) %>%
+  #'   #   dplyr::summarize(tvpi = asrsMethods::tvpi(cash_flow))
+  #'   # return(dat)
+  #' }
+  }
 
 #' @export
 calc_irr_df = function(cash_flow){

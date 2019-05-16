@@ -7,6 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(scipen = 999)
 ```
 
 ## Private Markets Monthly Performance Report
@@ -35,6 +36,131 @@ con = AZASRS_DATABASE_CONNECTION()
 
 ```
 
+```{r}
+# Testing loading historical data
+load("P:/IMD/Karl/R projects/private investment performance/pmedata.rdata")
+```
+
+```{r}
+old_cf = y.cf
+
+old_cf_df = tibble()
+for(i in 1:length(old_cf)){
+  tmp_name = names(old_cf[i])
+  tmp_df = old_cf[[i]] %>% as.data.frame()
+  tmp_values = tmp_df[1:nrow(tmp_df),1]
+  tmp_dates = rownames(tmp_df)
+  tmp_new_df = tibble(effective_date = tmp_dates, cash_flow = tmp_values, pm_fund_id = tmp_name)
+  old_cf_df = bind_rows(old_cf_df, tmp_new_df)
+}
+old_cf_df = old_cf_df %>%
+  mutate(effective_date = as.Date(effective_date, format='%Y-%m-%d'))
+
+new_cf = get_pm_cash_flow_daily() %>%
+  select(effective_date, cash_flow, pm_fund_id) %>%
+  mutate(effective_date = as.Date(effective_date, format='%Y-%m-%d'))
+```
+
+```{r}
+cfs = old_cf_df %>%
+  left_join(new_cf, by = c('effective_date' = 'effective_date', 'pm_fund_id' = 'pm_fund_id')) %>%
+  drop_na() %>%
+  mutate(difference = cash_flow.x - cash_flow.y) %>%
+  arrange(desc(difference))
+
+cfs
+# Discrepancies on sign values and there is always a "0" applied to the last date in historical
+```
+
+```{r}
+cfs %>%
+  mutate(accurate = if_else(difference < 0.1, 'Right', 'Wrong')) %>%
+  group_by(accurate) %>%
+  summarize(n = n())
+```
+
+
+```{r}
+ggplot(cfs) + geom_histogram(aes(x=difference))
+```
+
+
+```{r}
+old_nav = hv
+
+new_nav = get_pm_nav_daily() %>% mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d'))
+
+navs = new_nav %>%
+  left_join(old_nav, by = c('pm_fund_id' = 'ShortName', 'effective_date' = 'Date')) %>%
+  mutate(difference = Amount - nav) %>%
+  select(pm_fund_id, effective_date, Amount, nav, difference) %>%
+  arrange(desc(difference))
+navs
+```
+
+
+```{r}
+navs %>%
+  mutate(accurate = if_else(difference < 0.1, 'Right', 'Wrong')) %>%
+  group_by(accurate) %>%
+  summarize(n = n())
+```
+
+
+```{r}
+ggplot(navs) + geom_histogram(aes(x=difference))
+```
+
+
+```{r}
+# Match TVPI calculations
+fi = pm_fund_info()
+
+old_tvpi = pme.x %>% 
+  select(`Fund TVPI`) %>% 
+  rownames_to_column('pm_fund_description') %>%
+  left_join(fi, by = 'pm_fund_description') %>%
+  select(pm_fund_id, `Fund TVPI`) %>%
+  rename(old_tvpi = `Fund TVPI`) %>%
+  drop_na()
+print(nrow(old_tvpi))
+## Issue - "Total " columns will be dropped
+
+# cf2 = get_pm_cash_flow_daily()
+# cf2 %>%
+#   group_by(pm_fund_id) %>%
+#   summarize(cash_flow = sum(cash_flow)) %>%
+#   left_join(old_tvpi, by = 'pm_fund_id') %>%
+#   drop_na()
+
+cf = get_pm_cash_flow_daily()
+nav = get_pm_nav_daily()
+new_tvpi = calc_tvpi_df(cf, nav) %>% 
+  left_join(fi, by = 'pm_fund_id') %>% 
+  select(pm_fund_id, tvpi) %>%
+  rename(new_tvpi = tvpi)
+print(nrow(new_tvpi))
+
+comp = new_tvpi %>% 
+  left_join(old_tvpi, by = 'pm_fund_id') %>%
+  drop_na() %>%
+  mutate(difference = old_tvpi - new_tvpi) %>%
+  arrange(difference)
+comp
+```
+
+```{r}
+comp %>%
+  mutate(accurate = if_else(difference < 0.001, 'Right', 'Wrong')) %>%
+  group_by(accurate) %>%
+  summarize(n = n())
+```
+
+
+```{r}
+ggplot(comp) + geom_histogram(aes(x=difference))
+```
+
 
 ```{r pme}
 cash_flow = get_pm_cash_flow_daily()
@@ -43,6 +169,8 @@ bdi = benchmark_daily_index()
 valdate = value_date()
 
 pmfi = tbl_pm_fund_info_benchmark_info(con) %>%
+  left_join(tbl_benchmark_type_info(con), by = 'benchmark_info_id') %>%
+  filter(benchmark_type == 'PVT') %>%
   left_join(tbl_pm_fund_info(con), by = 'pm_fund_info_id') %>%
   left_join(tbl_benchmark_info(con), by = 'benchmark_info_id') %>%
   select(pm_fund_id, benchmark_id) %>%
@@ -50,11 +178,18 @@ pmfi = tbl_pm_fund_info_benchmark_info(con) %>%
 AZASRS_DATABASE_DISCONNECT(con)
 
 PME = calc_pme_df(cash_flow, nav,  bdi, valdate, pmfi)
-pmeData = PME %>%
+pmeData2 = PME %>%
   select(pm_fund_id, pme) %>%
   filter(pm_fund_id != '') %>%
   filter(!is.na(pm_fund_id)) %>%
+  drop_na() %>%
   spread(pm_fund_id, pme)
-pmeData
+pmeData2
+#PME 2 column is for next quarter, without 2 is closed out by the quarter
+#split up these calculations
+```
+
+```{r}
+pme.df
 ```
 
