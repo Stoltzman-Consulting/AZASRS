@@ -16,11 +16,14 @@ next_qtr = next_quarter()
 
 ```{r}
 nav_daily = get_pm_nav_daily() %>%
-  mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d'))
+  mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d')) %>%
+  filter(effective_date > '1900-01-01')
 cash_flow_daily = get_pm_cash_flow_daily() %>%
-  mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d'))
+  mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d')) %>%
+  filter(effective_date > '1900-01-01')
 ssbt_composite_daily = ssbt_composite_bor_daily() %>%
-  mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d'))
+  mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d')) %>%
+  filter(effective_date > '1900-01-01')
 pm_f_i = pm_fund_info()
 ```
 
@@ -112,7 +115,7 @@ nav_cf_portfolio_rollup = nav_cf_fund %>%
 ```
 
 ```{r}
-portfolio_name = 'RE'
+portfolio_name = 'PE'
 nav_cf_portfolio_rollup_filtered = nav_cf_portfolio_rollup %>%
   filter(pm_fund_portfolio == portfolio_name) %>%
   gather(pm_fund_portfolio)
@@ -187,7 +190,7 @@ rolling_12s = cash_flow_daily %>%
 ```{r}
 contrib_distrib_chart = cash_flow_daily %>% 
   filter(pm_fund_portfolio == portfolio_name) %>%
-  mutate(yr_qtr = as.yearqtr(effective_date)) %>%
+  mutate(yr_qtr = as.Date(as.yearqtr(effective_date))) %>%
   group_by(yr_qtr) %>%
   summarize(contributions = sum(contributions),
             distributions = sum(distributions), 
@@ -195,7 +198,6 @@ contrib_distrib_chart = cash_flow_daily %>%
   gather(distrib_type, value, -yr_qtr)
 
 ggplot(contrib_distrib_chart, aes(x=yr_qtr, y=value, col=distrib_type)) +
-  geom_line() + 
-  scale_x_continuous()
+  geom_line()
 ```
 
