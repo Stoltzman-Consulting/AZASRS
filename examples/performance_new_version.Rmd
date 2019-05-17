@@ -1,20 +1,20 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
-```{r}
+```{r libraries, echo=FALSE, message=FALSE, warning=FALSE}
 library('AZASRS')
 library('tidyverse')
+options(scipen = 999)
 ```
 
-```{r}
+## Load data
+```{r load_data}
 valdate = value_date()
-next_qtr = next_quarter()
-```
-
-
-```{r}
+next_qtr = next_quarter() #currently not used??
 nav_daily = get_pm_nav_daily() %>%
   mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d')) %>%
   filter(effective_date > '1900-01-01')
@@ -27,35 +27,20 @@ ssbt_composite_daily = ssbt_composite_bor_daily() %>%
 pm_f_i = pm_fund_info()
 ```
 
-
+## Summarize Contrubtions & Distributions  
+#### Grouped by Fund and whether it is before or after value date
 ```{r}
-# should it be >= or > next_qtr?
-# need to group by this??
 contrib_distrib = cash_flow_daily %>%
   mutate(valdate = if_else(effective_date <= valdate, 'up_to', 'after')) %>%
   group_by(pm_fund_id, valdate) %>%
   summarize(contributions = -1*sum(contributions), distributions = -1*sum(distributions))
-contrib_distrib
-```
-
-```{r}
-# old method
-# contrib_distrib1 = cash_flow_daily %>%
-#   filter(effective_date <= valdate) %>%
-#   group_by(pm_fund_portfolio) %>%
-#   summarize(contributions = -1*sum(contributions), distributions = -1*sum(distributions)) %>% 
-#   mutate(after_valdate = FALSE)
-# 
-# contrib_distrib2 = cash_flow_daily %>%
-#   filter(effective_date > valdate) %>%
-#   group_by(pm_fund_portfolio) %>%
-#   summarize(contributions = -1*sum(contributions), distributions = -1*sum(distributions)) %>%
-#   mutate(after_valdate = TRUE)
-# 
-# contrib_distrib = bind_rows(contrib_distrib1, contrib_distrib2)
+knitr::kable(head(contrib_distrib))
 ```
 
 
+## Merge Value and Cash Flows  
+#### Merged by Fund and before/after value date  
+**Note** `after` and `up_to` are named properly for `contrib_distrib` but for `nav` the `up_to` really means `on` but the convention was used in order to join the data.
 ```{r}
 nav = nav_daily %>%
   filter(effective_date >= valdate) %>%
@@ -68,10 +53,13 @@ nav_cf = contrib_distrib %>%
   arrange(pm_fund_id, valdate) %>%
   left_join(pm_f_i, by = 'pm_fund_id')
 nav_cf[is.na(nav_cf)] = 0
-nav_cf
+knitr::kable(head(nav_cf))
 ```
 
 
+## Assigning proper values for NAV after Value Date  
+#### This requires splitting up data `up_to` and `after`  
+Ending NAV is decided by Value Date. If the latest NAV reporting is at the end of the previous quarter it will need to be adjusted by adding the subsequent cash flow. If the NAV has been reported for the next quarter it shall be used as the ending NAV.
 ```{r}
 nav_cf_up_to = nav_cf %>%
   filter(valdate == 'up_to') %>%
@@ -91,6 +79,12 @@ nav_cf_after = nav_cf %>%
 
 nav_cf_joined = bind_rows(nav_cf_up_to, nav_cf_after)
 nav_cf_joined[is.na(nav_cf_joined)] = 0
+knitr::kable(head(nav_cf_joined))
+```
+
+
+## Aggregate Funds by Portfolio and Calculate Unrealized Gain/Loss  
+```{r}
 nav_cf_fund = nav_cf_joined %>%
   group_by(pm_fund_id) %>%
   summarize(contributions_up_to = sum(contributions_up_to),
@@ -111,9 +105,11 @@ nav_cf_portfolio_rollup = nav_cf_fund %>%
             nav_after = sum(nav_after)) %>%
   mutate(unrealized_gain_loss_up_to = nav_up_to - distributions_up_to - contributions_up_to,
          unrealized_gain_loss_after = nav_after - distributions_after - contributions_after - nav_up_to)
-
+knitr::kable(head(nav_cf_portfolio_rollup))
 ```
 
+
+## Filter by Specific Portfolio and Begin Calculating Tables  
 ```{r}
 portfolio_name = 'PE'
 nav_cf_portfolio_rollup_filtered = nav_cf_portfolio_rollup %>%
@@ -132,6 +128,7 @@ portfolio_joined = bind_cols(portfolio_up_to, portfolio_after) %>%
   mutate('metric' = c('Beginning NAV', 'Contributions', 'Distributions', 'Unrealized Gain/Loss', 'Ending NAV')) %>%
   rename(Lockdown = value, Post_Lockdown = value1) %>%
   select(-metric1)
+knitr::kable(head(portfolio_joined))
 ```
 
 
@@ -155,6 +152,7 @@ pct_of_total_fund = tibble(metric = 'percent-of_total_fund',
                              Post_Lockdown = ending_navs$Post_Lockdown/total_fund$ending_market_value)
 
 portfolio_joined = bind_rows(portfolio_joined, pct_of_total_fund)
+knitr::kable(head(portfolio_joined))
 ```
 
 
@@ -169,6 +167,7 @@ unfunded = nav_daily %>%
   filter(pm_fund_portfolio == portfolio_name) %>%
   group_by(pm_fund_portfolio) %>%
   summarize(unfunded = sum(unfunded))
+knitr::kable(head(unfunded))
 ```
 
 
@@ -182,7 +181,7 @@ rolling_12s = cash_flow_daily %>%
   summarize(contributions = sum(contributions),
             distributions = sum(distributions), 
             net_cash_flow = contributions + distributions)
-
+knitr::kable(head(rolling_12s))
 ```
 
 
@@ -190,7 +189,7 @@ rolling_12s = cash_flow_daily %>%
 ```{r}
 contrib_distrib_chart = cash_flow_daily %>% 
   filter(pm_fund_portfolio == portfolio_name) %>%
-  mutate(yr_qtr = as.Date(as.yearqtr(effective_date))) %>%
+  mutate(yr_qtr = zoo::as.Date(zoo::as.yearqtr(effective_date))) %>%
   group_by(yr_qtr) %>%
   summarize(contributions = sum(contributions),
             distributions = sum(distributions), 
