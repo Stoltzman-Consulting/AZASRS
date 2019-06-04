@@ -1,7 +1,19 @@
+#' @export
+calc_tvpi = function(distributions, contributions, nav){
+  dat = sum(distributions + nav) / sum(abs(contributions))
+  return(dat)
+}
+
 
 #' @export
-calc_tvpi_df = function(cash_flow, nav){
-  # formula --> (Distributions + Valuations) / Contributions
+calc_irr = function(cash_flow, dates){
+  dat = tvm::xirr(cash_flow, dates)
+  return(dat)
+}
+
+
+#' @export
+calc_tvpi_df = function(cash_flow, nav, grouping_var){
   dat_nav = nav %>%
     group_by(pm_fund_id) %>%
     filter(effective_date == max(effective_date))
@@ -10,26 +22,23 @@ calc_tvpi_df = function(cash_flow, nav){
     dplyr::group_by(pm_fund_id) %>%
     summarize(contributions = sum(contributions), distributions = sum(distributions)) %>%
     dplyr::left_join(dat_nav, by = 'pm_fund_id') %>%
-    dplyr::select(pm_fund_id, nav, contributions, distributions) %>%
-    dplyr::group_by(pm_fund_id) %>%
-    dplyr::summarize(tvpi = sum(distributions + nav) / sum(abs(contributions)) )
+    dplyr::group_by_(grouping_var) %>%
+    dplyr::summarize(tvpi = calc_tvpi(distributions, contributions, nav) )
   return(dat)
-  # Previously used by Karl below
-  # Karl's calculation (may be incorrect, does not take into account anything other than cash_flow)
-  #' calc_tvpi_df = function(cash_flow){
-  #'   # dat = cash_flow %>%
-  #'   #   dplyr::group_by(pm_fund_id) %>%
-  #'   #   dplyr::summarize(tvpi = asrsMethods::tvpi(cash_flow))
-  #'   # return(dat)
-  #' }
   }
 
 #' @export
 calc_irr_df = function(cash_flow){
-  dat = split(cash_flow, factor(cash_flow$pm_fund_id)) %>%
-    purrr::map(.f = ~asrsMethods::irr.z(zoo::zoo(.$cash_flow, .$effective_date), gips = TRUE)) %>%
-    tibble::as.tibble() %>%
-    tidyr::gather(pm_fund_id, irr)
+  dat = cash_flow %>%
+    group_by(pm_fund_id) %>%
+    summarize(irr = calc_irr(cash_flow, effective_date))
+  return(dat)
+
+  # dat = split(cash_flow, factor(cash_flow$pm_fund_id)) %>%
+  #   purrr::map(.f = ~asrsMethods::irr.z(zoo::zoo(.$cash_flow, .$effective_date), gips = TRUE)) %>%
+  #   tibble::as.tibble() %>%
+  #   tidyr::gather(pm_fund_id, irr)
+  # return(dat)
   # faster but not accurate... can fix?
   # dat = cash_flow %>%
   #   group_by(pm_fund_id) %>%

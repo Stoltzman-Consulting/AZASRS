@@ -161,6 +161,9 @@ tbl_pm_fund_nav_daily = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(
 tbl_pm_fund_portfolio = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "pm_fund_portfolio")}
 
 #' @export
+tbl_pm_fund_sector = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "pm_fund_sector")}
+
+#' @export
 tbl_pm_fund_sponsor = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "pm_fund_sponsor")}
 
 #' @export
@@ -180,3 +183,16 @@ tbl_ssbt_composite_info_benchmark_info = function(con = AZASRS_DATABASE_CONNECTI
 
 #' @export
 tbl_sub_portfolio = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "sub_portfolio")}
+
+
+#### Joins to become views:
+# library(tidyverse)
+# con = AZASRS_DATABASE_CONNECTION()
+# tbl_pm_fund_info(con) %>%
+#   left_join(tbl_pm_fund_category(con) , by = 'pm_fund_category_id') %>%
+#   left_join(tbl_pm_fund_city(con) , by = 'pm_fund_city_id') %>%
+#   left_join(tbl_pm_fund_portfolio(con) , by = 'pm_fund_portfolio_id') %>%
+#   left_join(tbl_pm_fund_sector(con) , by = 'pm_fund_sector_id') %>%
+#   left_join(tbl_pm_fund_sponsor(con) , by = 'pm_fund_sponsor_id') %>%
+#   select(-pm_fund_category_id, pm_fund_city_id, pm_fund_portfolio_id, pm_fund_sector_id, pm_fund_sponsor_id) %>%
+#   show_query()
