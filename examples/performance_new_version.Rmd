@@ -176,27 +176,6 @@ calc_date_window_year = function(effective_date, roll_back_years){
 ### Need to add nav at valdate
 ### then if one exists after, new calc for irr (separate) - if none after valdate, nothing goes here.
 
-nav_daily_qtrs = nav_daily %>%
-  mutate(nav_valdate = if_else(effective_date == valdate, nav, 0),
-         nav_next_qtr = if_else(effective_date == next_qtr_date, nav, 0)) %>%
-  select(pm_fund_id, pm_fund_description, effective_date, nav_valdate, nav_next_qtr) %>%
-  filter(nav_valdate != 0 | nav_next_qtr != 0) %>%
-  mutate(cash_flow = 0)
-
-nav_daily_cf_daily = cash_flow_daily %>%
-  select(pm_fund_id, pm_fund_description, effective_date, cash_flow) %>%
-  mutate(nav_valdate = 0, nav_next_qtr = 0) %>%
-  bind_rows(nav_daily_qtrs) %>%
-  group_by(pm_fund_id, pm_fund_description, effective_date) %>%
-  summarize_if(is.numeric, sum) %>%
-  mutate(cash_flow_valdate = cash_flow + nav_valdate,
-         cash_flow_next_qtr = cash_flow + nav_next_qtr)
-
-fund_irr = nav_daily_cf_daily %>%
-  select(pm_fund_description, pm_fund_id, effective_date, cash_flow_valdate, cash_flow_next_qtr) %>%
-  group_by(pm_fund_id, pm_fund_description) %>%
-  summarize(irr_valdate = asrsMethods::irr.z(zoo::zoo(cash_flow_valdate, effective_date), gips = TRUE),
-            irr_next_qtr = asrsMethods::irr.z(zoo::zoo(cash_flow_next_qtr)))
 
 #nav_daily_cf_daily %>% tbl_out()
 ```

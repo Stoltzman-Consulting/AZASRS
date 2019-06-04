@@ -6,13 +6,6 @@ calc_tvpi = function(distributions, contributions, nav){
 
 
 #' @export
-calc_irr = function(cash_flow, dates){
-  dat = tvm::xirr(cash_flow, dates)
-  return(dat)
-}
-
-
-#' @export
 calc_tvpi_df = function(cash_flow, nav, grouping_var){
   dat_nav = nav %>%
     group_by(pm_fund_id) %>%
@@ -26,25 +19,6 @@ calc_tvpi_df = function(cash_flow, nav, grouping_var){
     dplyr::summarize(tvpi = calc_tvpi(distributions, contributions, nav) )
   return(dat)
   }
-
-#' @export
-calc_irr_df = function(cash_flow){
-  dat = cash_flow %>%
-    group_by(pm_fund_id) %>%
-    summarize(irr = calc_irr(cash_flow, effective_date))
-  return(dat)
-
-  # dat = split(cash_flow, factor(cash_flow$pm_fund_id)) %>%
-  #   purrr::map(.f = ~asrsMethods::irr.z(zoo::zoo(.$cash_flow, .$effective_date), gips = TRUE)) %>%
-  #   tibble::as.tibble() %>%
-  #   tidyr::gather(pm_fund_id, irr)
-  # return(dat)
-  # faster but not accurate... can fix?
-  # dat = cash_flow %>%
-  #   group_by(pm_fund_id) %>%
-  #   summarize(irr = asrsMethods::irr.z(cash_flow, gips=TRUE))
-  # return(dat)
-}
 
 
 #' @export
