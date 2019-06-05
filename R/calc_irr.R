@@ -6,43 +6,30 @@ calc_irr = function(cash_flow, dates){
 
 
 #' @export
-calc_irr_df_pm = function(group_var = pm_fund_id, date_cutoff='valdate'){
-  # Obtain data
-  if(date_cutoff == 'valdate'){
-    date_cutoff = value_date()
-  }else if(date_cutoff == 'next_qtr'){
-      date_cutoff = next_quarter()
-  }else{
-      stop('') #add an important error to state must be valdate or next_qtr
-    }
+calc_irr_df_pm = function(nav_daily = get_pm_nav_daily(),
+                          cf_daily = get_pm_cash_flow_daily(),
+                          group_var = pm_fund_id,
+                          date_cutoff = value_date()){
+  group_var = dplyr::enquo(group_var)
 
-  group_var = enquo(group_var)
+  nav_daily = nav_daily %>%
+    dplyr::mutate(nav_cutoff = if_else(effective_date == valdate, nav, 0)) %>%
+    dplyr::select(!! group_var, effective_date, nav_cutoff) %>%
+    dplyr::filter(nav_cutoff != 0) %>%
+    dplyr::mutate(cash_flow = 0)
 
-  nav_daily_raw = get_pm_nav_daily() %>%
-    mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d')) %>%
-    filter(effective_date > '1900-01-01')
-  cf_daily_raw = get_pm_cash_flow_daily() %>%
-    mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d')) %>%
-    filter(effective_date > '1900-01-01')
-
-  nav_daily = nav_daily_raw %>%
-    mutate(nav_cutoff = if_else(effective_date == valdate, nav, 0)) %>%
-    select(!! group_var, effective_date, nav_cutoff) %>%
-    filter(nav_cutoff != 0) %>%
-    mutate(cash_flow = 0)
-
-  nav_cf_daily = cf_daily_raw %>%
-    select(!! group_var, effective_date, cash_flow) %>%
-    mutate(nav_cutoff = 0) %>%
-    bind_rows(nav_daily) %>%
-    group_by(!! group_var, effective_date) %>%
-    summarize(cash_flow = sum(cash_flow),
+  nav_cf_daily = cf_daily %>%
+    dplyr::select(!! group_var, effective_date, cash_flow) %>%
+    dplyr::mutate(nav_cutoff = 0) %>%
+    dplyr::bind_rows(nav_daily) %>%
+    dplyr::group_by(!! group_var, effective_date) %>%
+    dplyr::summarize(cash_flow = sum(cash_flow),
               nav_cutoff = sum(nav_cutoff)) %>%
-    mutate(cash_flow_cutoff = cash_flow + nav_cutoff)
+    dplyr::mutate(cash_flow_cutoff = cash_flow + nav_cutoff)
 
   # Calculate IRR
   fund_irr = nav_cf_daily %>%
-    group_by(!! group_var) %>%
-    summarize(irr = calc_irr(cash_flow_cutoff, effective_date))
+    dplyr::group_by(!! group_var) %>%
+    dplyr::summarize(irr = calc_irr(cash_flow_cutoff, effective_date))
   return(fund_irr)
 }

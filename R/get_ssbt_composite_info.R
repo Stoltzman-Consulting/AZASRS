@@ -17,5 +17,9 @@ get_ssbt_composite_info = function(...){
       dplyr::filter(!!! args)
   }
 
-  return(dat %>% tibble::as_tibble())
+  dat = dat %>% tibble::as_tibble() %>%
+    dplyr::mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d')) %>%
+    dplyr::filter(effective_date > '1900-01-01')
+
+  return(dat)
 }

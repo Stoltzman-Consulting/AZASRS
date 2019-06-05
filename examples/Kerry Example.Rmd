@@ -1,0 +1,50 @@
+---
+title: "Kerry Example"
+output:
+  html_document:
+    df_print: paged
+---
+
+Testing for database connectivity and ability to create IRRs.
+
+You will need the newest AZASRS library.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+```
+
+```{r libraries, echo=FALSE}
+library('kableExtra')
+library('AZASRS')
+library('zoo')
+library('tidyverse')
+options(scipen=999)
+```
+
+## Load data
+```{r load_data}
+valdate = value_date()
+next_qtr_date = next_quarter()
+nav_daily = get_pm_nav_daily() 
+cash_flow_daily = get_pm_cash_flow_daily()
+pm_f_i = pm_fund_info()
+```
+
+
+```{r}
+dt = calc_irr_df_pm(nav_daily, cash_flow_daily,
+               pm_fund_id, valdate)
+dt %>% kable()
+```
+```{r}
+dt = calc_irr_df_pm(nav_daily, cash_flow_daily,
+               pm_fund_category_description, valdate)
+dt %>% kable()
+```
+
+```{r}
+dt = calc_irr_df_pm(nav_daily, cash_flow_daily,
+               pm_fund_portfolio, valdate)
+dt %>% kable()
+```
+

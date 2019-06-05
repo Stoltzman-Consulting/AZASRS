@@ -17,10 +17,14 @@ get_pm_cash_flow_daily = function(..., con = AZASRS_DATABASE_CONNECTION()){
     dplyr::left_join(pmfi, by = c('pm_fund_info_id' = 'pm_fund_info_id')) %>%
     dplyr::mutate(contributions = ifelse(cash_flow < 0, cash_flow, 0),
                   distributions = ifelse(cash_flow > 0, cash_flow, 0))
-
   if(length(args) > 0){
     dat = dat %>%
       dplyr::filter(!!! args)
   }
-  return(dat %>% tibble::as_tibble())
+
+  dat = dat %>% tibble::as_tibble() %>%
+    dplyr::mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d')) %>%
+    dplyr::filter(effective_date > '1900-01-01')
+
+  return(dat)
 }

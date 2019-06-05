@@ -51,6 +51,12 @@ ssbt_composite_daily = ssbt_composite_bor_daily() %>%
 pm_f_i = pm_fund_info()
 ```
 
+
+```{r}
+calc_irr_df_pm(nav_daily, cash_flow_daily,
+               pm_fund_category_description, valdate)
+```
+
 ## Summarize Contrubtions & Distributions  
 #### Grouped by Fund and whether it is before or after value date
 ```{r}
