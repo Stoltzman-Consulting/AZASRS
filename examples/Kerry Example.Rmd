@@ -10,7 +10,7 @@ Testing for database connectivity and ability to create IRRs.
 You will need the newest AZASRS library.
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, echo=FALSE)
 ```
 
 ```{r libraries, echo=FALSE}
@@ -21,8 +21,8 @@ library('tidyverse')
 options(scipen=999)
 ```
 
-## Load data
 ```{r load_data}
+## Load data
 valdate = value_date()
 next_qtr_date = next_quarter()
 nav_daily = get_pm_nav_daily() 
@@ -32,15 +32,27 @@ pm_f_i = pm_fund_info()
 
 
 ```{r}
-dt = calc_irr_df_pm(nav_daily, cash_flow_daily,
-               pm_fund_id, valdate)
-dt %>% kable()
+dt_1 = calc_irr_df_pm(nav_daily, cash_flow_daily, valdate, 
+                    pm_fund_category, pm_fund_id)
+dt_1 %>% kable()
 ```
 ```{r}
-dt = calc_irr_df_pm(nav_daily, cash_flow_daily,
-               pm_fund_category_description, valdate)
-dt %>% kable()
+dt_2 = calc_irr_df_pm(nav_daily, cash_flow_daily, valdate,
+               pm_fund_category) %>%
+  mutate(pm_fund_id = 'TOTAL')
+dt_2 %>% kable()
 ```
+
+
+```{r}
+dt_3 = bind_rows(dt_1, dt_2)
+dt_3 %>% kable()
+```
+
+```{r}
+dt_3 %>% filter(pm_fund_category == 'Current') %>% kable()
+```
+
 
 ```{r}
 dt = calc_irr_df_pm(nav_daily, cash_flow_daily,
