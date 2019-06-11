@@ -4,55 +4,87 @@ calc_tvpi = function(distributions, contributions, nav){
   return(dat)
 }
 
+#' @export
+calc_dpi = function(distributions, contributions){
+  dat = sum(abs(distributions)) / sum(abs(contributions))
+  return(dat)
+}
 
 #' @export
-calc_tvpi_df = function(cash_flow, nav, grouping_var){
+calc_appreciation = function(nav, cash_flow){
+  dat = sum(nav) - sum(cash_flow)
+  return(dat)
+}
+
+#' @export
+calc_pme = function(distributions, contributions, fv_index_factors, nav){
+  total_fv_distributions = sum((distributions * fv_index_factors) + nav)
+  total_fv_contributions = sum(contributions * fv_index_factors)
+  pme = total_fv_distributions / total_fv_contributions
+  return(pme)
+}
+
+
+#' @export
+calc_tvpi_df = function(cash_flow, nav, grouping_var = pm_fund_id){
+
+  grouping_var = dplyr::enquo(grouping_var)
+
   dat_nav = nav %>%
     group_by(pm_fund_id) %>%
     filter(effective_date == max(effective_date))
   dat = cash_flow %>%
     dplyr::filter(effective_date <= max(dat_nav$effective_date)) %>%
-    dplyr::group_by(pm_fund_id) %>%
+    dplyr::group_by(!! grouping_var) %>%
     summarize(contributions = sum(contributions), distributions = sum(distributions)) %>%
-    dplyr::left_join(dat_nav, by = 'pm_fund_id') %>%
-    dplyr::group_by_(grouping_var) %>%
+    dplyr::left_join(dat_nav, by = glue::glue('{grouping_var}_id')) %>%
+    dplyr::group_by(!! grouping_var) %>%
     dplyr::summarize(tvpi = calc_tvpi(distributions, contributions, nav) )
   return(dat)
   }
 
 
 #' @export
-calc_lastinvec_df = function(cash_flow){
+calc_lastinvec_df = function(cash_flow, grouping_var = pm_fund_id){
+
+  grouping_var = dplyr::enquo(grouping_var)
+
   dat = cash_flow %>%
-    dplyr::group_by(pm_fund_id) %>%
+    dplyr::group_by(!! grouping_var) %>%
     dplyr::summarize(lastinvec = asrsMethods::irr.z(cash_flow, gips=TRUE))
   return(dat)
 }
 
 
 #' @export
-calc_dpi_df = function(cash_flow){
+calc_dpi_df = function(cash_flow, grouping_var = pm_fund_id){
+
+  grouping_var = dplyr::enquo(grouping_var)
+
   dat = cash_flow %>%
     dplyr::mutate(distributions = dplyr::if_else(cash_flow > 0, abs(cash_flow), 0),
            contributions = dplyr::if_else(cash_flow < 0, abs(cash_flow), 0)) %>%
-    dplyr::group_by(pm_fund_id) %>%
+    dplyr::group_by(!! grouping_var) %>%
     dplyr::summarize(dpi = sum(distributions) / sum(contributions))
   return(dat)
 }
 
 
 #' @export
-calc_appreciation_df = function(cash_flow, nav, valdate){
+calc_appreciation_df = function(cash_flow, nav, valdate, grouping_var = pm_fund_id){
+
+  grouping_var = dplyr::enquo(grouping_var)
+
   dat_nav = nav %>%
     dplyr::filter(effective_date == valdate)
 
   dat_cf = cash_flow %>%
     dplyr::filter(effective_date >= valdate) %>%
-    dplyr::group_by(pm_fund_id) %>%
+    dplyr::group_by(!! grouping_var) %>%
     dplyr::summarize(cash_flow = sum(cash_flow))
 
   dat = dat_cf %>%
-    dplyr::left_join(dat_nav, by = 'pm_fund_id') %>%
+    dplyr::left_join(dat_nav, by = glue::glue('{grouping_var}_id')) %>%
     dplyr::mutate(appreciation = nav - cash_flow)
 
   return(dat)
@@ -78,8 +110,6 @@ calc_benchmark_daily_index_df = function(benchmark_daily_index){
 
 #' @export
 calc_pme_df = function(cash_flow, nav, benchmark_daily_index, valdate, pmfi){
-  bench_index = calc_benchmark_daily_index_df(benchmark_daily_index) %>%
-    dplyr::mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d'))
 
   nav_filtered = nav %>%
     dplyr::mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d')) %>%
@@ -103,3 +133,4 @@ calc_pme_df = function(cash_flow, nav, benchmark_daily_index, valdate, pmfi){
 
   return(pme)
 }
+

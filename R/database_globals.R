@@ -29,6 +29,20 @@ pm_fund_info = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
   if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
   return(dat)}
 
+
+#' @export
+get_benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION(), bench_type = 'SAA', return_tibble=TRUE){
+  dat = tbl_benchmark_daily_index(con) %>%
+    dplyr::left_join(tbl_pm_fund_info_benchmark_info(con), by = 'benchmark_info_id') %>%
+    dplyr::left_join(tbl_benchmark_type_info(con), by = 'benchmark_type_info_id') %>%
+    dplyr::left_join(tbl_pm_fund_info(con), by = 'pm_fund_info_id') %>%
+    dplyr::filter(benchmark_type == bench_type)
+  if(return_tibble == TRUE){
+    dat = dat %>% tibble::as_tibble() %>%
+      dplyr::mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d')) %>%
+      dplyr::filter(effective_date > '1900-01-01') }
+  return(dat)}
+
 #' @export
 benchmark_daily_return = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
   dat = tbl_benchmark_daily_return(con) %>%
@@ -134,7 +148,7 @@ tbl_benchmark_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con
 tbl_benchmark_monthly_return = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "benchmark_monthly_return")}
 
 #' @export
-tbl_benchmark_type_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "benchmark)_type_info")}
+tbl_benchmark_type_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "benchmark_type_info")}
 
 #' @export
 tbl_constants = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "constants")}
@@ -196,3 +210,4 @@ tbl_sub_portfolio = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con,
 #   left_join(tbl_pm_fund_sponsor(con) , by = 'pm_fund_sponsor_id') %>%
 #   select(-pm_fund_category_id, pm_fund_city_id, pm_fund_portfolio_id, pm_fund_sector_id, pm_fund_sponsor_id) %>%
 #   show_query()
+#

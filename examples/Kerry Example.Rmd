@@ -27,36 +27,173 @@ valdate = value_date()
 next_qtr_date = next_quarter()
 nav_daily = get_pm_nav_daily() 
 cash_flow_daily = get_pm_cash_flow_daily()
+benchmark_daily = get_benchmark_daily_index()
 pm_f_i = pm_fund_info()
+
+
+# Total fund - ending market value
+total_fund_value = ssbt_composite_daily %>%
+  filter(ssbt_composite_id == 'ASRSA001',
+         effective_date == valdate) %>%
+  select(ending_market_value) %>%
+  pull()
 ```
 
 
+### Build summary table
 ```{r}
-dt_1 = calc_irr_df_pm(nav_daily, cash_flow_daily, valdate, 
-                    pm_fund_category, pm_fund_id)
-dt_1 %>% kable()
+# First calculate contributions & distributions to get cash adjustments
+# First label all data based off of valdate
+contrib_distrib = cash_flow_daily %>%
+  mutate(valdate = if_else(effective_date <= valdate, 'up_to', 'after')) %>%
+  group_by(pm_fund_id, valdate) %>%
+  summarize(contributions = -1*sum(contributions), distributions = -1*sum(distributions))
+
+# Separate out 'up_to' & 'after' for those to be cash adjusted
+contrib_distrib_singles_up_to = contrib_distrib %>% 
+  filter(valdate == 'up_to') %>%
+  group_by(pm_fund_id) %>% 
+  summarize(n = n())
+contrib_distrib_singles_after = contrib_distrib %>% 
+  filter(valdate == 'after') %>%
+  group_by(pm_fund_id) %>% 
+  summarize(n = n())
+
+# Join via 'anti_join' to only keep 'after' cash flow (which will be used for cash adjustment rather than valdate)
+contrib_distrib_singles_opposite = contrib_distrib_singles_up_to %>% 
+  anti_join(contrib_distrib_singles_after, by = 'pm_fund_id') %>%
+  mutate(valdate = 'after', contributions = 0, distributions = 0)
+
+contrib_distrib = bind_rows(contrib_distrib, 
+                            contrib_distrib_singles_opposite) %>% select(-n)
+
+
+# Merge nav data
+nav = nav_daily %>%
+  filter(effective_date >= valdate) %>%
+  mutate(valdate = if_else(effective_date > valdate, 'after', 'up_to')) %>%
+  group_by(pm_fund_id, valdate) %>%
+  summarize(nav = sum(nav))
+nav[is.na(nav)] = 0
+
+# Separate out 'up_to' & 'after' for those to be cash adjusted
+nav_singles_up_to = nav %>% 
+  filter(valdate == 'up_to') %>%
+  group_by(pm_fund_id) %>% 
+  summarize(n = n())
+nav_singles_after = nav %>% 
+  filter(valdate == 'after') %>%
+  group_by(pm_fund_id) %>% 
+  summarize(n = n())
+# Join via 'anti_join' to only keep 'after' nav (which will be used for cash adjustment rather than valdate)
+nav_singles_opposite = nav_singles_up_to %>% 
+  anti_join(nav_singles_after, by = 'pm_fund_id') %>%
+  mutate(valdate = 'after', nav = 0)
+nav = bind_rows(nav, nav_singles_opposite) %>% select(-n)
+
+nav_cf = contrib_distrib %>%
+  left_join(nav, by = c('pm_fund_id', 'valdate')) %>%
+  arrange(pm_fund_id, valdate) %>%
+  left_join(pm_f_i, by = 'pm_fund_id')
+nav_cf[is.na(nav_cf)] = 0
+
+
+# Summarize data by lockdown period
+nav_cf_up_to = nav_cf %>%
+  filter(valdate == 'up_to') %>%
+  group_by(pm_fund_id) %>%
+  summarize(contributions_up_to = sum(contributions),
+            distributions_up_to = sum(distributions),
+            nav_up_to = sum(nav))
+nav_cf_up_to[is.na(nav_cf_up_to)] = 0
+
+nav_cf_after = nav_cf %>%
+  mutate(nav = if_else(valdate == 'after' & nav == 0,
+                sum(nav), nav)) %>%
+  filter(valdate == 'after') %>%
+  group_by(pm_fund_id) %>%
+  summarize(contributions_after = sum(contributions),
+            distributions_after = sum(distributions),
+            nav_after = sum(nav))
+nav_cf_after[is.na(nav_cf_after)] = 0
+
+nav_cf_joined = bind_rows(nav_cf_up_to, nav_cf_after)
+nav_cf_joined[is.na(nav_cf_joined)] = 0
+nav_cf_joined = nav_cf_joined %>%
+  left_join(pm_f_i, by = 'pm_fund_id')
+nav_cf_joined[is.na(nav_cf_joined)] = 0
 ```
+
+### First part of summary (but not aggregated, must group_by portfolio)
 ```{r}
-dt_2 = calc_irr_df_pm(nav_daily, cash_flow_daily, valdate,
-               pm_fund_category) %>%
+aggregate_lockdown_metrics = function(dat = nav_cf_joined, grouping_var =  pm_fund_id){
+  
+  grouping_var = enquo(grouping_var)
+  
+  df = dat %>%
+    group_by(!! grouping_var) %>%
+    summarize(contributions_up_to = sum(contributions_up_to),
+              distributions_up_to = sum(distributions_up_to),
+              nav_up_to_start = 0,
+              nav_up_to_end = sum(nav_up_to),
+              contributions_after = sum(contributions_after),
+              distributions_after = sum(distributions_after),
+              nav_after_start = nav_up_to_end,
+              nav_after_end = sum(nav_after),
+              unfunded = sum(unfunded)) %>%
+    mutate(unrealized_gain_loss_up_to = 
+             nav_up_to_end - distributions_up_to - contributions_up_to,
+           unrealized_gain_loss_after = 
+             nav_after_end - distributions_after - contributions_after - nav_up_to_end,
+           pct_of_total_fund_up_to = nav_up_to_end / total_fund_value,
+           pct_of_total_fund_after = nav_after_end / total_fund_value,
+           estimated_exposure_w_unfunded = nav_after_end + unfunded,
+           estimated_exposure_w_unfunded_pct = estimated_exposure_w_unfunded / (total_fund_value + sum(unfunded)))
+  return(df)
+}
+
+
+rolling_12s = function(dat = cash_flow_daily, grouping_var){
+  grouping_var = enquo(grouping_var)
+  
+  df = dat %>%
+    filter(effective_date >= max(effective_date) - months(12)) %>%
+    group_by(!! grouping_var) %>%
+    summarize(contributions = sum(contributions),
+              distributions = sum(distributions),
+              net_cash_flow = contributions + distributions)
+  
+  return(df)
+}
+```
+
+```{r}
+aggregate_lockdown_metrics(grouping_var = pm_fund_portfolio)
+```
+
+```{r}
+rolling_12s(grouping_var = pm_fund_portfolio)
+```
+
+
+### All funds & can filter by category & portfolio - Total added to all category
+```{r}
+# valdate can be changed to whatever cutoff date you would like
+# do we need to make the date based off of the fund effective_date?
+# PME has issues --- and why is it negative?? which sign to flip?
+irr_1 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, valdate, pm_fund_portfolio, pm_fund_category, pm_fund_id)
+
+irr_2 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, valdate, pm_fund_portfolio, pm_fund_category) %>% 
   mutate(pm_fund_id = 'TOTAL')
-dt_2 %>% kable()
+
+irr_3 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, valdate, pm_fund_portfolio) %>% 
+  mutate(pm_fund_id = 'TOTAL', pm_fund_category = 'TOTAL')
+
+irr_all = bind_rows(irr_1, irr_2, irr_3)
+irr_all
 ```
 
 
-```{r}
-dt_3 = bind_rows(dt_1, dt_2)
-dt_3 %>% kable()
-```
-
-```{r}
-dt_3 %>% filter(pm_fund_category == 'Current') %>% kable()
-```
 
 
-```{r}
-dt = calc_irr_df_pm(nav_daily, cash_flow_daily,
-               pm_fund_portfolio, valdate)
-dt %>% kable()
-```
 
