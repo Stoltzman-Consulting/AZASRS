@@ -21,7 +21,7 @@ library('tidyverse')
 options(scipen=999)
 ```
 
-```{r load_data}
+```{r load_data, cache=TRUE}
 ## Load data
 valdate = value_date()
 next_qtr_date = next_quarter()
@@ -32,11 +32,7 @@ pm_f_i = pm_fund_info()
 
 
 # Total fund - ending market value
-total_fund_value = ssbt_composite_daily %>%
-  filter(ssbt_composite_id == 'ASRSA001',
-         effective_date == valdate) %>%
-  select(ending_market_value) %>%
-  pull()
+total_fund_val = total_fund_value()
 ```
 
 
@@ -145,10 +141,10 @@ aggregate_lockdown_metrics = function(dat = nav_cf_joined, grouping_var =  pm_fu
              nav_up_to_end - distributions_up_to - contributions_up_to,
            unrealized_gain_loss_after = 
              nav_after_end - distributions_after - contributions_after - nav_up_to_end,
-           pct_of_total_fund_up_to = nav_up_to_end / total_fund_value,
-           pct_of_total_fund_after = nav_after_end / total_fund_value,
+           pct_of_total_fund_up_to = nav_up_to_end / total_fund_val,
+           pct_of_total_fund_after = nav_after_end / total_fund_val,
            estimated_exposure_w_unfunded = nav_after_end + unfunded,
-           estimated_exposure_w_unfunded_pct = estimated_exposure_w_unfunded / (total_fund_value + sum(unfunded)))
+           estimated_exposure_w_unfunded_pct = estimated_exposure_w_unfunded / (total_fund_val + sum(unfunded)))
   return(df)
 }
 

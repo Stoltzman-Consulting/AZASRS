@@ -104,6 +104,16 @@ next_quarter = function(con = AZASRS_DATABASE_CONNECTION()){
   dat = dat$next_quarter
   return(dat)}
 
+#' @export
+total_fund_value = function(at_date = value_date(), con = AZASRS_DATABASE_CONNECTION()){
+  dat = tbl_ssbt_composite_book_of_record_daily(con) %>%
+    dplyr::filter(effective_date == paste(as.character(at_date), '00:00:00')) %>%
+    dplyr::left_join(tbl_ssbt_composite_info(con), by = 'ssbt_composite_info_id') %>%
+    dplyr::filter(ssbt_composite_id == 'ASRSA001') %>%
+    dplyr::select(ending_market_value) %>%
+    dplyr::pull()
+  return(dat)}
+
 # All existing tables
 #' @export
 tbl_account_asset_class = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "account_asset_class")}
