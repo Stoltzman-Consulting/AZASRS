@@ -5,8 +5,6 @@ output:
     df_print: paged
 ---
 
-Testing for database connectivity and ability to create IRRs.
-
 You will need the newest AZASRS library.
 
 ```{r setup, include=FALSE}
@@ -36,8 +34,7 @@ total_fund_val = total_fund_value()
 ```
 
 
-### Build summary table
-```{r}
+```{r prep_data}
 # First calculate contributions & distributions to get cash adjustments
 # First label all data based off of valdate
 contrib_distrib = cash_flow_daily %>%
@@ -120,8 +117,8 @@ nav_cf_joined = nav_cf_joined %>%
 nav_cf_joined[is.na(nav_cf_joined)] = 0
 ```
 
-### First part of summary (but not aggregated, must group_by portfolio)
-```{r}
+
+```{r transformation_functions}
 aggregate_lockdown_metrics = function(dat = nav_cf_joined, grouping_var =  pm_fund_id){
   
   grouping_var = enquo(grouping_var)
@@ -163,26 +160,32 @@ rolling_12s = function(dat = cash_flow_daily, grouping_var){
 }
 ```
 
+
+#### Lockdown Metrics
 ```{r}
 aggregate_lockdown_metrics(grouping_var = pm_fund_portfolio)
 ```
 
+#### Rolling 12  Month
 ```{r}
 rolling_12s(grouping_var = pm_fund_portfolio)
 ```
 
 
-### All funds & can filter by category & portfolio - Total added to all category
+####All funds & can filter by category & portfolio - Total added to all category
 ```{r}
-# valdate can be changed to whatever cutoff date you would like
-# do we need to make the date based off of the fund effective_date?
-# PME has issues --- and why is it negative?? which sign to flip?
-irr_1 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, valdate, pm_fund_portfolio, pm_fund_category, pm_fund_id)
+# set baseline end date to reference
+end_date_base = as.Date(valdate) 
 
-irr_2 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, valdate, pm_fund_portfolio, pm_fund_category) %>% 
+# 1 quarter
+start_date = as.character(as.Date(as.yearqtr(end_date_base)) - 1 )
+
+irr_1 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio, pm_fund_category, pm_fund_id)
+
+irr_2 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio, pm_fund_category) %>% 
   mutate(pm_fund_id = 'TOTAL')
 
-irr_3 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, valdate, pm_fund_portfolio) %>% 
+irr_3 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio) %>% 
   mutate(pm_fund_id = 'TOTAL', pm_fund_category = 'TOTAL')
 
 irr_all = bind_rows(irr_1, irr_2, irr_3)
@@ -190,6 +193,101 @@ irr_all
 ```
 
 
+```{r}
+# 1 year
+start_date = end_date_base - lubridate::years(1) + lubridate::days(1)
+
+irr_1 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio, pm_fund_category, pm_fund_id)
+
+irr_2 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio, pm_fund_category) %>% 
+  mutate(pm_fund_id = 'TOTAL')
+
+irr_3 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio) %>% 
+  mutate(pm_fund_id = 'TOTAL', pm_fund_category = 'TOTAL')
+
+irr_all = bind_rows(irr_1, irr_2, irr_3)
+irr_all
+```
 
 
+```{r}
+# 1 year
+start_date = end_date_base - lubridate::years(1) + lubridate::days(1)
 
+irr_1 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio, pm_fund_category, pm_fund_id)
+
+irr_2 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio, pm_fund_category) %>% 
+  mutate(pm_fund_id = 'TOTAL')
+
+irr_3 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio) %>% 
+  mutate(pm_fund_id = 'TOTAL', pm_fund_category = 'TOTAL')
+
+irr_all = bind_rows(irr_1, irr_2, irr_3)
+irr_all
+```
+
+
+```{r}
+# 3 year
+start_date = end_date_base - lubridate::years(3) + lubridate::days(1)
+
+irr_1 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio, pm_fund_category, pm_fund_id)
+
+irr_2 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio, pm_fund_category) %>% 
+  mutate(pm_fund_id = 'TOTAL')
+
+irr_3 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio) %>% 
+  mutate(pm_fund_id = 'TOTAL', pm_fund_category = 'TOTAL')
+
+irr_all = bind_rows(irr_1, irr_2, irr_3)
+irr_all
+```
+
+
+```{r}
+# 5 year
+start_date = end_date_base - lubridate::years(5) + lubridate::days(1)
+
+irr_1 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio, pm_fund_category, pm_fund_id)
+
+irr_2 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio, pm_fund_category) %>% 
+  mutate(pm_fund_id = 'TOTAL')
+
+irr_3 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio) %>% 
+  mutate(pm_fund_id = 'TOTAL', pm_fund_category = 'TOTAL')
+
+irr_all = bind_rows(irr_1, irr_2, irr_3)
+irr_all
+```
+
+```{r}
+# 10 year
+start_date = end_date_base - lubridate::years(5) + lubridate::days(1)
+
+irr_1 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio, pm_fund_category, pm_fund_id)
+
+irr_2 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio, pm_fund_category) %>% 
+  mutate(pm_fund_id = 'TOTAL')
+
+irr_3 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio) %>% 
+  mutate(pm_fund_id = 'TOTAL', pm_fund_category = 'TOTAL')
+
+irr_all = bind_rows(irr_1, irr_2, irr_3)
+irr_all
+```
+
+```{r}
+# Inception
+start_date = as.character(end_date_base)
+
+irr_1 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio, pm_fund_category, pm_fund_id)
+
+irr_2 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio, pm_fund_category) %>% 
+  mutate(pm_fund_id = 'TOTAL')
+
+irr_3 = calc_pm_metrics_df(nav_daily, cash_flow_daily, benchmark_daily, start_date, valdate, pm_fund_portfolio) %>% 
+  mutate(pm_fund_id = 'TOTAL', pm_fund_category = 'TOTAL')
+
+irr_all = bind_rows(irr_1, irr_2, irr_3)
+irr_all
+```

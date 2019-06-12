@@ -9,6 +9,7 @@ calc_irr = function(cash_flow, dates){
 calc_pm_metrics_df = function(nav_daily = get_pm_nav_daily(),
                           cf_daily = get_pm_cash_flow_daily(),
                           benchmark_daily = get_benchmark_daily_index(),
+                          date_start = '1900-01-01',
                           date_cutoff = value_date(),
                           ...){
 
@@ -21,6 +22,13 @@ calc_pm_metrics_df = function(nav_daily = get_pm_nav_daily(),
                                      pm_fund_city,
                                      pm_fund_sector,
                                      pm_fund_portfolio) %>% unique()
+
+  #### filtering all dates
+  nav_daily = nav_daily %>% dplyr::filter(effective_date >= date_start & effective_date <= date_cutoff)
+  cf_daily = cf_daily %>% dplyr::filter(effective_date >= date_start & effective_date <= date_cutoff)
+  benchmark_daily = benchmark_daily %>% dplyr::filter(effective_date >= date_start & effective_date <= date_cutoff)
+
+
 
   bench_daily = benchmark_daily %>% dplyr::select(pm_fund_id, effective_date, index_value)
 
@@ -50,7 +58,7 @@ calc_pm_metrics_df = function(nav_daily = get_pm_nav_daily(),
 
   #PME setup calcs
   fv_index_factors = nav_cf_daily %>%
-    dplyr::filter(effective_date == valdate) %>%
+    dplyr::filter(effective_date == date_cutoff) %>%
     unique() %>%
     dplyr::select(pm_fund_id, index_value) %>%
     dplyr::rename(last_index_value = index_value)
