@@ -5,11 +5,15 @@
 #' @examples
 #' get_benchmark_index_daily(effective_date >= '2018-01-01')
 #' @export
-get_benchmark_index_daily = function(..., con = AZASRS_DATABASE_CONNECTION()){
+get_benchmark_index_daily = function(..., con = AZASRS_DATABASE_CONNECTION(), bench_type = 'SAA'){
 
   args = rlang::enexprs(...)
 
-  dat = ''
+  dat = tbl_benchmark_daily_index(con) %>%
+    dplyr::left_join(tbl_pm_fund_info_benchmark_info(con), by = 'benchmark_info_id') %>%
+    dplyr::left_join(tbl_benchmark_type_info(con), by = 'benchmark_type_info_id') %>%
+    dplyr::left_join(tbl_pm_fund_info(con), by = 'pm_fund_info_id') %>%
+    dplyr::filter(benchmark_type == bench_type)
 
   if(length(args) > 0){
     dat = dat %>%
@@ -22,3 +26,4 @@ get_benchmark_index_daily = function(..., con = AZASRS_DATABASE_CONNECTION()){
 
   return(dat)
 }
+

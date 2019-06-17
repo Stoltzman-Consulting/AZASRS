@@ -4,7 +4,8 @@
 \alias{get_benchmark_index_daily}
 \title{Query benchmark_index table from database}
 \usage{
-get_benchmark_index_daily(..., con = AZASRS_DATABASE_CONNECTION())
+get_benchmark_index_daily(..., con = AZASRS_DATABASE_CONNECTION(),
+  bench_type = "SAA")
 }
 \arguments{
 \item{...}{are for filtering the tables, can take values: category, portfolio, asset_class, sub_portfolio, previous_saa, sponsor, saa_benchmark, imp_benchmark, ticker, city}

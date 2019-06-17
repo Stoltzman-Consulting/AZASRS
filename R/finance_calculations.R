@@ -1,4 +1,10 @@
 #' @export
+calc_irr = function(cash_flow, dates){
+  dat <- asrsMethods::irr.z(zoo::zoo(cash_flow, dates), gips = TRUE)
+  return(dat)
+}
+
+#' @export
 calc_tvpi = function(distributions, contributions, nav){
   dat = sum(distributions + nav) / sum(abs(contributions))
   return(dat)
