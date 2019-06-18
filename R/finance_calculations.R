@@ -25,7 +25,7 @@ calc_appreciation = function(nav, cash_flow){
 #' @export
 calc_pme = function(distributions, contributions, fv_index_factors, nav){
   total_fv_distributions = sum((distributions * fv_index_factors) + nav)
-  total_fv_contributions = sum(contributions * fv_index_factors)
+  total_fv_contributions = abs(sum(contributions * fv_index_factors))
   pme = total_fv_distributions / total_fv_contributions
   return(pme)
 }
