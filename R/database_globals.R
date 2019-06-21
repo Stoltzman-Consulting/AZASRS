@@ -1,8 +1,8 @@
 
 # Global variables
 #' @export
-AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\Database\\asrs_database.db"
-#AZASRS_DATABASE_LOCATION = "C:\\Users\\scotts\\Desktop\\2018 Database Project\\Database\\asrs_database.db" ##For local development only
+#AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\Database\\asrs_database.db"
+AZASRS_DATABASE_LOCATION = "C:\\Users\\scotts\\Desktop\\2018 Database Project\\Database\\asrs_database.db" ##For local development only
 
 #' @export
 AZASRS_DATABASE_CONNECTION = function(){ return(dplyr::src_sqlite(AZASRS_DATABASE_LOCATION)) }
@@ -204,9 +204,6 @@ tbl_ssbt_composite_info_account_info = function(con = AZASRS_DATABASE_CONNECTION
 
 #' @export
 tbl_ssbt_composite_info_benchmark_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "ssbt_composite_info_benchmark_info")}
-
-#' @export
-tbl_sub_portfolio = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "sub_portfolio")}
 
 
 #### Joins to become views:

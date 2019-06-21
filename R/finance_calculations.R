@@ -31,6 +31,12 @@ calc_pme = function(distributions, contributions, fv_index_factors, nav){
 }
 
 
+
+
+
+
+### Below may be irrelevant, check with Kerry
+
 #' @export
 calc_tvpi_df = function(cash_flow, nav, grouping_var = pm_fund_id){
 
