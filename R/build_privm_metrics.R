@@ -163,8 +163,8 @@ build_privm_metrics = function(..., nav_daily = get_pm_nav_daily(),
     dplyr::summarize(irr = calc_irr(cash_flow_cutoff, effective_date),
                      dpi = calc_dpi(distributions, contributions),
                      tvpi = calc_tvpi(distributions, contributions, nav_cutoff),
-                     appreciation = calc_appreciation(nav_cutoff, cash_flow),
-                     pme = calc_pme(distributions, contributions, last_index_value/index_value, nav_cutoff)) %>%
+                     appreciation = calc_appreciation(cash_flow, nav_cutoff),
+                     pme = calc_pme(distributions, contributions, nav_cutoff, last_index_value/index_value)) %>%
     dplyr::ungroup()
 
   fund_metrics_false = fund_metrics %>% dplyr::filter(pcap == FALSE) %>% dplyr::select(-pcap)
