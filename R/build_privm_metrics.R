@@ -1,10 +1,10 @@
 #' @export
-calc_pm_metrics_df = function(nav_daily = get_pm_nav_daily(),
+build_privm_metrics = function(..., nav_daily = get_pm_nav_daily(),
                           cf_daily = get_pm_cash_flow_daily(),
                           benchmark_daily = get_benchmark_daily_index(),
                           date_start = '1900-01-01',
                           date_cutoff = as.character(lubridate::today()),
-                          valdate = value_date(), ...){
+                          valdate = get_value_date()){
 
   force_first_nav_negative = TRUE
 
@@ -14,7 +14,7 @@ calc_pm_metrics_df = function(nav_daily = get_pm_nav_daily(),
   # Convert group_vars to character vector for joining tables
   group_vars = dplyr::enquos(...)
   group_vars_char = c()
-  for(i in as.character(quos(!!! group_vars))){group_vars_char = c(group_vars_char, substring(as.character(i), 2))}
+  for(i in as.character(dplyr::quos(!!! group_vars))){group_vars_char = c(group_vars_char, substring(as.character(i), 2))}
 
   #### filtering all dates
   nav_daily_filtered = nav_daily %>% dplyr::filter(effective_date >= date_start & effective_date <= date_cutoff)
@@ -102,7 +102,7 @@ calc_pm_metrics_df = function(nav_daily = get_pm_nav_daily(),
                      contributions = sum(contributions),
                      distributions = sum(distributions)) %>%
     dplyr::ungroup() %>%
-    drop_na(effective_date)
+    tidyr::drop_na(effective_date)
   nav_cf_daily_val[is.na(nav_cf_daily_val)] = 0
 
   nav_cf_daily_end = pcap_funds %>%
@@ -117,7 +117,7 @@ calc_pm_metrics_df = function(nav_daily = get_pm_nav_daily(),
                      contributions = sum(contributions),
                      distributions = sum(distributions)) %>%
     dplyr::ungroup() %>%
-    drop_na(effective_date)
+    tidyr::drop_na(effective_date)
   nav_cf_daily_end[is.na(nav_cf_daily_end)] = 0
 
   nav_cf_daily = dplyr::bind_rows(nav_cf_daily_val, nav_cf_daily_end) %>%
@@ -163,8 +163,8 @@ calc_pm_metrics_df = function(nav_daily = get_pm_nav_daily(),
     dplyr::summarize(irr = calc_irr(cash_flow_cutoff, effective_date),
                      dpi = calc_dpi(distributions, contributions),
                      tvpi = calc_tvpi(distributions, contributions, nav_cutoff),
-                     appreciation = calc_appreciation(nav_cutoff, cash_flow),
-                     pme = calc_pme(distributions, contributions, last_index_value/index_value, nav_cutoff)) %>%
+                     appreciation = calc_appreciation(cash_flow, nav_cutoff),
+                     pme = calc_pme(distributions, contributions, nav_cutoff, last_index_value/index_value)) %>%
     dplyr::ungroup()
 
   fund_metrics_false = fund_metrics %>% dplyr::filter(pcap == FALSE) %>% dplyr::select(-pcap)
