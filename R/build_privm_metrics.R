@@ -1,10 +1,10 @@
 #' @export
-calc_pm_metrics_df = function(nav_daily = get_pm_nav_daily(),
+build_privm_metrics = function(..., nav_daily = get_pm_nav_daily(),
                           cf_daily = get_pm_cash_flow_daily(),
                           benchmark_daily = get_benchmark_daily_index(),
                           date_start = '1900-01-01',
                           date_cutoff = as.character(lubridate::today()),
-                          valdate = value_date(), ...){
+                          valdate = get_value_date()){
 
   force_first_nav_negative = TRUE
 
@@ -14,7 +14,7 @@ calc_pm_metrics_df = function(nav_daily = get_pm_nav_daily(),
   # Convert group_vars to character vector for joining tables
   group_vars = dplyr::enquos(...)
   group_vars_char = c()
-  for(i in as.character(quos(!!! group_vars))){group_vars_char = c(group_vars_char, substring(as.character(i), 2))}
+  for(i in as.character(dplyr::quos(!!! group_vars))){group_vars_char = c(group_vars_char, substring(as.character(i), 2))}
 
   #### filtering all dates
   nav_daily_filtered = nav_daily %>% dplyr::filter(effective_date >= date_start & effective_date <= date_cutoff)
