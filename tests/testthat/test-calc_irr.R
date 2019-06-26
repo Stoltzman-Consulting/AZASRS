@@ -7,3 +7,4 @@ test_that("calc_irr() returns matching calculation for irr", {
   irr_expected = 1.228008
   expect_equal(irr, irr_expected, tolerance = 1e-6)
 })
+
