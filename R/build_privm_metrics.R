@@ -102,7 +102,7 @@ build_privm_metrics = function(..., nav_daily = get_pm_nav_daily(),
                      contributions = sum(contributions),
                      distributions = sum(distributions)) %>%
     dplyr::ungroup() %>%
-    drop_na(effective_date)
+    tidyr::drop_na(effective_date)
   nav_cf_daily_val[is.na(nav_cf_daily_val)] = 0
 
   nav_cf_daily_end = pcap_funds %>%
@@ -117,7 +117,7 @@ build_privm_metrics = function(..., nav_daily = get_pm_nav_daily(),
                      contributions = sum(contributions),
                      distributions = sum(distributions)) %>%
     dplyr::ungroup() %>%
-    drop_na(effective_date)
+    tidyr::drop_na(effective_date)
   nav_cf_daily_end[is.na(nav_cf_daily_end)] = 0
 
   nav_cf_daily = dplyr::bind_rows(nav_cf_daily_val, nav_cf_daily_end) %>%
