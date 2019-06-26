@@ -11,7 +11,7 @@ get_pm_cash_flow_daily = function(..., con = AZASRS_DATABASE_CONNECTION()){
 
   dat = tbl_pm_fund_cash_flow_daily(con)
 
-  pmfi = pm_fund_info(con = con, return_tibble=FALSE)
+  pmfi = get_pm_fund_info(con = con, return_tibble=FALSE)
 
   dat = dat %>%
     dplyr::left_join(pmfi, by = c('pm_fund_info_id' = 'pm_fund_info_id')) %>%
