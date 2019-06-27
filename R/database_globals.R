@@ -45,112 +45,28 @@ SHOW_ALL_TABLES = print(dplyr::src_tbls(AZASRS_DATABASE_CONNECTION()))
 AZASRS_DATABASE_DISCONNECT = function(con){ DBI::dbDisconnect(con$con) }
 
 
-# All existing views
-#' @export
-get_account_info = function(con = AZASRS_DATABASE_CONNECTION(), ..., return_tibble=TRUE){
-  args = rlang::enexprs(...)
-  dat = dplyr::tbl(con, "all_account_info")
-  if(length(args) > 0){
-    dat = dat %>%
-      dplyr::filter(!!! args)
-  }
-  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
-  return(dat)}
-
-#' @export
-get_pm_fund_info = function(con = AZASRS_DATABASE_CONNECTION(), ..., return_tibble=TRUE){
-  args = rlang::enexprs(...)
-  dat = dplyr::tbl(con, "all_pm_fund_info")
-  if(length(args) > 0){
-    dat = dat %>%
-      dplyr::filter(!!! args)
-  }
-  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
-  return(dat)}
-
-
-#' @export
-get_benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION(), bench_type = 'SAA', ...){
-  args = rlang::enexprs(...)
-  dat = tbl_benchmark_daily_index(con) %>%
-    dplyr::left_join(tbl_pm_fund_info_benchmark_info(con), by = 'benchmark_info_id') %>%
-    dplyr::left_join(tbl_benchmark_type_info(con), by = 'benchmark_type_info_id') %>%
-    dplyr::left_join(tbl_pm_fund_info(con), by = 'pm_fund_info_id') %>%
-    dplyr::filter(benchmark_type == bench_type)
-  if(length(args) > 0){
-    dat = dat %>%
-      dplyr::filter(!!! args)
-  }
-  dat = dat %>% tibble::as_tibble() %>%
-    dplyr::mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d')) %>%
-    dplyr::filter(effective_date > '1900-01-01')
-  return(dat)}
-
-#' @export
-get_benchmark_daily_return = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
-  dat = tbl_benchmark_daily_return(con) %>%
-    dplyr::left_join(tbl_benchmark_info(con), by = 'benchmark_info_id')
-  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
-  return(dat)}
-
-#' @export
-get_benchmark_monthly_return = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
-  dat = tbl_benchmark_monthly_return(con) %>%
-    dplyr::left_join(tbl_benchmark_info(con), by = 'benchmark_info_id')
-  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
-  return(dat)}
-
-#' @export
-get_account_bor_daily = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
-  dat =  tbl_account_book_of_record_daily(con) %>%
-    dplyr::left_join(get_account_info(con, return_tibble = FALSE), by = 'account_info_id')
-  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
-  return(dat)}
-
-#' @export
-get_account_bor_monthly = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
-  dat =  tbl_account_book_of_record_monthly(con) %>%
-    dplyr::left_join(get_account_info(con, return_tibble = FALSE), by = 'account_info_id')
-  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
-  return(dat)}
-
-#' @export
-get_ssbt_composite_bor_daily = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
-  dat = tbl_ssbt_composite_book_of_record_daily(con) %>%
-    dplyr::left_join(tbl_ssbt_composite_info(con), by = 'ssbt_composite_info_id')
-  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
-  return(dat)}
-
-#' @export
-get_ssbt_composite_bor_monthly = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
-  dat = tbl_ssbt_composite_book_of_record_monthly(con) %>%
-    dplyr::left_join(tbl_ssbt_composite_info(con), by = 'ssbt_composite_info_id')
-  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
-  return(dat)}
-
+#' Get value date
+#'
+#' @description Finds the value date based off of the constants table from most recent database population
 #' @export
 get_value_date = function(con = AZASRS_DATABASE_CONNECTION()){
   dat = tbl_constants(con) %>% tibble::as_tibble()
   dat = dat$value_date
   return(dat)}
 
+
+#' Get next quarter date
+#'
+#' @description Finds the next quarter date based off of constants table from most recent database population
 #' @export
 get_next_quarter = function(con = AZASRS_DATABASE_CONNECTION()){
   dat = tbl_constants(con) %>% tibble::as_tibble()
   dat = dat$next_quarter
   return(dat)}
 
-#' @export
-get_total_fund_value = function(at_date = get_value_date(), con = AZASRS_DATABASE_CONNECTION()){
-  dat = tbl_ssbt_composite_book_of_record_daily(con) %>%
-    dplyr::filter(effective_date == paste(as.character(at_date), '00:00:00')) %>%
-    dplyr::left_join(tbl_ssbt_composite_info(con), by = 'ssbt_composite_info_id') %>%
-    dplyr::filter(ssbt_composite_id == 'ASRSA001') %>%
-    dplyr::select(ending_market_value) %>%
-    dplyr::pull()
-  return(dat)}
 
-# All existing tables
+# tbl_ allows access to optimize queries from database while using tidyverse style. These ONLY refer to raw tables and not views.
+
 #' @export
 tbl_account_asset_class = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "account_asset_class")}
 
