@@ -1,12 +1,30 @@
+#' Build a tibble of major private market metrics including: IRR, DPI, TVPI, PME
+#'
+#' @param ... grouping variables (pm_fund_id, pm_fund_portfolio, etc.)
+#' @param nav_daily is data from get_pm_nav_daily() and can be previously loaded and filtered
+#' @param cf_daily is data from get_pm_cash_flow_daily() and can be previously loaded and filtered
+#' @param date_start is the earliest date to be used for calculations, use for custom time ranges
+#' @param date_cutoff is the last date to be used for PCAP, use for custom time ranges
+#' @param valdate is the last quarter end, use for custom time ranges
+#' @return Returns a tibble with grouping variables and all of their respective metrics
+#' @examples
+#' build_privm_metrics(pm_fund_portfolio, pm_fund_id)
+#' # pm_fund_portfolio pm_fund_id    irr     dpi   tvpi appreciation     pme irr_pcap
+#' # <chr>             <chr>       <dbl>   <dbl>  <dbl>        <dbl>   <dbl>    <dbl>
+#' # 1 Credit            Fund1     0.0919   0.372   1.15   437251492.   1.05        0.11
+#' # 2 Credit            Fund2     0.159    0       1.11   562211000    1.10        NA
+#' # 3 Credit            Fund3     0.0247   0       1.10   262390142    0.952       NA
+#' # 4 Credit            Fund4     0.0673   0.135   1.17   173259780    1.06        NA
 #' @export
-build_privm_metrics = function(..., nav_daily = get_pm_nav_daily(),
-                          cf_daily = get_pm_cash_flow_daily(),
-                          benchmark_daily = get_benchmark_daily_index(),
-                          date_start = '1900-01-01',
-                          date_cutoff = as.character(lubridate::today()),
-                          valdate = get_value_date()){
+build_privm_metrics = function(...,
+                               nav_daily = get_pm_nav_daily(),
+                               cf_daily = get_pm_cash_flow_daily(),
+                               benchmark_daily = get_benchmark_daily_index(),
+                               date_start = '1900-01-01',
+                               date_cutoff = as.character(lubridate::today()),
+                               valdate = get_value_date()){
 
-  force_first_nav_negative = TRUE
+  force_first_nav_negative = TRUE # This was originally in the parameters but may always be the case, replace once confirmed
 
   if(as.Date(date_cutoff) < as.Date(valdate)){stop("date_cutoff must be greater than or equal to valdate")} # ensures potential for pcap after valdate
   if(as.Date(valdate) <= as.Date(date_start)){stop("valdate must be greater than date_start")} # ensures potential for at least one nav or cash_flow before valdate
