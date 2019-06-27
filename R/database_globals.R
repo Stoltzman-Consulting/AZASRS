@@ -1,20 +1,49 @@
+# Global variables - to be used for extremely basic functions interacting with low level connections to the database
 
-# Global variables
+#' Database location - should reflect production database "shared" location
+#'
+#' @examples
+#' "P:/IMD/2018 Database Project/Database/asrs_database.db"
 #' @export
 #AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\Database\\asrs_database.db"
 AZASRS_DATABASE_LOCATION = "C:\\Users\\scotts\\Desktop\\2018 Database Project\\Database\\asrs_database.db" ##For local development only
 
+
+#' Opens database connection
+#' @description Uses AZASRS_DATABASE_LOCATION and should only be used with tbl_ functions. Allows for chaining of tbl_ functions to optimize SQL queries. Must close connection after usage.
+#' @examples
+#' con = AZASRS_DATABASE_CONNECTION()
+#' data = tbl_pm_fund_nav_daily(con) %>%
+#'        left_join(tbl_pm_fund_info(con), by = 'pm_fund_id') %>%
+#'        as_tibble()
+#' AZASRS_DATABASE_DISCONNECT(con)
 #' @export
 AZASRS_DATABASE_CONNECTION = function(){ return(dplyr::src_sqlite(AZASRS_DATABASE_LOCATION)) }
 
+
+#' Location of test data
+#' @description .rds files saved and read from this location for tests
 #' @export
 AZASRS_TEST_DATA_DIRECTORY = "P:/IMD/2018 Database Project/Application Data/etl_check_data/"
 
+
+#' List all tables and views in database
+#' @description Aids in displaying table names, simply add tbl_ in front of the name to access the function that accesses the table
 #' @export
 SHOW_ALL_TABLES = print(dplyr::src_tbls(AZASRS_DATABASE_CONNECTION()))
 
+
+#' Disconnect from database
+#' @description Disconnect from database if using AZASRS_DATABASE_CONNECTION
+#' @examples
+#' con = AZASRS_DATABASE_CONNECTION()
+#' data = tbl_pm_fund_nav_daily(con) %>%
+#'        left_join(tbl_pm_fund_info(con), by = 'pm_fund_id') %>%
+#'        as_tibble()
+#' AZASRS_DATABASE_DISCONNECT(con)
 #' @export
 AZASRS_DATABASE_DISCONNECT = function(con){ DBI::dbDisconnect(con$con) }
+
 
 # All existing views
 #' @export
