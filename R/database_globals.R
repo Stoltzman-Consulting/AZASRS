@@ -113,7 +113,7 @@ tbl_benchmark_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con
 tbl_benchmark_monthly_return = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "benchmark_monthly_return")}
 
 #' @export
-tbl_benchmark_type_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "benchmark_type_info")}
+tbl_benchmark_type = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "benchmark_type")}
 
 #' @export
 tbl_constants = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "constants")}
@@ -123,6 +123,9 @@ tbl_pm_fund_cash_flow_daily = function(con = AZASRS_DATABASE_CONNECTION()){dplyr
 
 #' @export
 tbl_pm_fund_category = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "pm_fund_category")}
+
+#' @export
+tbl_pm_fund_category_description = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "pm_fund_category_description")}
 
 #' @export
 tbl_pm_fund_city = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "pm_fund_city")}
