@@ -21,7 +21,7 @@ get_benchmark_daily_index = function(..., con = AZASRS_DATABASE_CONNECTION(), be
   args = rlang::enexprs(...)
   dat = tbl_benchmark_daily_index(con) %>%
     dplyr::left_join(tbl_pm_fund_info_benchmark_info(con), by = 'benchmark_info_id') %>%
-    dplyr::left_join(tbl_benchmark_type_info(con), by = 'benchmark_type_info_id') %>%
+    dplyr::left_join(tbl_benchmark_type(con), by = 'benchmark_type_id') %>%
     dplyr::left_join(tbl_pm_fund_info(con), by = 'pm_fund_info_id') %>%
     dplyr::filter(benchmark_type == bench_type)
   if(length(args) > 0){
