@@ -23,6 +23,17 @@ AZASRS_DATABASE_CONNECTION = function(){ return(dplyr::src_postgres(dbname = Sys
                                                                     password = Sys.getenv('ASRS_PASSWORD'))) }
 
 
+#' @export
+UPDATE_DATABASE = function(filename){
+  r = httr::GET(paste0('https://populate-database.azurewebsites.net/api/HttpTrigger?code=', Sys.getenv('ASRS_FUNCTIONS_CODE'),
+                       '&username=', Sys.getenv('ASRS_USER'),
+                       '&password=', Sys.getenv('ASRS_PASSWORD'),
+                       '&account_name=asrs',
+                       '&account_key=', Sys.getenv('ASRS_FUNCTIONS_KEY'),
+                       '&filename=', filename))
+  return(r)
+}
+
 
 #' Location of test data
 #' @description .rds files saved and read from this location for tests
