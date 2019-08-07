@@ -18,7 +18,10 @@ AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\Database\\asrs_datab
 #'        as_tibble()
 #' AZASRS_DATABASE_DISCONNECT(con)
 #' @export
-AZASRS_DATABASE_CONNECTION = function(){ return(dplyr::src_sqlite(AZASRS_DATABASE_LOCATION)) }
+AZASRS_DATABASE_CONNECTION = function(){ return(dplyr::src_postgres(dbname = Sys.getenv('ASRS_DATABASE'), host = Sys.getenv('ASRS_HOST'),
+                                                                    port = Sys.getenv('ASRS_PORT'), user = Sys.getenv('ASRS_USER'),
+                                                                    password = Sys.getenv('ASRS_PASSWORD'))) }
+
 
 
 #' Location of test data
