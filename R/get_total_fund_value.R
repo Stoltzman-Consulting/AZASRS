@@ -11,7 +11,7 @@
 #' @export
 get_total_fund_value = function(at_date = get_value_date(), con = AZASRS_DATABASE_CONNECTION()){
   dat = tbl_ssbt_composite_book_of_record_daily(con) %>%
-    dplyr::filter(effective_date == paste(as.character(at_date), '00:00:00')) %>%
+    dplyr::filter(effective_date == as.character(at_date)) %>%
     dplyr::left_join(tbl_ssbt_composite_info(con), by = 'ssbt_composite_info_id') %>%
     dplyr::filter(ssbt_composite_id == 'ASRSA001') %>%
     dplyr::select(ending_market_value) %>%
