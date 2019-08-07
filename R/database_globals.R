@@ -1,16 +1,9 @@
 # Global variables - to be used for extremely basic functions interacting with low level connections to the database
 
-#' Database location - should reflect production database "shared" location
-#'
-#' @examples
-#' "P:/IMD/2018 Database Project/Database/asrs_database.db"
-#' @export
-AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\Database\\asrs_database.db"
-#AZASRS_DATABASE_LOCATION = "C:\\Users\\scotts\\Desktop\\2018 Database Project\\Database\\asrs_database.db" ##For local development only
 
 
 #' Opens database connection
-#' @description Uses AZASRS_DATABASE_LOCATION and should only be used with tbl_ functions. Allows for chaining of tbl_ functions to optimize SQL queries. Must close connection after usage.
+#' @description Uses AZASRS_DATABASE_LOCATION and should only be used with tbl_ functions. Allows for chaining of tbl_ functions to optimize SQL queries. Must close connection after usage. You must have .Renviron on your computer in the directory found by executing normalizePath('~/') in your console. Environment variables in there will allow you to connect to the database.
 #' @examples
 #' con = AZASRS_DATABASE_CONNECTION()
 #' data = tbl_pm_fund_nav_daily(con) %>%
@@ -25,13 +18,60 @@ AZASRS_DATABASE_CONNECTION = function(){ return(dplyr::src_postgres(dbname = Sys
 
 #' @export
 UPDATE_DATABASE = function(filename){
-  r = httr::GET(paste0('https://populate-database.azurewebsites.net/api/HttpTrigger?code=', Sys.getenv('ASRS_FUNCTIONS_CODE'),
+  request_url = paste0('https://populate-database.azurewebsites.net/api/HttpTrigger?code=', Sys.getenv('ASRS_FUNCTIONS_CODE'),
                        '&username=', Sys.getenv('ASRS_USER'),
                        '&password=', Sys.getenv('ASRS_PASSWORD'),
                        '&account_name=asrs',
                        '&account_key=', Sys.getenv('ASRS_FUNCTIONS_KEY'),
-                       '&filename=', filename))
+                       '&filename=', filename)
+  print('Attempting to GET URL: ')
+  print(request_url)
+  r = httr::GET(request_url)
+  if(r$status_code != 200) {
+    print(paste('ERROR Status Returned: ', r$status_code, ' FROM GET REQUEST on: ', r$url))
+  } else {
+    print(paste('SUCCESS Status Returned', r$status_code, 'FROM GET REQUEST on: ', r$url))
+  }
   return(r)
+}
+
+#' @export
+INITIAL_DATABASE_POPULATION = function(){
+  files = c('constants.csv',
+            'pm_fund_info.csv',
+            'pm_fund_cash_flow_daily.csv',
+            'pm_fund_nav_daily.csv',
+            'benchmark_info.csv',
+            'benchmark_symbol_lookup.csv',
+            'benchmark_index.csv',
+            'account_info.csv',
+            'account_info_benchmark_info.csv',
+            'pm_fund_info_benchmark_info.csv',
+            'ssbt_composite_info.csv',
+            'ssbt_composite_info_account_info.csv',
+            'composite_book_of_record_daily.csv',
+            'create_views')
+
+  n_succeed = c()
+  n_fail = c()
+
+  for(f in files){
+    UPDATE_DATABASE(f)
+
+    if(r$status_code == 200){
+      n_succeed = c(n_succeed, f)
+    } else{
+      n_fail = c(n_fail, f)
+    }
+
+    print(paste0('Success: ', n_succeed ))
+    print("=========")
+    print(paste0('Failure: ', n_fail))
+
+  }
+
+  return(list(n_succeed, n_fail))
+
 }
 
 

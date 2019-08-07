@@ -6,7 +6,8 @@
 \usage{
 build_privm_metrics(..., nav_daily = get_pm_nav_daily(),
   cf_daily = get_pm_cash_flow_daily(),
-  benchmark_daily = get_benchmark_daily_index(), date_start = "1900-01-01",
+  benchmark_daily = get_benchmark_daily_index(),
+  date_start = "1900-01-01",
   date_cutoff = as.character(lubridate::today()),
   valdate = get_value_date())
 }
