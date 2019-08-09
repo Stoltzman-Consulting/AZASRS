@@ -66,9 +66,9 @@ INITIAL_DATABASE_POPULATION = function(local = FALSE){
 
   for(f in files){
     if(local){
-      UPDATE_DATABASE(f, local=TRUE)
+      r = UPDATE_DATABASE(f, local=TRUE)
       } else{
-        UPDATE_DATABASE(f)
+        r =UPDATE_DATABASE(f)
          }
 
     if(r$status_code == 200){
