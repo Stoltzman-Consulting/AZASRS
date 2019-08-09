@@ -36,7 +36,8 @@ UPDATE_DATABASE = function(filename){
 }
 
 #' @export
-INITIAL_DATABASE_POPULATION = function(){
+INITIAL_DATABASE_POPULATION = function(local = FALSE){
+  # local used to signify local development environment, attaches extra local parameter
   files = c('constants.csv',
             'pm_fund_info.csv',
             'pm_fund_cash_flow_daily.csv',
@@ -51,6 +52,8 @@ INITIAL_DATABASE_POPULATION = function(){
             'ssbt_composite_info_account_info.csv',
             'composite_book_of_record_daily.csv',
             'create_views')
+    # add ?local=True paramater to end of every file name for dev
+    if(local){files = paste0(files, '?local=True')}
 
   n_succeed = c()
   n_fail = c()
