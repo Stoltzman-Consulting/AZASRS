@@ -17,13 +17,22 @@ AZASRS_DATABASE_CONNECTION = function(){ return(dplyr::src_postgres(dbname = Sys
 
 
 #' @export
-UPDATE_DATABASE = function(filename){
+UPDATE_DATABASE = function(filename, local = FALSE){
   request_url = paste0('https://populate-database.azurewebsites.net/api/HttpTrigger?code=', Sys.getenv('ASRS_FUNCTIONS_CODE'),
                        '&username=', Sys.getenv('ASRS_USER'),
                        '&password=', Sys.getenv('ASRS_PASSWORD'),
                        '&account_name=asrs',
                        '&account_key=', Sys.getenv('ASRS_FUNCTIONS_KEY'),
                        '&filename=', filename)
+
+  if(local){request_url = paste0('http://localhost:7071/api/HttpTrigger?code=', Sys.getenv('ASRS_FUNCTIONS_CODE'),
+                                 '&username=', Sys.getenv('ASRS_USER'),
+                                 '&password=', Sys.getenv('ASRS_PASSWORD'),
+                                 '&account_name=asrs',
+                                 '&account_key=', Sys.getenv('ASRS_FUNCTIONS_KEY'),
+                                 '&filename=', filename,
+                                 '&local=True')}
+
   print('Attempting to GET URL: ')
   print(request_url)
   r = httr::GET(request_url)
@@ -37,7 +46,6 @@ UPDATE_DATABASE = function(filename){
 
 #' @export
 INITIAL_DATABASE_POPULATION = function(local = FALSE){
-  # local used to signify local development environment, attaches extra local parameter
   files = c('constants.csv',
             'pm_fund_info.csv',
             'pm_fund_cash_flow_daily.csv',
@@ -52,14 +60,16 @@ INITIAL_DATABASE_POPULATION = function(local = FALSE){
             'ssbt_composite_info_account_info.csv',
             'composite_book_of_record_daily.csv',
             'create_views')
-    # add ?local=True paramater to end of every file name for dev
-    if(local){files = paste0(files, '?local=True')}
 
   n_succeed = c()
   n_fail = c()
 
   for(f in files){
-    UPDATE_DATABASE(f)
+    if(local){
+      UPDATE_DATABASE(f, local=TRUE)
+      } else{
+        UPDATE_DATABASE(f)
+         }
 
     if(r$status_code == 200){
       n_succeed = c(n_succeed, f)
