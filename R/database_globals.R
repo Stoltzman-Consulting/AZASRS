@@ -10,10 +10,15 @@
 #'        left_join(tbl_pm_fund_info(con), by = 'pm_fund_id') %>%
 #'        as_tibble()
 #' AZASRS_DATABASE_DISCONNECT(con)
+# #' @export
+# AZASRS_DATABASE_CONNECTION = function(){ return(dplyr::src_postgres(dbname = Sys.getenv('ASRS_DATABASE'), host = Sys.getenv('ASRS_HOST'),
+#                                                                     port = Sys.getenv('ASRS_PORT'), user = Sys.getenv('ASRS_USER'),
+#                                                                     password = Sys.getenv('ASRS_PASSWORD'))) }
+
 #' @export
-AZASRS_DATABASE_CONNECTION = function(){ return(dplyr::src_postgres(dbname = Sys.getenv('ASRS_DATABASE'), host = Sys.getenv('ASRS_HOST'),
-                                                                    port = Sys.getenv('ASRS_PORT'), user = Sys.getenv('ASRS_USER'),
-                                                                    password = Sys.getenv('ASRS_PASSWORD'))) }
+#' Run this when using local connection
+AZASRS_DATABASE_CONNECTION = function(){ return(dplyr::src_postgres(dbname = 'asrs_test', host = 'localhost', port = '5432')) }
+
 
 
 #' @export
