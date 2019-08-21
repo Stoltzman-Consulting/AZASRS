@@ -38,7 +38,8 @@ Imports:
     tsbox,
     asrsMethods,
     glue,
-    zoo
+    zoo,
+    RPostgreSQL
 RoxygenNote: 6.1.1
 Suggests: knitr,
     rmarkdown,

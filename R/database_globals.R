@@ -42,9 +42,9 @@ UPDATE_DATABASE = function(filename, local = FALSE){
   print(request_url)
   r = httr::GET(request_url)
   if(r$status_code != 200) {
-    print(paste('ERROR Status Returned: ', r$status_code, ' FROM GET REQUEST on: ', r$url))
+    print(paste('ERROR Status Returned: ', r$status_code, '\n FROM GET REQUEST on: ', r$url))
   } else {
-    print(paste('SUCCESS Status Returned', r$status_code, 'FROM GET REQUEST on: ', r$url))
+    print(paste('SUCCESS Status Returned', r$status_code, '\n FROM GET REQUEST on: ', r$url))
   }
   return(r)
 }
@@ -64,6 +64,9 @@ INITIAL_DATABASE_POPULATION = function(local = FALSE){
             'ssbt_composite_info.csv',
             'ssbt_composite_info_account_info.csv',
             'composite_book_of_record_daily.csv',
+            'composite_book_of_record_monthly.csv',
+            'account_book_of_record_daily.csv',
+            'account_book_of_record_monthly.csv',
             'create_views')
 
   n_succeed = c()
@@ -73,7 +76,7 @@ INITIAL_DATABASE_POPULATION = function(local = FALSE){
     if(local){
       r = UPDATE_DATABASE(f, local=TRUE)
       } else{
-        r =UPDATE_DATABASE(f)
+        r = UPDATE_DATABASE(f)
          }
 
     if(r$status_code == 200){
@@ -81,16 +84,40 @@ INITIAL_DATABASE_POPULATION = function(local = FALSE){
     } else{
       n_fail = c(n_fail, f)
     }
-
-    print(paste0('Success: ', n_succeed ))
-    print("=========")
-    print(paste0('Failure: ', n_fail))
+    print("=======================================")
+    print("Successes: ")
+    if(length(n_succeed) > 0){
+      print(paste0(n_succeed))
+    } else{
+      print("No successes have occurred.")
+    }
+    print("=======================================")
+    print("Failures: ")
+    if(length(n_fail) > 0){
+      print(paste0(n_fail))
+    } else{
+        print("No failures have occurred.")
+      }
+    print("=======================================")
 
   }
-
-  return(list(n_succeed, n_fail))
-
+  return(list(success = n_succeed,
+              fail = n_fail))
 }
+
+#' Disconnect all database connections
+#' @description This will disconnect ALL database connections (use carefully, will affect all those connected)
+#' It will send an "error" back with a 'server closed the connection unexpectedly' response. This is what you want.
+#' @export
+DISCONNECT_ALL_DATABASE_CONNECTIONS = function(){
+  drv = DBI::dbDriver("PostgreSQL")
+  con = DBI::dbConnect(drv, dbname = Sys.getenv('ASRS_DATABASE'),
+                       host = Sys.getenv('ASRS_HOST'),
+                       port = Sys.getenv('ASRS_PORT'), user = Sys.getenv('ASRS_USER'),
+                       password = Sys.getenv('ASRS_PASSWORD'))
+  DBI::dbSendQuery(con, paste0("select pg_terminate_backend(pid) from pg_stat_activity where datname='", Sys.getenv('ASRS_DATABASE'), "';"))
+  }
+
 
 
 #' Location of test data
@@ -232,6 +259,14 @@ tbl_ssbt_composite_info_account_info = function(con = AZASRS_DATABASE_CONNECTION
 #' @export
 tbl_ssbt_composite_info_benchmark_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "ssbt_composite_info_benchmark_info")}
 
+# Views go below (we will still refer to these as tbl_view_ to stay consistent with naming)
+
+#' @export
+tbl_view_all_pm_fund_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "all_pm_fund_info")}
+
+#' @export
+tbl_view_all_account_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "all_account_info")}
+
 
 #### Joins to become views:
 # library(tidyverse)
@@ -245,3 +280,13 @@ tbl_ssbt_composite_info_benchmark_info = function(con = AZASRS_DATABASE_CONNECTI
 #   select(-pm_fund_category_id, pm_fund_city_id, pm_fund_portfolio_id, pm_fund_sector_id, pm_fund_sponsor_id) %>%
 #   show_query()
 #
+# tbl_account_info(con) %>%
+#   left_join(tbl_account_asset_class(con), by = 'account_asset_class_id') %>%
+#   left_join(tbl_account_portfolio(con), by = 'account_portfolio_id') %>%
+#   left_join(tbl_account_sub_portfolio(con), by = 'account_sub_portfolio_id') %>%
+#   left_join(tbl_account_category(con), by = 'account_category_id') %>%
+#   left_join(tbl_account_sponsor(con), by = 'account_sponsor_id') %>%
+#   select(-account_asset_class_id, -account_portfolio_id, -account_sub_portfolio_id, -account_category_id, -account_sponsor_id) %>%
+#   show_query()
+
+
