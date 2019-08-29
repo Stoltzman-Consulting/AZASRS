@@ -39,7 +39,8 @@ Imports:
     asrsMethods,
     glue,
     zoo,
-    RPostgreSQL
+    RPostgreSQL,
+    odbc
 RoxygenNote: 6.1.1
 Suggests: knitr,
     rmarkdown,

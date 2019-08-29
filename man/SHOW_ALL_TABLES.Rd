@@ -4,7 +4,7 @@
 \name{SHOW_ALL_TABLES}
 \alias{SHOW_ALL_TABLES}
 \title{List all tables and views in database}
-\format{An object of class \code{character} of length 0.}
+\format{An object of class \code{character} of length 1.}
 \usage{
 SHOW_ALL_TABLES
 }

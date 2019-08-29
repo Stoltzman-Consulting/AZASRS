@@ -11,21 +11,20 @@
 #'        as_tibble()
 #' AZASRS_DATABASE_DISCONNECT(con)
 #' @export
-AZASRS_DATABASE_CONNECTION = function(){ return(dplyr::src_postgres(dbname = Sys.getenv('ASRS_DATABASE'), host = Sys.getenv('ASRS_HOST'),
-                                                                    port = Sys.getenv('ASRS_PORT'), user = Sys.getenv('ASRS_USER'),
-                                                                    password = Sys.getenv('ASRS_PASSWORD'))) }
-
-# #' @export
-# #' Run this when using local connection
-# AZASRS_DATABASE_CONNECTION = function(){ return(dplyr::src_postgres(dbname = 'asrs_test', host = 'localhost', port = '5432')) }
-
+AZASRS_DATABASE_CONNECTION = function(){ return(DBI::dbConnect(odbc::odbc(),
+                                                               Driver   = "ODBC Driver 13 for SQL Server",
+                                                               Server   = Sys.getenv('SERVER'),
+                                                               Database = Sys.getenv('DATABASE'),
+                                                               UID      = Sys.getenv('UID'),
+                                                               PWD      = Sys.getenv('PWD'),
+                                                               Port     = Sys.getenv('PORT')))}
 
 
 #' @export
 UPDATE_DATABASE = function(filename, local = FALSE){
   request_url = paste0('https://populate-database.azurewebsites.net/api/HttpTrigger?code=', Sys.getenv('ASRS_FUNCTIONS_CODE'),
-                       '&username=', Sys.getenv('ASRS_USER'),
-                       '&password=', Sys.getenv('ASRS_PASSWORD'),
+                       '&username=', Sys.getenv('UID'),
+                       '&password=', Sys.getenv('PWD'),
                        '&account_name=asrs',
                        '&account_key=', Sys.getenv('ASRS_FUNCTIONS_KEY'),
                        '&filename=', filename)
@@ -48,6 +47,7 @@ UPDATE_DATABASE = function(filename, local = FALSE){
   }
   return(r)
 }
+
 
 #' @export
 INITIAL_DATABASE_POPULATION = function(local = FALSE){
@@ -129,7 +129,8 @@ AZASRS_TEST_DATA_DIRECTORY = "P:/IMD/2018 Database Project/Application Data/etl_
 #' List all tables and views in database
 #' @description Aids in displaying table names, simply add tbl_ in front of the name to access the function that accesses the table
 #' @export
-SHOW_ALL_TABLES = print(dplyr::src_tbls(AZASRS_DATABASE_CONNECTION()))
+SHOW_ALL_TABLES = print('Welcome to the AZASRS package!')
+#SHOW_ALL_TABLES = print(dplyr::src_tbls(AZASRS_DATABASE_CONNECTION()))
 
 
 #' Disconnect from database
