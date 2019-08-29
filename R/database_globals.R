@@ -12,7 +12,7 @@
 #' AZASRS_DATABASE_DISCONNECT(con)
 #' @export
 AZASRS_DATABASE_CONNECTION = function(){ return(DBI::dbConnect(odbc::odbc(),
-                                                               Driver   = "ODBC Driver 13 for SQL Server",
+                                                               Driver   = "ODBC Driver 17 for SQL Server",
                                                                Server   = Sys.getenv('SERVER'),
                                                                Database = Sys.getenv('DATABASE'),
                                                                UID      = Sys.getenv('UID'),
