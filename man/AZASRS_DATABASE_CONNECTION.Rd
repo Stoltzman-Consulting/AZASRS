@@ -2,7 +2,7 @@
 % Please edit documentation in R/database_globals.R
 \name{AZASRS_DATABASE_CONNECTION}
 \alias{AZASRS_DATABASE_CONNECTION}
-\title{Opens database connection}
+\title{Opens a database connection}
 \usage{
 AZASRS_DATABASE_CONNECTION()
 }
