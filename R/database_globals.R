@@ -15,8 +15,8 @@ AZASRS_DATABASE_CONNECTION = function(){
     #detect OS & set driver
     # os <- Sys.info()[1]
     # if(os == "Darwin"){driverName <- "ODBC Driver 17 for SQL Server"}
-    # if(os != "Darwin"){driverName <- "SQLServer"}
-    driverName = "SQLServer"
+    # if(os != "Darwin"){driverName <- "SQL Server"}
+    driverName = "SQL Server"
     return(DBI::dbConnect(odbc::odbc(),
                          Driver   = driverName,
                          Server   = Sys.getenv('SERVER'),
