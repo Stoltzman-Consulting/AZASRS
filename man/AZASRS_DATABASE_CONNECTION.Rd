@@ -4,7 +4,7 @@
 \alias{AZASRS_DATABASE_CONNECTION}
 \title{Opens a database connection}
 \usage{
-AZASRS_DATABASE_CONNECTION()
+AZASRS_DATABASE_CONNECTION(driverName = "SQL Server")
 }
 \description{
 Uses AZASRS_DATABASE_LOCATION and should only be used with tbl_ functions. Allows for chaining of tbl_ functions to optimize SQL queries. Must close connection after usage. You must have .Renviron on your computer in the directory found by executing normalizePath('~/') in your console. Environment variables in there will allow you to connect to the database.
