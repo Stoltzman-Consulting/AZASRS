@@ -17,13 +17,29 @@ AZASRS_DATABASE_CONNECTION = function(){
     if(os == "Darwin"){driverName <- "ODBC Driver 17 for SQL Server"}
     else if(os == "Windows"){driverName <- "SQL Server"}
     else{driverName <- "SQLServer"}
-    return(DBI::dbConnect(odbc::odbc(),
-                         Driver   = driverName,
-                         Server   = Sys.getenv('SERVER'),
-                         Database = Sys.getenv('DATABASE'),
-                         UID      = Sys.getenv('UID'),
-                         PWD      = Sys.getenv('PWD'),
-                         Port     = Sys.getenv('PORT')))}
+    tryCatch({
+      connection = DBI::dbConnect(odbc::odbc(),
+                                 Driver   = driverName,
+                                 Server   = Sys.getenv('SERVER'),
+                                 Database = Sys.getenv('DATABASE'),
+                                 UID      = Sys.getenv('UID'),
+                                 PWD      = Sys.getenv('PWD'),
+                                 Port     = Sys.getenv('PORT'))},
+      error = function(e){
+        print('Database will start up momentarily (sleeps when there is inactivity over 24 hours).
+              Following error was thrown:')
+        print(err)
+        UPDATE_DATABASE('constants.csv')
+        DBI::dbConnect(odbc::odbc(),
+                       Driver   = driverName,
+                       Server   = Sys.getenv('SERVER'),
+                       Database = Sys.getenv('DATABASE'),
+                       UID      = Sys.getenv('UID'),
+                       PWD      = Sys.getenv('PWD'),
+                       Port     = Sys.getenv('PORT'))
+      }
+      )
+    return(connection)}
 
 
 #' @export
