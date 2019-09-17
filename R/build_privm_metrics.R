@@ -74,7 +74,7 @@ build_privm_metrics = function(...,
     dplyr::filter(effective_date == beg_date | effective_date == end_date | effective_date == valdate) %>% # TODO: check these assumptions
     dplyr::select(pm_fund_id, effective_date, pcap, beg_nav, end_nav, val_nav, nav_val, nav_end, beg_date, end_date) %>%
     dplyr::group_by(pm_fund_id) %>%
-      dplyr::filter(n() > 1) %>%
+      dplyr::filter(dplyr::n() > 1) %>%
     dplyr::ungroup() # filters out funds with only one recorded date
 
 
@@ -88,7 +88,7 @@ build_privm_metrics = function(...,
   #nav_max represents nav at first date and valdate or max date if it exists (pcap)
   nav_end = nav_date_cutoffs %>%
     dplyr::filter(pcap == TRUE | effective_date == beg_date) %>%
-    dplyr::group_by(pm_fund_id) %>% dplyr::filter(n() > 1) %>% dplyr::ungroup() %>%
+    dplyr::group_by(pm_fund_id) %>% dplyr::filter(dplyr::n() > 1) %>% dplyr::ungroup() %>%
     dplyr::rename(nav_cutoff = nav_end) %>%
     dplyr::select(pm_fund_id, effective_date, nav_cutoff, beg_date, end_date) %>%
     dplyr::mutate(pcap = TRUE)

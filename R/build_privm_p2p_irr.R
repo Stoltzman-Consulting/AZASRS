@@ -7,8 +7,7 @@
 #' @param end_date is the last date you would like the IRR to be calculated to
 #' Should be in string format: 'yyyy-mm-dd'
 #' @export
-build_privm_p2p_irr = function(start_date = '2015-12-31', end_date = get_value_date()){
-
+build_privm_p2p_irr = function(start_date = '2017-12-31', end_date = get_value_date()){
   pmfi = get_pm_fund_info()
 
   nav_daily = get_pm_nav_daily(effective_date == start_date | effective_date == end_date) %>%

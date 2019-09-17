@@ -1,4 +1,19 @@
 
+#' Calculate previous year and quarter
+#'
+#' @description Subracts years and quarters to simplify calculations
+#' @param start_date is a string (format yyyy-dd-mm)
+#' @param years is the number of years to subract (integer)
+#' @param qtrs is the number of quarters to subract (integer)
+#' @export
+calc_previous_year_qtr = function(start_date = get_value_date(), years = 0, qtrs = 0){
+  start_date = lubridate::as_date(start_date)
+  previous_year = start_date - lubridate::years(years)
+  previous_year_qtr = previous_year %m-% months(3*qtrs)
+  return(previous_year_qtr)
+}
+
+
 #' @export
 tibble_to_zoo_list = function(tibb, omit_na = TRUE){
   listify = function(x){
