@@ -19,7 +19,7 @@
 #' @export
 get_pm_cash_flow_daily = function(..., con = AZASRS_DATABASE_CONNECTION()){
 
-  args = rlang::enexprs(...)
+  args = rlang::enexprs(...)[[1]]
 
   dat = tbl_pm_fund_cash_flow_daily(con)
 

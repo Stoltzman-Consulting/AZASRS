@@ -7,7 +7,7 @@
 #' @export
 get_pm_nav_daily = function(..., con = AZASRS_DATABASE_CONNECTION()){
 
-  args = rlang::enexprs(...)
+  args = rlang::enexprs(...)[[1]]
 
   dat = tbl_pm_fund_nav_daily(con)
 
@@ -22,7 +22,7 @@ get_pm_nav_daily = function(..., con = AZASRS_DATABASE_CONNECTION()){
   }
 
   dat = dat %>% tibble::as_tibble() %>%
-    dplyr::mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d')) %>%
+    # dplyr::mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d')) %>%
     dplyr::filter(effective_date > '1900-01-01')
 
   return(dat)

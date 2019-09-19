@@ -4,7 +4,7 @@
 \alias{build_privm_p2p_irr}
 \title{BUILD PRIVATE MARKET P2P IRR TIBBLE}
 \usage{
-build_privm_p2p_irr(start_date = "2015-12-31",
+build_privm_p2p_irr(start_date = "2017-12-31",
   end_date = get_value_date())
 }
 \arguments{

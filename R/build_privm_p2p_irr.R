@@ -8,13 +8,15 @@
 #' Should be in string format: 'yyyy-mm-dd'
 #' @export
 build_privm_p2p_irr = function(start_date = '2017-12-31', end_date = get_value_date()){
+
   pmfi = get_pm_fund_info()
 
-  nav_daily = get_pm_nav_daily(effective_date == start_date | effective_date == end_date) %>%
+  nav_daily = get_pm_nav_daily(effective_date == !!start_date | effective_date == !!end_date) %>%
     dplyr::select(pm_fund_id, effective_date, nav) %>%
-    dplyr::mutate(cash_flow_mod = nav, cash_flow = 0) # removes NA for upcoming bind_rows
+    dplyr::mutate(cash_flow_mod = nav, cash_flow = 0)
+  # removes NA for upcoming bind_rows
 
-  cf_daily = get_pm_cash_flow_daily(effective_date >= start_date & effective_date <= end_date) %>%
+  cf_daily = get_pm_cash_flow_daily(effective_date >= !!start_date & effective_date <= !!end_date) %>%
     dplyr::select(pm_fund_id, effective_date, cash_flow) %>%
     dplyr::mutate(cash_flow_mod = cash_flow, nav = 0) # removes NA for upcoming bind_rows
 
