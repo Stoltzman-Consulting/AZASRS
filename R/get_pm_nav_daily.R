@@ -7,7 +7,7 @@
 #' @export
 get_pm_nav_daily = function(..., con = AZASRS_DATABASE_CONNECTION()){
 
-  args = rlang::enexprs(...)[[1]]
+  args = rlang::enexprs(...)
 
   dat = tbl_pm_fund_nav_daily(con)
 
@@ -16,9 +16,12 @@ get_pm_nav_daily = function(..., con = AZASRS_DATABASE_CONNECTION()){
   dat = dat %>%
     dplyr::left_join(pmfi, by = c('pm_fund_info_id' = 'pm_fund_info_id'))
 
-  if(length(args) > 0){
+  if(length(args) > 1){
     dat = dat %>%
       dplyr::filter(!!! args)
+  } else{
+    dat = dat %>%
+      dplyr::filter(!! args[[1]])
   }
 
   dat = dat %>% tibble::as_tibble() %>%
