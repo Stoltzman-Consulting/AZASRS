@@ -6,9 +6,9 @@
 #' @param years is the number of years to subract (integer)
 #' @param qtrs is the number of quarters to subract (integer)
 #' @export
-calc_previous_year_qtr = function(start_date = get_value_date(), years = 0, qtrs = 0){
-  start_date = lubridate::as_date(start_date)
-  previous_year = start_date - lubridate::years(years)
+calc_previous_year_qtr = function(end_date = get_value_date(), years = 0, qtrs = 0){
+  end_date = lubridate::as_date(end_date)
+  previous_year = end_date - lubridate::years(years)
   previous_year_qtr = previous_year %m-% months(3*qtrs)
   return(previous_year_qtr)
 }

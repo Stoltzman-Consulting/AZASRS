@@ -92,10 +92,10 @@ test_that("P2P PME is equivalent", {
   comparison_df %>% dplyr::filter(!is.na(pme))
 
   a = test_data_clean %>%
-    dplyr::left_join(pm_bi, by = c('X1' = 'pm_fund_description'))
+    dplyr::left_join(pm_bi, by = 'pm_fund_description')
 
   b = pmfi %>%
-    dplyr::left_join(test_data_clean, by = c('pm_fund_description' = 'X1'))
+    dplyr::left_join(test_data_clean, by = 'pm_fund_description')
 
   expect_equal(2 * 2, 4)
 })
@@ -108,13 +108,15 @@ test_that("P2P IRR is equivalent", {
 
   cf = get_pm_cash_flow_daily()
 
+  pmfi = get_pm_fund_info()
+
   cf_young_funds = cf %>%
     dplyr::group_by(pm_fund_description) %>%
     dplyr::mutate(min_date = min(effective_date)) %>%
     dplyr::ungroup() %>%
     dplyr::filter(effective_date == min_date) %>%
     dplyr::mutate(time_since_start = effective_date - lubridate::as_date(valdate)) %>%
-    dplyr::mutate(less_than_one_year_old = if_else(abs(time_since_start) < 365, TRUE, FALSE)) %>%
+    dplyr::mutate(less_than_one_year_old = dplyr::if_else(abs(time_since_start) < 365, TRUE, FALSE)) %>%
     dplyr::filter(less_than_one_year_old) %>%
     dplyr::select(pm_fund_description, less_than_one_year_old)
 
@@ -127,13 +129,14 @@ test_that("P2P IRR is equivalent", {
     dplyr::rename(pm_fund_description = `Investment Name`)
 
   a = dist_debt_test_irr %>%
-    left_join(itd_irrs, by = 'pm_fund_description')
+    dplyr::left_join(itd_irrs, by = 'pm_fund_description')
   b = a %>%
     dplyr::select(pm_fund_description, `ITD IRR`, irr) %>%
     dplyr::mutate(irr = round(100*irr, 2),
                   irr_diff = (`ITD IRR` - irr)) %>%
-    arrange(-abs(irr_diff)) %>%
-    dplyr::left_join(cf_young_funds)
+    dplyr::arrange(-abs(irr_diff)) %>%
+    dplyr::left_join(cf_young_funds) %>%
+    dplyr::left_join(pmfi %>% dplyr::select(pm_fund_description, closed))
   b
 
 
@@ -146,13 +149,14 @@ test_that("P2P IRR is equivalent", {
     dplyr::rename(pm_fund_description = `Investment Name`)
 
   a = dist_debt_test_irr %>%
-    left_join(itd_irrs, by = 'pm_fund_description')
+    dplyr::left_join(itd_irrs, by = 'pm_fund_description')
   b = a %>%
     dplyr::select(pm_fund_description, `ITD IRR`, irr) %>%
     dplyr::mutate(irr = round(100*irr, 2),
                   irr_diff = (`ITD IRR` - irr)) %>%
-    arrange(-abs(irr_diff)) %>%
-    dplyr::left_join(cf_young_funds)
+    dplyr::arrange(-abs(irr_diff)) %>%
+    dplyr::left_join(cf_young_funds) %>%
+    dplyr::left_join(pmfi %>% dplyr::select(pm_fund_description, closed))
   b
 
 
@@ -165,13 +169,14 @@ test_that("P2P IRR is equivalent", {
     dplyr::rename(pm_fund_description = `Investment Name`)
 
   a = dist_debt_test_irr %>%
-    left_join(itd_irrs, by = 'pm_fund_description')
+    dplyr::left_join(itd_irrs, by = 'pm_fund_description')
   b = a %>%
     dplyr::select(pm_fund_description, `ITD IRR`, irr) %>%
     dplyr::mutate(irr = round(100*irr, 2),
                   irr_diff = (`ITD IRR` - irr)) %>%
-    arrange(-abs(irr_diff)) %>%
-    dplyr::left_join(cf_young_funds)
+    dplyr::arrange(-abs(irr_diff)) %>%
+    dplyr::left_join(cf_young_funds) %>%
+    dplyr::left_join(pmfi %>% dplyr::select(pm_fund_description, closed))
   b
 
 
@@ -184,13 +189,14 @@ test_that("P2P IRR is equivalent", {
     dplyr::rename(pm_fund_description = `Investment Name`)
 
   a = dist_debt_test_irr %>%
-    left_join(itd_irrs, by = 'pm_fund_description')
+    dplyr::left_join(itd_irrs, by = 'pm_fund_description')
   b = a %>%
     dplyr::select(pm_fund_description, `ITD IRR`, irr) %>%
     dplyr::mutate(irr = round(100*irr, 2),
                   irr_diff = (`ITD IRR` - irr)) %>%
-    arrange(-abs(irr_diff)) %>%
-    dplyr::left_join(cf_young_funds)
+    dplyr::arrange(-abs(irr_diff)) %>%
+    dplyr::left_join(cf_young_funds) %>%
+    dplyr::left_join(pmfi %>% dplyr::select(pm_fund_description, closed))
   b
 
   dist_debt_test = readr::read_csv('data/irr_test/Real Estate Agg. Performance.csv') %>%
@@ -202,13 +208,14 @@ test_that("P2P IRR is equivalent", {
     dplyr::rename(pm_fund_description = `Investment Name`)
 
   a = dist_debt_test_irr %>%
-    left_join(itd_irrs, by = 'pm_fund_description')
+    dplyr::left_join(itd_irrs, by = 'pm_fund_description')
   b = a %>%
     dplyr::select(pm_fund_description, `ITD IRR`, irr) %>%
     dplyr::mutate(irr = round(100*irr, 2),
                   irr_diff = (`ITD IRR` - irr)) %>%
-    arrange(-abs(irr_diff)) %>%
-    dplyr::left_join(cf_young_funds)
+    dplyr::arrange(-abs(irr_diff)) %>%
+    dplyr::left_join(cf_young_funds) %>%
+    dplyr::left_join(pmfi %>% dplyr::select(pm_fund_description, closed))
   b
 
 

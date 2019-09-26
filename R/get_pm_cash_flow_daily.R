@@ -33,9 +33,11 @@ get_pm_cash_flow_daily = function(..., con = AZASRS_DATABASE_CONNECTION()){
   if(length(args) > 1){
     dat = dat %>%
       dplyr::filter(!!! args)
-  } else{
+  } else if(length(args) == 1){
     dat = dat %>%
       dplyr::filter(!! args[[1]])
+  } else{
+    dat = dat
   }
 
   dat = dat %>% tibble::as_tibble() %>%
