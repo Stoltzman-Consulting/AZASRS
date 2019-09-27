@@ -59,7 +59,13 @@ Create IRRs for all dates
 ```{r}
 years_quarters = tibble(years    = c(0, 1, 3, 5, 10), 
                        quarters  = c(1, 0, 0, 0, 0),
-                       cool_name = c('one_quarter', 'one_year', 'three_year', 'five_year', 'ten_year')) %>%
+                       cool_name = factor(c('one_quarter', 
+                                            'one_year', 
+                                            'three_year', 
+                                            'five_year', 
+                                            'ten_year'), 
+                                          ordered = TRUE,
+                                          levels = c('one_quarter', 'one_year', 'three_year', 'five_year', 'ten_year'))) %>%
   mutate(end_date = ending_date,
          start_date = calc_previous_year_qtr(ending_date, years, quarters))
 
