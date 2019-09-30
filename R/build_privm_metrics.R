@@ -1,3 +1,26 @@
+#' @export
+build_irr_data = function(...,
+                          nav_daily = get_pm_nav_daily(),
+                          cf_daily = get_pm_cash_flow_daily(),
+                          benchmark_daily = get_benchmark_daily_index(),
+                          start_date = '1900-01-01',
+                          end_date = get_value_date()){
+
+  nav_daily_filtered = nav_daily %>%
+    dplyr::filter(effective_date == start_date | effective_date == end_date)
+
+  first_navs = nav_daily_filtered %>%
+    dplyr::group_by(pm_fund_id) %>%
+    dplyr::summarize(min_date = min(effective_date))
+
+  cf_daily_filtered = cf_daily %>%
+    dplyr::left_join(first_navs, by = 'pm_fund_id') %>%
+    dplyr::filter(effective_date > min_date & effective_date <= end_date) %>%
+    dplyr::select(-min_date)
+}
+
+
+
 #' Build a tibble of major private market metrics including: IRR, DPI, TVPI, PME
 #'
 #' @param ... grouping variables (pm_fund_id, pm_fund_portfolio, etc.)
@@ -36,17 +59,27 @@ build_privm_metrics = function(...,
 
   #### filtering all dates
   nav_daily_filtered = nav_daily %>% dplyr::filter(effective_date >= date_start & effective_date <= date_cutoff)
-  cf_daily_filtered = cf_daily %>% dplyr::filter(effective_date >= date_start & effective_date <= date_cutoff)
+
+  nav_min_dates = nav_daily_filtered %>%
+    dplyr::group_by(pm_fund_id) %>%
+    dplyr::summarize(min_date = min(effective_date))
+
+  cf_daily_filtered = cf_daily %>%
+    dplyr::left_join(nav_min_dates, by = 'pm_fund_id') %>%
+    dplyr::filter(effective_date >= date_start & effective_date <= date_cutoff) %>%
+    dplyr::filter(effective_date >= min_date) %>%
+    dplyr::select(-min_date)
+
   benchmark_daily_filtered = benchmark_daily %>% dplyr::filter(effective_date >= date_start & effective_date <= date_cutoff)
 
   pmfi = nav_daily_filtered %>% dplyr::select(pm_fund_id,
-                                     pm_fund_description,
-                                     pm_fund_category,
-                                     pm_fund_category_description,
-                                     pm_fund_sponsor,
-                                     pm_fund_city,
-                                     pm_fund_sector,
-                                     pm_fund_portfolio) %>% unique()
+                                              pm_fund_description,
+                                              pm_fund_category,
+                                              pm_fund_category_description,
+                                              pm_fund_sponsor,
+                                              pm_fund_city,
+                                              pm_fund_sector,
+                                              pm_fund_portfolio) %>% unique()
 
 
   # Done creating _filtered data
@@ -62,8 +95,8 @@ build_privm_metrics = function(...,
   # get nav values for: first, valdate (or date cutoff specified), and last in date range
   nav_date_cutoffs = nav_daily_filtered %>%
     dplyr::group_by(pm_fund_id) %>%
-      dplyr::mutate(beg_date = min(effective_date), end_date = max(effective_date)) %>%
-      dplyr::ungroup() %>%
+    dplyr::mutate(beg_date = min(effective_date), end_date = max(effective_date)) %>%
+    dplyr::ungroup() %>%
     dplyr::mutate(beg_nav = dplyr::if_else(effective_date == beg_date, nav, 0),
                   end_nav = dplyr::if_else(effective_date == end_date, nav, 0),
                   val_nav = dplyr::if_else(effective_date == valdate, nav, 0)) %>%
@@ -74,7 +107,7 @@ build_privm_metrics = function(...,
     dplyr::filter(effective_date == beg_date | effective_date == end_date | effective_date == valdate) %>% # TODO: check these assumptions
     dplyr::select(pm_fund_id, effective_date, pcap, beg_nav, end_nav, val_nav, nav_val, nav_end, beg_date, end_date) %>%
     dplyr::group_by(pm_fund_id) %>%
-      dplyr::filter(dplyr::n() > 1) %>%
+    dplyr::filter(dplyr::n() > 1) %>%
     dplyr::ungroup() # filters out funds with only one recorded date
 
 

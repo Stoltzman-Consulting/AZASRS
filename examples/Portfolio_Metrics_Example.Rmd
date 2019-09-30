@@ -1,0 +1,106 @@
+---
+title: "Portfolio Metrics Example"
+author: "Scott Stoltzman"
+output: html_document
+---
+
+```{r setup, include=FALSE, message=FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library('AZASRS')
+library('tidyverse')
+library('lubridate')
+```
+
+
+# Calculate All Metrics - Choose points in time
+
+```{r}
+# First, pull all data (takes a moment due to large benchmark size)
+nav = get_pm_nav_daily()
+cf = get_pm_cash_flow_daily()
+bd_all = get_benchmark_daily_index()
+
+# if you prefer to reduce time and know dates:
+# start_dt = '2018-03-31'
+# bd = get_benchmark_daily_index(effective_date >= start_dt)
+```
+
+
+
+`start_date` and `end_date` can be the quarter end dates of any year you have data for.
+
+### For Example - One Quarter
+```{r}
+end_dt = '2019-03-31'
+start_dt = calc_previous_year_qtr(end_date = end_dt, years = 0, qtrs = 1)
+bd = bd_all %>% filter(effective_date >= start_dt)
+
+one_quarter_metrics = build_privm_metrics(pm_fund_portfolio,
+                                          pm_fund_description, 
+                                          nav_daily = nav,
+                                          cf_daily = cf,
+                                          benchmark_daily = bd,
+                                          date_start = start_dt,
+                                          date_cutoff = end_dt,
+                                          valdate = end_dt)
+one_quarter_metrics
+```
+
+
+### For Example - One Year
+```{r}
+end_dt = '2019-03-31'
+start_dt = calc_previous_year_qtr(end_date = end_dt, years = 1, qtrs = 0)
+bd = bd_all %>% filter(effective_date >= start_dt)
+
+one_year_metrics = build_privm_metrics(pm_fund_portfolio,
+                                       pm_fund_description, 
+                                       nav_daily = nav,
+                                       cf_daily = cf,
+                                       benchmark_daily = bd,
+                                       date_start = start_dt,
+                                       date_cutoff = end_dt,
+                                       valdate = end_dt)
+one_year_metrics
+```
+
+
+
+### For Example - 3 Years
+```{r}
+end_dt = '2019-03-31'
+start_dt = calc_previous_year_qtr(end_date = end_dt, years = 3, qtrs = 0)
+bd = bd_all %>% filter(effective_date >= start_dt)
+
+three_year_metrics = build_privm_metrics(pm_fund_portfolio,
+                                         pm_fund_description, 
+                                         nav_daily = nav,
+                                         cf_daily = cf,
+                                         benchmark_daily = bd,
+                                         date_start = start_dt,
+                                         date_cutoff = end_dt,
+                                         valdate = end_dt)
+three_year_metrics
+```
+
+
+
+### Since Inception
+```{r}
+end_dt = '2019-03-31'
+
+# PME calc shows error when first data doesn't start on quarter end.
+inception_metrics = build_privm_metrics(pm_fund_portfolio,
+                                        pm_fund_description, 
+                                        nav_daily = nav,
+                                        cf_daily = cf,
+                                        benchmark_daily = bd_all,
+                                        date_cutoff = end_dt,
+                                        valdate = end_dt) 
+
+inception_metrics %>% 
+  arrange(desc(pm_fund_portfolio), pm_fund_description)
+```
+
+
+
