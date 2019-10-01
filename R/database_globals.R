@@ -127,26 +127,6 @@ INITIAL_DATABASE_POPULATION = function(local = FALSE){
               fail = n_fail))
 }
 
-#' Disconnect all database connections
-#' @description This will disconnect ALL database connections (use carefully, will affect all those connected)
-#' It will send an "error" back with a 'server closed the connection unexpectedly' response. This is what you want.
-#' @export
-DISCONNECT_ALL_DATABASE_CONNECTIONS = function(){
-  drv = DBI::dbDriver("PostgreSQL")
-  con = DBI::dbConnect(drv, dbname = Sys.getenv('ASRS_DATABASE'),
-                       host = Sys.getenv('ASRS_HOST'),
-                       port = Sys.getenv('ASRS_PORT'), user = Sys.getenv('ASRS_USER'),
-                       password = Sys.getenv('ASRS_PASSWORD'))
-  DBI::dbSendQuery(con, paste0("select pg_terminate_backend(pid) from pg_stat_activity where datname='", Sys.getenv('ASRS_DATABASE'), "';"))
-  }
-
-
-
-#' Location of test data
-#' @description .rds files saved and read from this location for tests
-#' @export
-AZASRS_TEST_DATA_DIRECTORY = "P:/IMD/2018 Database Project/Application Data/etl_check_data/"
-
 
 #' List all tables and views in database
 #' @description Aids in displaying table names, simply add tbl_ in front of the name to access the function that accesses the table
@@ -289,27 +269,4 @@ tbl_view_all_pm_fund_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::
 
 #' @export
 tbl_view_all_account_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "all_account_info")}
-
-
-#### Joins to become views:
-# library(tidyverse)
-# con = AZASRS_DATABASE_CONNECTION()
-# tbl_pm_fund_info(con) %>%
-#   left_join(tbl_pm_fund_category(con) , by = 'pm_fund_category_id') %>%
-#   left_join(tbl_pm_fund_city(con) , by = 'pm_fund_city_id') %>%
-#   left_join(tbl_pm_fund_portfolio(con) , by = 'pm_fund_portfolio_id') %>%
-#   left_join(tbl_pm_fund_sector(con) , by = 'pm_fund_sector_id') %>%
-#   left_join(tbl_pm_fund_sponsor(con) , by = 'pm_fund_sponsor_id') %>%
-#   select(-pm_fund_category_id, pm_fund_city_id, pm_fund_portfolio_id, pm_fund_sector_id, pm_fund_sponsor_id) %>%
-#   show_query()
-#
-# tbl_account_info(con) %>%
-#   left_join(tbl_account_asset_class(con), by = 'account_asset_class_id') %>%
-#   left_join(tbl_account_portfolio(con), by = 'account_portfolio_id') %>%
-#   left_join(tbl_account_sub_portfolio(con), by = 'account_sub_portfolio_id') %>%
-#   left_join(tbl_account_category(con), by = 'account_category_id') %>%
-#   left_join(tbl_account_sponsor(con), by = 'account_sponsor_id') %>%
-#   select(-account_asset_class_id, -account_portfolio_id, -account_sub_portfolio_id, -account_category_id, -account_sponsor_id) %>%
-#   show_query()
-
 

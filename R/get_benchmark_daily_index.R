@@ -17,19 +17,19 @@
 #' #   extension <dbl>, ext_time <dbl>, ext_used <dbl>, fee_cat <chr>, consultant <chr>, adv_board <int>, obsvr <int>,
 #' #   fund_size_m <dbl>
 #' @export
-get_benchmark_daily_index = function(..., con = AZASRS_DATABASE_CONNECTION(), bench_type = 'SAA', return_tibble = TRUE){
-  args = rlang::enexprs(...)
+get_benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION(),
+                                     bench_type = 'SAA',
+                                     return_tibble = TRUE){
+
   dat = tbl_benchmark_daily_index(con) %>%
     dplyr::left_join(tbl_pm_fund_info_benchmark_info(con), by = 'benchmark_info_id') %>%
     dplyr::left_join(tbl_benchmark_type(con), by = 'benchmark_type_id') %>%
-    dplyr::left_join(tbl_pm_fund_info(con), by = 'pm_fund_info_id') %>%
     dplyr::filter(benchmark_type == bench_type)
-  if(length(args) > 0){
-    dat = dat %>%
-      dplyr::filter(!!! args)
+
+  if(return_tibble){
+    return(dat %>% tibble::as_tibble())
+  } else{
+    return(dat)
   }
-  dat = dat %>% tibble::as_tibble() %>%
-    dplyr::mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d')) %>%
-    dplyr::filter(effective_date > '1900-01-01')
-  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
-  return(dat)}
+
+}

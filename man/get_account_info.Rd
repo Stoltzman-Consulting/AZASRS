@@ -4,7 +4,7 @@
 \alias{get_account_info}
 \title{Get all account_info}
 \usage{
-get_account_info(..., con = AZASRS_DATABASE_CONNECTION(),
+get_account_info(con = AZASRS_DATABASE_CONNECTION(),
   return_tibble = TRUE)
 }
 \arguments{

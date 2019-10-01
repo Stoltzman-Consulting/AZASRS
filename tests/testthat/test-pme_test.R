@@ -120,23 +120,22 @@ test_that("P2P PME is equivalent", {
 
 test_that("P2P IRR is equivalent", {
 
+  con = AZASRS_DATABASE_CONNECTION()
+
   start_dt = '2018-03-31'
   end_dt = '2019-03-31'
   valdate = '2019-03-31'
+  output_filename = 'data/irr_test_1_year.csv'
 
   pmfi = get_pm_fund_info()
   nav = get_pm_nav_daily()
   cf = get_pm_cash_flow_daily()
-  bd = get_benchmark_daily_index(effective_date >= '2018-03-31')
 
   itd_irrs = build_privm_metrics(pm_fund_portfolio,
                                  pm_fund_description,
-                                 nav_daily = nav,
-                                 cf_daily = cf,
-                                 benchmark_daily = bd,
-                                 date_start = start_dt,
-                                 date_cutoff = end_dt,
-                                 valdate = end_dt)
+                                 start_date = start_dt,
+                                 pcap_date = end_dt,
+                                 value_date = end_dt)
 
   cf_young_funds = cf %>%
     dplyr::group_by(pm_fund_description) %>%
@@ -159,12 +158,12 @@ test_that("P2P IRR is equivalent", {
   a = dist_debt_test_irr %>%
     dplyr::left_join(itd_irrs, by = 'pm_fund_description')
   b = a %>%
-    dplyr::select(pm_fund_description, `1 Year IRR`, irr) %>%
+    dplyr::select(pm_fund_description, `3 Year IRR`, irr) %>%
     dplyr::mutate(irr = round(100*irr, 2),
-                  irr_diff = (`1 Year IRR` - irr)) %>%
+                  irr_diff = (`3 Year IRR` - irr)) %>%
     dplyr::arrange(-abs(irr_diff)) %>%
     dplyr::left_join(cf_young_funds) %>%
-    dplyr::left_join(pmfi %>% dplyr::select(pm_fund_description, closed))
+    dplyr::left_join(pmfi %>% tibble::as_tibble() %>% dplyr::select(pm_fund_description, closed))
   b
 
   running_tibble = b
@@ -181,12 +180,12 @@ test_that("P2P IRR is equivalent", {
   a = dist_debt_test_irr %>%
     dplyr::left_join(itd_irrs, by = 'pm_fund_description')
   b = a %>%
-    dplyr::select(pm_fund_description, `1 Year IRR`, irr) %>%
+    dplyr::select(pm_fund_description, `3 Year IRR`, irr) %>%
     dplyr::mutate(irr = round(100*irr, 2),
-                  irr_diff = (`1 Year IRR` - irr)) %>%
+                  irr_diff = (`3 Year IRR` - irr)) %>%
     dplyr::arrange(-abs(irr_diff)) %>%
     dplyr::left_join(cf_young_funds) %>%
-    dplyr::left_join(pmfi %>% dplyr::select(pm_fund_description, closed))
+    dplyr::left_join(pmfi %>% tibble::as_tibble() %>% dplyr::select(pm_fund_description, closed))
   b
 
   running_tibble = dplyr::bind_rows(running_tibble, b)
@@ -203,12 +202,12 @@ test_that("P2P IRR is equivalent", {
   a = dist_debt_test_irr %>%
     dplyr::left_join(itd_irrs, by = 'pm_fund_description')
   b = a %>%
-    dplyr::select(pm_fund_description, `1 Year IRR`, irr) %>%
+    dplyr::select(pm_fund_description, `3 Year IRR`, irr) %>%
     dplyr::mutate(irr = round(100*irr, 2),
-                  irr_diff = (`1 Year IRR` - irr)) %>%
+                  irr_diff = (`3 Year IRR` - irr)) %>%
     dplyr::arrange(-abs(irr_diff)) %>%
     dplyr::left_join(cf_young_funds) %>%
-    dplyr::left_join(pmfi %>% dplyr::select(pm_fund_description, closed))
+    dplyr::left_join(pmfi %>% tibble::as_tibble() %>% dplyr::select(pm_fund_description, closed))
   b
 
   running_tibble = dplyr::bind_rows(running_tibble, b)
@@ -224,12 +223,12 @@ test_that("P2P IRR is equivalent", {
   a = dist_debt_test_irr %>%
     dplyr::left_join(itd_irrs, by = 'pm_fund_description')
   b = a %>%
-    dplyr::select(pm_fund_description, `1 Year IRR`, irr) %>%
+    dplyr::select(pm_fund_description, `3 Year IRR`, irr) %>%
     dplyr::mutate(irr = round(100*irr, 2),
-                  irr_diff = (`1 Year IRR` - irr)) %>%
+                  irr_diff = (`3 Year IRR` - irr)) %>%
     dplyr::arrange(-abs(irr_diff)) %>%
     dplyr::left_join(cf_young_funds) %>%
-    dplyr::left_join(pmfi %>% dplyr::select(pm_fund_description, closed))
+    dplyr::left_join(pmfi %>% tibble::as_tibble() %>% dplyr::select(pm_fund_description, closed))
   b
 
   running_tibble = dplyr::bind_rows(running_tibble, b)
@@ -245,109 +244,19 @@ test_that("P2P IRR is equivalent", {
   a = dist_debt_test_irr %>%
     dplyr::left_join(itd_irrs, by = 'pm_fund_description')
   b = a %>%
-    dplyr::select(pm_fund_description, `1 Year IRR`, irr) %>%
+    dplyr::select(pm_fund_description, `3 Year IRR`, irr) %>%
     dplyr::mutate(irr = round(100*irr, 2),
-                  irr_diff = (`1 Year IRR` - irr)) %>%
+                  irr_diff = (`3 Year IRR` - irr)) %>%
     dplyr::arrange(-abs(irr_diff)) %>%
     dplyr::left_join(cf_young_funds) %>%
-    dplyr::left_join(pmfi %>% dplyr::select(pm_fund_description, closed))
+    dplyr::left_join(pmfi %>% tibble::as_tibble() %>% dplyr::select(pm_fund_description, closed))
   b
 
   running_tibble = dplyr::bind_rows(running_tibble, b)
 
-  running_tibble %>% readr::write_csv('data/irr_test.csv')
+  haha = running_tibble %>% arrange(-abs(irr_diff)) %>% filter(`3 Year IRR` != 0)
 
-
-  # Select only PME columns
-  test_data_pme_only = test_data[, grep(" PME", colnames(test_data))]
-  # Remove " 2" columns because they represent PCAP and not valdate IRRs
-  test_data_no_2 = test_data_pme_only[, -grep(" 2", colnames(test_data_pme_only))]
-  test_data_clean = dplyr::bind_cols(test_data %>%
-                                       dplyr::select(X1), test_data_no_2) %>%
-    dplyr::rename(pm_fund_description = X1) %>%
-    tidyr::gather(benchmark_description, pme, -pm_fund_description) %>%
-    dplyr::mutate(pm_fund_description = stringr::str_replace_all(pm_fund_description, ' ', '.'),
-                  benchmark_description = stringr::str_replace_all(benchmark_description, ' ', '.'))
-
-
-  con = AZASRS_DATABASE_CONNECTION()
-
-  pm_bi = tbl_view_all_pm_fund_info(con) %>%
-    dplyr::left_join(tbl_pm_fund_info_benchmark_info(con)) %>%
-    dplyr::left_join(tbl_benchmark_info(con)) %>%
-    dplyr::left_join(tbl_benchmark_type(con)) %>%
-    dplyr::filter(benchmark_type == 'SAA') %>%
-    dplyr::select(pm_fund_description, benchmark_description, benchmark_id, benchmark_info_id) %>%
-    tibble::as_tibble() %>%
-    dplyr::mutate(pm_fund_description = stringr::str_replace_all(pm_fund_description, ' ', '.'),
-                  benchmark_description = stringr::str_replace_all(benchmark_description, ' ', '.'))
-
-  unique_bii = pm_bi$benchmark_info_id %>% unique()
-
-  bi = tbl_benchmark_daily_index(con) %>%
-    dplyr::left_join(tbl_pm_fund_info_benchmark_info(con), by = 'benchmark_info_id') %>%
-    dplyr::left_join(tbl_benchmark_type(con), by = 'benchmark_type_id') %>%
-    dplyr::left_join(tbl_benchmark_info(con), by = 'benchmark_info_id') %>%
-    dplyr::filter(effective_date >= start_date) %>%
-    dplyr::filter(benchmark_type == 'SAA') %>%
-    dplyr::filter(benchmark_info_id %in% unique_bii) %>%
-    dplyr::distinct(benchmark_description, effective_date, index_value) %>%
-    tibble::as_tibble() %>%
-    dplyr::mutate(benchmark_description = stringr::str_replace_all(benchmark_description, ' ', '.'))
-
-  bi_min_dates = bi %>%
-    dplyr::group_by(benchmark_description) %>%
-    dplyr::mutate(min_date = min(effective_date)) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(first_index_value = dplyr::if_else(
-      effective_date == min_date,
-      index_value,
-      0)) %>%
-    dplyr::group_by(benchmark_description) %>%
-    dplyr::mutate(first_index_value = max(first_index_value)) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(fv_index_factor = index_value / first_index_value) %>%
-    dplyr::select(benchmark_description, effective_date, fv_index_factor)
-
-
-  # bi_min_dates %>%
-  #   dplyr::left_join()
-
-  nav = get_pm_nav_daily(effective_date >= start_date)
-  cf = get_pm_cash_flow_daily(effective_date >= start_date)
-
-
-  # %>%
-  #   dplyr::mutate(benchmark_description = toupper(gsub('[[:punct:] ]+','', benchmark_description)),
-  #                 pm_fund_description = toupper(gsub('[[:punct:] ]+','', pm_fund_description)))
-
-  test_data_final = test_data_clean %>%
-    dplyr::mutate(benchmark_description = stringr::str_replace_all(benchmark_description, '.PME', '')) %>%
-    dplyr::mutate(benchmark_description = stringr::str_replace_all(benchmark_description, ' ', ''))
-  # dplyr::mutate(benchmark_description_caps = toupper(gsub('[[:punct:] ]+','', benchmark_description_caps)),
-  #               pm_fund_description_caps = toupper(gsub('[[:punct:] ]+','', pm_fund_description)))
-
-  pm_bi_bi = pm_bi %>%
-    dplyr::left_join(bi)
-
-  fv_index_factors = bi %>%
-    dplyr::filter(effective_date == start_date | effective_date == end_date) %>%
-    dplyr::select(benchmark_description, index_value) %>%
-    dplyr::rename(last_index_value = index_value)
-
-  comparison_df = test_data_final %>%
-    dplyr::left_join(fv_index_factors, by = 'benchmark_description')
-
-  comparison_df = pm_bi %>%
-    dplyr::left_join(test_data_final, by = 'benchmark_description')
-
-  comparison_df %>% dplyr::filter(!is.na(pme))
-
-  a = test_data_clean %>%
-    dplyr::left_join(pm_bi, by = c('X1' = 'pm_fund_description'))
-
-  b = pmfi %>%
-    dplyr::left_join(test_data_clean, by = c('pm_fund_description' = 'X1'))
+  running_tibble %>% readr::write_csv(output_filename)
 
   expect_equal(2 * 2, 4)
 })

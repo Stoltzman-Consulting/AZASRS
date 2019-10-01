@@ -33,6 +33,13 @@ irrs %>%
   spread(key = grouping_type, value = irr)
 ```
 
+```{r}
+irrs %>%
+  filter(grouping_type == 'pm_fund_category_description') %>%
+  spread(key = grouping_type, value = irr)
+```
+
+
 Easily generate dates to analyze
 ```{r}
 ending_date = '2019-03-31'

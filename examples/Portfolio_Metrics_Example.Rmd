@@ -47,14 +47,13 @@ one_quarter_metrics
 ```
 
 
-### For Example - One Year
+### For Example - One Year - portfolio totals ONLY
 ```{r}
 end_dt = '2019-03-31'
 start_dt = calc_previous_year_qtr(end_date = end_dt, years = 1, qtrs = 0)
 bd = bd_all %>% filter(effective_date >= start_dt)
 
 one_year_metrics = build_privm_metrics(pm_fund_portfolio,
-                                       pm_fund_description, 
                                        nav_daily = nav,
                                        cf_daily = cf,
                                        benchmark_daily = bd,

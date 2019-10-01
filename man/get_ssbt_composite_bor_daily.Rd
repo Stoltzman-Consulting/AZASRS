@@ -4,7 +4,7 @@
 \alias{get_ssbt_composite_bor_daily}
 \title{Get SSBT composite book of record daily}
 \usage{
-get_ssbt_composite_bor_daily(..., con = AZASRS_DATABASE_CONNECTION(),
+get_ssbt_composite_bor_daily(con = AZASRS_DATABASE_CONNECTION(),
   return_tibble = TRUE)
 }
 \arguments{

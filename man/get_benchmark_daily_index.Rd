@@ -4,7 +4,7 @@
 \alias{get_benchmark_daily_index}
 \title{Get all benchmark_daily_index}
 \usage{
-get_benchmark_daily_index(..., con = AZASRS_DATABASE_CONNECTION(),
+get_benchmark_daily_index(con = AZASRS_DATABASE_CONNECTION(),
   bench_type = "SAA", return_tibble = TRUE)
 }
 \arguments{

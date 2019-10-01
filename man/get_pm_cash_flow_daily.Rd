@@ -4,7 +4,8 @@
 \alias{get_pm_cash_flow_daily}
 \title{Daily private market cash flows}
 \usage{
-get_pm_cash_flow_daily(..., con = AZASRS_DATABASE_CONNECTION())
+get_pm_cash_flow_daily(con = AZASRS_DATABASE_CONNECTION(),
+  return_tibble = TRUE)
 }
 \arguments{
 \item{...}{is used for filtering. i.e. legacy == 'K'}

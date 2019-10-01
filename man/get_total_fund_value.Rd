@@ -4,7 +4,7 @@
 \alias{get_total_fund_value}
 \title{Get total fund value}
 \usage{
-get_total_fund_value(at_date = get_value_date(),
+get_total_fund_value(value_date = get_value_date(),
   con = AZASRS_DATABASE_CONNECTION())
 }
 \value{
