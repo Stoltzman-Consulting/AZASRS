@@ -18,7 +18,7 @@
 #' #   fund_size_m <dbl>
 #' @export
 get_benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION(),
-                                     bench_type = 'SAA',
+                                     bench_type = 'PVT',
                                      return_tibble = TRUE){
 
   dat = tbl_benchmark_daily_index(con) %>%

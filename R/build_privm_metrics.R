@@ -21,15 +21,13 @@ build_privm_metrics = function(...,
                                nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE),
                                cf_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),
                                benchmark_daily = get_benchmark_daily_index(con = con, return_tibble = FALSE),
+                               pmfi = get_pm_fund_info(con = con, return_tibble = FALSE),
                                start_date = '1900-01-01',
                                value_date = get_value_date(con = con),
                                pcap_date = as.character(lubridate::today())){
 
   if(as.Date(pcap_date) < as.Date(value_date)){stop("pcap_date must be greater than or equal to value_date")} # ensures potential for pcap after value_date
   if(as.Date(value_date) <= as.Date(start_date)){stop("value_date must be greater than start_date")} # ensures potential for at least one nav or cash_flow before value_date
-
-  # Get Fund Info for joining tables
-  pmfi = get_pm_fund_info(con = con, return_tibble = FALSE)
 
   # Convert group_vars to character vector for joining tables
   group_vars = dplyr::enquos(...)
@@ -42,7 +40,8 @@ build_privm_metrics = function(...,
 
   nav_min_dates = nav_daily_filtered %>%
     dplyr::group_by(pm_fund_id) %>%
-    dplyr::summarize(min_date = min(effective_date))
+    dplyr::summarize(min_date = min(effective_date)) %>%
+    dplyr::ungroup()
 
   cf_daily_filtered = cf_daily %>%
     dplyr::left_join(nav_min_dates, by = 'pm_fund_id') %>%
@@ -160,7 +159,6 @@ build_privm_metrics = function(...,
 
   nav_cf_w_fv = nav_cf_daily %>%
     dplyr::left_join(fv_index_factors, by = c('pm_fund_id', 'pcap'))
-  nav_cf_w_fv[is.na(nav_cf_w_fv)] = 0
 
   final_data = nav_cf_w_fv %>%
     dplyr::left_join(pmfi %>% tibble::as_tibble(),
@@ -182,7 +180,7 @@ build_privm_metrics = function(...,
                       index_value = sum(index_value)) %>%
     dplyr::group_by(pcap, !!! group_vars) %>%
     dplyr::summarize(irr = calc_irr(cash_flow_cutoff, effective_date),
-                     dpi = calc_dpi(distributions, contributions),
+                     dpi = calc_dpi(distributions, contributions, nav_cutoff),
                      tvpi = calc_tvpi(distributions, contributions, nav_cutoff),
                      appreciation = calc_appreciation(cash_flow, nav_cutoff),
                      pme = calc_pme(distributions, contributions, nav_cutoff, last_index_value/index_value)) %>%
