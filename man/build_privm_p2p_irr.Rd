@@ -5,7 +5,7 @@
 \title{BUILD PRIVATE MARKET P2P IRR TIBBLE}
 \usage{
 build_privm_p2p_irr(start_date = "2017-12-31",
-  end_date = get_value_date())
+  end_date = get_value_date(), con = AZASRS_DATABASE_CONNECTION())
 }
 \arguments{
 \item{start_date}{is the beginning date you would like the IRR to be calculated from

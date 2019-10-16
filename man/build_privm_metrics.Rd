@@ -8,8 +8,9 @@ build_privm_metrics(..., con = AZASRS_DATABASE_CONNECTION(),
   nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE),
   cf_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),
   benchmark_daily = get_benchmark_daily_index(con = con, return_tibble =
-  FALSE), start_date = "1900-01-01", value_date = get_value_date(con =
-  con), pcap_date = as.character(lubridate::today()))
+  FALSE), pmfi = get_pm_fund_info(con = con, return_tibble = FALSE),
+  start_date = "1900-01-01", value_date = get_value_date(con = con),
+  pcap_date = as.character(lubridate::today()))
 }
 \arguments{
 \item{...}{grouping variables (pm_fund_id, pm_fund_portfolio, etc.)}

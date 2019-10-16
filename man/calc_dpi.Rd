@@ -4,7 +4,7 @@
 \alias{calc_dpi}
 \title{DPI}
 \usage{
-calc_dpi(distributions, contributions)
+calc_dpi(distributions, contributions, nav)
 }
 \arguments{
 \item{distributions}{are negative cash flow}
