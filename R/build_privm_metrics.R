@@ -168,7 +168,7 @@ build_privm_metrics = function(...,
   # Allow for calc of 'TOTAL PM'
   final_data$TOTAL = 'TOTAL PM'
 
-  # Calculate IRR, DPI, TVPI, Appreciation
+  # Calculate IRR, DPI, TVPI, Appreciation, DVA
   fund_metrics = final_data %>%
     dplyr::group_by(pcap, !!! group_vars, effective_date) %>%
     dplyr:: summarize(cash_flow_cutoff = sum(cash_flow_cutoff),
@@ -183,7 +183,8 @@ build_privm_metrics = function(...,
                      dpi = calc_dpi(distributions, contributions, nav_cutoff),
                      tvpi = calc_tvpi(distributions, contributions, nav_cutoff),
                      appreciation = calc_appreciation(cash_flow, nav_cutoff),
-                     pme = calc_pme(distributions, contributions, nav_cutoff, last_index_value/index_value)) %>%
+                     pme = calc_pme(distributions, contributions, nav_cutoff, last_index_value/index_value),
+                     dva = calc_dva(distributions, contributions, nav_cutoff, last_index_value/index_value)) %>%
     dplyr::ungroup()
 
   fund_metrics_false = fund_metrics %>% dplyr::filter(pcap == 0) %>% dplyr::select(-pcap)

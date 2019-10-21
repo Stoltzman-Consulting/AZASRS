@@ -15,10 +15,61 @@ library('lubridate')
 # Calculate All Metrics - Choose points in time
 
 ```{r}
+start_date = '2018-03-31'
+end_date = '2019-03-31'
+
+# Establish connection
+con = AZASRS_DATABASE_CONNECTION()
+
+# Get info tables
+pmfi = tbl_view_all_pm_fund_info(con)
+bi = tbl_benchmark_info(con)
+
+# Private Markets NAV
+nav = get_pm_nav_daily(con = con, return_tibble = FALSE) %>%
+  dplyr::filter(effective_date >= start_date)
+
+# Private Markets cash flow
+all_cf = get_pm_cash_flow_daily(con = con, return_tibble = FALSE)
+
+empty_contribution_funds = all_cf %>%
+  dplyr::filter(effective_date >= start_date) %>%
+  dplyr::group_by(pm_fund_info_id) %>%
+  dplyr::summarize(total_contributions = sum(contributions)) %>%
+  dplyr::filter(total_contributions == 0)
+
+prior_contributions = empty_contribution_funds %>% 
+  left_join(all_cf, by = 'pm_fund_info_id') %>%
+  dplyr::group_by(pm_fund_info_id) %>%
+  dplyr::summarize(total_contributions = sum(contributions),
+                   total_distributions = sum(distributions)) 
+
+calc_pme()
+cf %>%
+  group_by(pm_fund_info_id) %>%
+  
+  mutate()
+  summarize(first_date = min(effective_date)) %>%
+  
+
+# Benchmark index (daily)
+benchmark_index = get_benchmark_daily_index(con = con, return_tibble = FALSE) %>%
+  dplyr::filter(effective_date >= start_date,
+                effective_date <= end_date) %>%
+  dplyr::arrange(effective_date)
+
+#
+benchmark_fv = benchmark_index %>%
+  dplyr::group_by(benchmark_info_id) %>%
+  dplyr::mutate(fv_index_factor = index_value / dplyr::first(index_value)) %>%
+  dplyr::ungroup()
+
+fv_index_factors = benchmark_fv %>%
+  dplyr::distinct(benchmark_info_id, effective_date) %>%
+  dplyr::filter(effective_date == start_date | effective_date == end_date)
 # First, pull all data (takes a moment due to large benchmark size)
-nav = get_pm_nav_daily()
-cf = get_pm_cash_flow_daily()
-bd_all = get_benchmark_daily_index()
+#nav = get_pm_nav_daily()
+#cf = get_pm_cash_flow_daily()
 
 # if you prefer to reduce time and know dates:
 # start_dt = '2018-03-31'
@@ -33,16 +84,12 @@ bd_all = get_benchmark_daily_index()
 ```{r}
 end_dt = '2019-03-31'
 start_dt = calc_previous_year_qtr(end_date = end_dt, years = 0, qtrs = 1)
-bd = bd_all %>% filter(effective_date >= start_dt)
 
 one_quarter_metrics = build_privm_metrics(pm_fund_portfolio,
                                           pm_fund_description, 
-                                          nav_daily = nav,
-                                          cf_daily = cf,
-                                          benchmark_daily = bd,
-                                          date_start = start_dt,
-                                          date_cutoff = end_dt,
-                                          valdate = end_dt)
+                                          start_date = start_dt,
+                                          value_date = end_dt,
+                                          pcap_date = end_dt)
 one_quarter_metrics
 ```
 
@@ -51,15 +98,12 @@ one_quarter_metrics
 ```{r}
 end_dt = '2019-03-31'
 start_dt = calc_previous_year_qtr(end_date = end_dt, years = 1, qtrs = 0)
-bd = bd_all %>% filter(effective_date >= start_dt)
 
 one_year_metrics = build_privm_metrics(pm_fund_portfolio,
-                                       nav_daily = nav,
-                                       cf_daily = cf,
-                                       benchmark_daily = bd,
-                                       date_start = start_dt,
-                                       date_cutoff = end_dt,
-                                       valdate = end_dt)
+                                        pm_fund_description, 
+                                        start_date = start_dt,
+                                        value_date = end_dt,
+                                        pcap_date = end_dt)
 one_year_metrics
 ```
 
@@ -69,16 +113,12 @@ one_year_metrics
 ```{r}
 end_dt = '2019-03-31'
 start_dt = calc_previous_year_qtr(end_date = end_dt, years = 3, qtrs = 0)
-bd = bd_all %>% filter(effective_date >= start_dt)
 
 three_year_metrics = build_privm_metrics(pm_fund_portfolio,
-                                         pm_fund_description, 
-                                         nav_daily = nav,
-                                         cf_daily = cf,
-                                         benchmark_daily = bd,
-                                         date_start = start_dt,
-                                         date_cutoff = end_dt,
-                                         valdate = end_dt)
+                                          pm_fund_description, 
+                                          start_date = start_dt,
+                                          value_date = end_dt,
+                                          pcap_date = end_dt)
 three_year_metrics
 ```
 
@@ -90,16 +130,60 @@ end_dt = '2019-03-31'
 
 # PME calc shows error when first data doesn't start on quarter end.
 inception_metrics = build_privm_metrics(pm_fund_portfolio,
-                                        pm_fund_description, 
-                                        nav_daily = nav,
-                                        cf_daily = cf,
-                                        benchmark_daily = bd_all,
-                                        date_cutoff = end_dt,
-                                        valdate = end_dt) 
+                                          pm_fund_description, 
+                                          value_date = end_dt,
+                                          pcap_date = end_dt)
 
 inception_metrics %>% 
   arrange(desc(pm_fund_portfolio), pm_fund_description)
 ```
 
 
+
+
+```{r}
+# Yes PME
+a = nav %>% filter(pm_fund_description == 'Waud Capital Partners III, L.P.')
+b = cf %>% filter(pm_fund_description == 'Waud Capital Partners III, L.P.')
+a1 = a %>% filter(effective_date == min(effective_date) | effective_date == max(effective_date))
+b1 = b %>% filter(effective_date >= min(a1$effective_date) & effective_date <= max(a1$effective_date)) %>% arrange(effective_date)
+a1
+b1
+```
+
+```{r}
+# No PME (seems to be related to portfolio) --- likely no benchmark joined
+a = nav %>% filter(pm_fund_description == 'AP Mezzanine Partners II, L.P.')
+b = cf %>% filter(pm_fund_description == 'AP Mezzanine Partners II, L.P.')
+a1 = a %>% filter(effective_date == min(effective_date) | effective_date == max(effective_date))
+b1 = b %>% filter(effective_date >= min(a1$effective_date) & effective_date <= max(a1$effective_date)) %>% arrange(effective_date)
+a1
+b1
+```
+
+
+```{r}
+# PME is infinite -- no contributions...
+a = nav %>% filter(pm_fund_description == 'PLA Retail Fund I LP')
+b = cf %>% filter(pm_fund_description == 'PLA Retail Fund I LP')
+a1 = a %>% filter(effective_date == min(effective_date) | effective_date == max(effective_date))
+b1 = b %>% filter(effective_date >= min(a1$effective_date) & effective_date <= max(a1$effective_date)) %>% arrange(effective_date)
+a1
+b1
+```
+
+```{r}
+con = AZASRS_DATABASE_CONNECTION()
+
+a = tbl_view_all_pm_fund_info(con = con) %>% 
+  # filter(pm_fund_description == 'AP Mezzanine Partners II, L.P.') %>% 
+  left_join(tbl_pm_fund_info_benchmark_info(con = con)) %>%
+  left_join(tbl_benchmark_info(con)) %>%
+  left_join(tbl_benchmark_type(con)) %>%
+  arrange(benchmark_type, pm_fund_id) %>%
+  tibble::as_tibble()
+
+a %>% filter(pm_fund_description == 'AP Mezzanine Partners II, L.P.')
+
+```
 

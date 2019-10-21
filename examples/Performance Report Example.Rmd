@@ -1,0 +1,32 @@
+---
+title: "Performance Report Example"
+output: html_document
+params: 
+  all_navs: all_navs
+  privm_metrics: privm_metrics
+  portfolio_filter: portfolio_filter
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r fig.width = 12, fig.height = 5}
+params$all_navs %>%
+  filter(pm_fund_portfolio == params$portfolio_filter) %>%
+  ggplot(aes(x = effective_date, y = nav, col = pm_fund_category_description, fill = pm_fund_category_description)) + 
+  geom_col()
+```
+
+
+```{r fig.width = 12, fig.height = 5}
+params$privm_metrics %>%
+  filter(pm_fund_portfolio == params$portfolio_filter) %>%
+  ggplot(aes(x = tvpi, y = irr, col = pme)) + 
+  geom_point(size = 3) + 
+  geom_text(aes(label = pm_fund_category_description), vjust = 1.3)
+```
+
+
+
