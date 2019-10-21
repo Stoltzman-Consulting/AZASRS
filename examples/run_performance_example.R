@@ -23,13 +23,15 @@ for(i in 1:nrow(years_quarters)){
   final_data[[i]]$end_date = yq$end_date
   final_data[[i]]$cool_name = yq$cool_name
 }
-final_tibble = bind_rows(final_data)
 
+
+all_irrs = bind_rows(final_data)
 all_navs = get_pm_nav_daily()
 privm_metrics = build_privm_metrics(pm_fund_portfolio, pm_fund_category_description)
+pmfi = get_pm_fund_info()
 
 portfolios = privm_metrics$pm_fund_portfolio %>% unique()
-param_list = map(portfolios, ~list(portfolio_filter = ., all_navs = all_navs, privm_metrics = privm_metrics))
+param_list = map(portfolios, ~list(portfolio_filter = ., all_navs = all_navs, privm_metrics = privm_metrics, all_irrs = all_irrs, pmfi = pmfi))
 
 reports <- tibble(
   output_file = stringr::str_c("examples/output/", portfolios, "-performance_report.html"),

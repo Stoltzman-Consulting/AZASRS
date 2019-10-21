@@ -3,15 +3,21 @@ title: "Performance Report Example"
 output: html_document
 params: 
   all_navs: all_navs
+  all_irrs: all_irrs
+  pmfi: pmfi
   privm_metrics: privm_metrics
   portfolio_filter: portfolio_filter
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 
+### Analysis for portfolio: `r params$portfolio_filter`
+
+
+#### NAV Breakdown
 ```{r fig.width = 12, fig.height = 5}
 params$all_navs %>%
   filter(pm_fund_portfolio == params$portfolio_filter) %>%
@@ -20,6 +26,7 @@ params$all_navs %>%
 ```
 
 
+#### TVPI vs IRR
 ```{r fig.width = 12, fig.height = 5}
 params$privm_metrics %>%
   filter(pm_fund_portfolio == params$portfolio_filter) %>%
@@ -29,4 +36,39 @@ params$privm_metrics %>%
 ```
 
 
+#### P2P IRR
+```{r}
+pmfi_port_cat = pmfi %>%
+  filter(pm_fund_portfolio == params$portfolio_filter) %>%
+  distinct(pm_fund_portfolio, pm_fund_category_description)
 
+portfolio_irr = all_irrs %>%
+  filter(grouping_type == 'pm_fund_portfolio') %>%  
+  filter(name == params$portfolio_filter) %>%
+  select(cool_name, irr) %>% 
+  mutate(irr = scales::percent(round(irr, 4))) %>%
+  mutate(breakdown = paste('TOTAL', params$portfolio_filter)) %>%
+  spread(key = cool_name, value = irr)
+  
+category_irr = all_irrs %>%
+  filter(grouping_type == 'pm_fund_category_description') %>%
+  left_join(pmfi_port_cat, by = c('name' = 'pm_fund_category_description')) %>%
+  filter(pm_fund_portfolio == params$portfolio_filter) %>%
+  select(breakdown = name, cool_name, irr) %>%
+  mutate(irr = scales::percent(round(irr, 4))) %>%
+  spread(key = 'cool_name', value = irr)
+  
+irr_output = portfolio_irr %>% bind_rows(category_irr)
+
+irr_output %>%
+  kableExtra::kable() %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+
+
+
+----
+
+  
+  
