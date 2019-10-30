@@ -1,7 +1,7 @@
 
 test_that("P2P PME is equivalent", {
 
-  start_date = '2004-01-01'
+  start_date = '2018-12-31'
   end_date = '2019-03-31'
 
   test_data = readr::read_csv('data/pme_test.csv')
@@ -16,56 +16,94 @@ test_that("P2P PME is equivalent", {
     dplyr::mutate(pm_fund_description = stringr::str_replace_all(pm_fund_description, ' ', '.'),
                   benchmark_description = stringr::str_replace_all(benchmark_description, ' ', '.'))
 
-
-  con = AZASRS_DATABASE_CONNECTION()
-
-  pm_bi = tbl_view_all_pm_fund_info(con) %>%
-    dplyr::left_join(tbl_pm_fund_info_benchmark_info(con)) %>%
-    dplyr::left_join(tbl_benchmark_info(con)) %>%
-    dplyr::left_join(tbl_benchmark_type(con)) %>%
-    # dplyr::filter(benchmark_type == 'IMP') %>%
-    dplyr::select(pm_fund_description, benchmark_description, benchmark_id, benchmark_info_id) %>%
-    tibble::as_tibble() %>%
-    dplyr::mutate(pm_fund_description = stringr::str_replace_all(pm_fund_description, ' ', '.'),
-                  benchmark_description = stringr::str_replace_all(benchmark_description, ' ', '.'))
-
-  unique_bii = pm_bi$benchmark_info_id %>% unique()
-
-  bi = tbl_benchmark_daily_index(con) %>%
-    dplyr::left_join(tbl_pm_fund_info_benchmark_info(con), by = 'benchmark_info_id') %>%
-    dplyr::left_join(tbl_benchmark_type(con), by = 'benchmark_type_id') %>%
-    dplyr::left_join(tbl_benchmark_info(con), by = 'benchmark_info_id') %>%
-    dplyr::filter(effective_date >= start_date) %>%
-    # dplyr::filter(benchmark_type == 'IMP') %>%
-    dplyr::filter(benchmark_info_id %in% unique_bii) %>%
-    dplyr::distinct(benchmark_description, effective_date, index_value) %>%
-    tibble::as_tibble() %>%
-    dplyr::mutate(benchmark_description = stringr::str_replace_all(benchmark_description, ' ', '.'))
-
-  bi_min_dates = bi %>%
-    dplyr::group_by(benchmark_description) %>%
-    dplyr::mutate(min_date = min(effective_date)) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(first_index_value = dplyr::if_else(
-      effective_date == min_date,
-      index_value,
-      0)) %>%
-    dplyr::group_by(benchmark_description) %>%
-    dplyr::mutate(first_index_value = max(first_index_value)) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(fv_index_factor = index_value / first_index_value) %>%
-    dplyr::select(benchmark_description, effective_date, fv_index_factor)
-
-  nav = get_pm_nav_daily(effective_date >= start_date)
-  cf = get_pm_cash_flow_daily(effective_date >= start_date)
-
   test_data_final = test_data_clean %>%
     dplyr::mutate(benchmark_description = stringr::str_replace_all(benchmark_description, '.PME', '')) %>%
     dplyr::mutate(benchmark_description = stringr::str_replace_all(benchmark_description, ' ', ''))
 
 
-  pm_bi_bi = pm_bi %>%
-    dplyr::left_join(bi)
+  con = AZASRS_DATABASE_CONNECTION()
+
+  pmfi = tbl_view_all_pm_fund_info(con)
+  bi = tbl_benchmark_info(con)
+
+  nav = get_pm_nav_daily(con = con, return_tibble = FALSE) %>%
+    dplyr::filter(effective_date >= start_date)
+
+  cf = get_pm_cash_flow_daily(con = con, return_tibble = FALSE) %>%
+    dplyr::filter(effective_date >= start_date)
+
+  benchmark_index = get_benchmark_daily_index(con = con, return_tibble = FALSE) %>%
+    dplyr::filter(effective_date >= start_date,
+                  effective_date <= end_date) %>%
+    dplyr::arrange(effective_date)
+
+  benchmark_fv = benchmark_index %>%
+    dplyr::group_by(benchmark_info_id) %>%
+    dplyr::mutate(fv_index_factor = index_value / dplyr::first(index_value)) %>%
+    dplyr::ungroup()
+
+  fv_index_factors = benchmark_fv %>%
+    dplyr::distinct(benchmark_info_id, effective_date) %>%
+    dplyr::filter(effective_date == start_date | effective_date == end_date) #%>%
+    # dplyr::select(benchmark_info_id, index_value) %>%
+    # dplyr::rename(last_index_value = index_value)
+
+  # benchmark_fv %>%
+  #   dplyr::left_join(bi, by = 'benchmark_info_id') %>%
+  #   dplyr::left_join(pmfi, by = 'pm_fund_info_id')
+#
+#   bi_min_dates = bi %>%
+#     dplyr::group_by(benchmark_description) %>%
+#     dplyr::mutate(min_date = min(effective_date)) %>%
+#     dplyr::ungroup() %>%
+#     dplyr::mutate(first_index_value = dplyr::if_else(
+#       effective_date == min_date,
+#       index_value,
+#       0)) %>%
+#     dplyr::group_by(benchmark_description) %>%
+#     dplyr::mutate(first_index_value = max(first_index_value)) %>%
+#     dplyr::ungroup() %>%
+#     dplyr::mutate(fv_index_factor = index_value / first_index_value) %>%
+#     dplyr::select(benchmark_description, effective_date, fv_index_factor)
+
+  # pmfi_bi = tbl_pm_fund_info_benchmark_info(con) %>%
+  #   dplyr::left_join(bi, by = 'benchmark_info_id') %>%
+  #   dplyr::left_join(tbl_benchmark_type(con) %>%
+  #                      dplyr::filter(benchmark_type == 'PVT'),
+  #                    by = 'benchmark_type_id') %>%
+  #   dplyr::left_join(pmfi, by = 'pm_fund_info_id') %>%
+  #   dplyr::select(pm_fund_description, benchmark_description, benchmark_id, benchmark_info_id) #%>%
+    # dplyr::filter(benchmark_type == 'IMP') %>%
+    # tibble::as_tibble() %>%
+    # dplyr::mutate(pm_fund_description = stringr::str_replace_all(pm_fund_description, ' ', '.'),
+    #               benchmark_description = stringr::str_replace_all(benchmark_description, ' ', '.'))
+
+  # unique_bii = pmfi_bi %>%
+  #   select(benchmark_info_id) %>%
+  #   distinct()
+
+  # bi = tbl_benchmark_daily_index(con) %>%
+  #   dplyr::left_join(tbl_pm_fund_info_benchmark_info(con), by = 'benchmark_info_id') %>%
+  #   dplyr::left_join(tbl_benchmark_type(con), by = 'benchmark_type_id') %>%
+  #   dplyr::left_join(tbl_benchmark_info(con), by = 'benchmark_info_id') %>%
+  #   dplyr::filter(effective_date >= start_date) %>%
+  #   # dplyr::filter(benchmark_type == 'IMP') %>%
+  #   dplyr::filter(benchmark_info_id %in% unique_bii) %>%
+  #   dplyr::distinct(benchmark_description, effective_date, index_value) %>%
+  #   tibble::as_tibble() %>%
+  #   dplyr::mutate(benchmark_description = stringr::str_replace_all(benchmark_description, ' ', '.'))
+
+
+  # nav = get_pm_nav_daily(con = con, return_tibble = FALSE) %>%
+  #   dplyr::filter(effective_date >= start_date) %>%
+  #   tibble::as_tibble()
+  #
+  # cf = get_pm_cash_flow_daily(con = con, return_tibble = FALSE) %>%
+  #   dplyr::filter(effective_date >= start_date) %>%
+  #   tibble::as_tibble()
+
+#   pm_bi_bi = pm_bi %>%
+#     dplyr::left_join(bi)
 
   fv_index_factors = bi %>%
     dplyr::filter(effective_date == start_date | effective_date == end_date) %>%
@@ -127,15 +165,16 @@ test_that("P2P IRR is equivalent", {
   valdate = '2019-03-31'
   output_filename = 'data/irr_test_1_year.csv'
 
-  pmfi = get_pm_fund_info()
-  nav = get_pm_nav_daily()
-  cf = get_pm_cash_flow_daily()
+  pmfi = get_pm_fund_info(con = con, return_tibble = FALSE)
+  nav = get_pm_nav_daily(con = con, return_tibble = FALSE)
+  cf = get_pm_cash_flow_daily(con = con, return_tibble = FALSE)
 
-  itd_irrs = build_privm_metrics(pm_fund_portfolio,
-                                 pm_fund_description,
-                                 start_date = start_dt,
-                                 pcap_date = end_dt,
-                                 value_date = end_dt)
+  irrs = build_privm_metrics(pm_fund_portfolio, pm_fund_description,
+                             start_date = start_dt,
+                             pcap_date = end_dt,
+                             value_date = end_dt)
+
+  irrs = AZASRS::build_privm_p2p_irr(start_date = start_dt, end_date = end_dt, con = con)
 
   cf_young_funds = cf %>%
     dplyr::group_by(pm_fund_description) %>%
@@ -254,7 +293,7 @@ test_that("P2P IRR is equivalent", {
 
   running_tibble = dplyr::bind_rows(running_tibble, b)
 
-  haha = running_tibble %>% arrange(-abs(irr_diff)) %>% filter(`3 Year IRR` != 0)
+  haha = running_tibble %>% dplyr::arrange(-abs(irr_diff)) %>% dplyr::filter(`3 Year IRR` != 0)
 
   running_tibble %>% readr::write_csv(output_filename)
 

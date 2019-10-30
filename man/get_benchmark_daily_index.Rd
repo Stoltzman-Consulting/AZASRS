@@ -5,7 +5,7 @@
 \title{Get all benchmark_daily_index}
 \usage{
 get_benchmark_daily_index(con = AZASRS_DATABASE_CONNECTION(),
-  bench_type = "SAA", return_tibble = TRUE)
+  bench_type = "PVT", return_tibble = TRUE)
 }
 \arguments{
 \item{...}{filtering expressions. i.e. effective_date >= '2018-01-01'}
