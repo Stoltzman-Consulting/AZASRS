@@ -63,7 +63,7 @@ build_privm_p2p_irr = function(start_date = '2017-12-31', end_date = get_value_d
   irr_city = grouped_irrs(small_group = pm_fund_city, grouping_type = 'pm_fund_city', nav_cf = nav_cf)
   irr_sector = grouped_irrs(small_group = pm_fund_sector, grouping_type = 'pm_fund_sector', nav_cf = nav_cf)
   irr_fund_id = grouped_irrs(small_group = pm_fund_id, grouping_type = 'pm_fund_id', nav_cf = nav_cf)
-  irr_fund_description = grouped_irrs(small_group = pm_fund_description, grouping_type = 'pm_fund_fund_description', nav_cf = nav_cf)
+  irr_fund_description = grouped_irrs(small_group = pm_fund_description, grouping_type = 'pm_fund_description', nav_cf = nav_cf)
   irr_total_fund = grouped_irrs(small_group = pm_fund_description, grouping_type = 'TOTAL_FUND', nav_cf = nav_cf, TOTAL_FUND = TRUE)
 
   all_irr = dplyr::bind_rows(irr_fund_id, irr_fund_description,
