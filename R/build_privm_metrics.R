@@ -50,6 +50,7 @@ build_privm_metrics = function(...,
     dplyr::select(-min_date)
 
   benchmark_daily_filtered = benchmark_daily %>%
+    dplyr::filter(benchmark_type == 'PVT') %>%
     dplyr::filter(effective_date >= start_date & effective_date <= pcap_date) %>%
     dplyr::left_join(pmfi, by = 'pm_fund_info_id')
 
@@ -188,7 +189,7 @@ build_privm_metrics = function(...,
     dplyr::ungroup()
 
   fund_metrics_false = fund_metrics %>% dplyr::filter(pcap == 0) %>% dplyr::select(-pcap)
-  fund_metrics_true = fund_metrics %>% dplyr::filter(pcap == 1) %>% dplyr::select(!!! group_vars, irr, -pcap) %>% dplyr::rename(irr_pcap = irr)
+  fund_metrics_true = fund_metrics %>% dplyr::filter(pcap == 1) %>% dplyr::select(pm_fund_category, pm_fund_id, irr, -pcap) %>% dplyr::rename(irr_pcap = irr)
   fund_metrics_final = fund_metrics_false %>% dplyr::left_join(fund_metrics_true, by = group_vars_char)
 
   return(fund_metrics_final)

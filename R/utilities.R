@@ -10,6 +10,7 @@ calc_previous_year_qtr = function(end_date = get_value_date(), years = 0, qtrs =
   end_date = lubridate::as_date(end_date)
   previous_year = end_date - lubridate::years(years)
   previous_year_qtr = previous_year %m-% months(3*qtrs)
+  previous_year_qtr = lubridate::round_date(previous_year_qtr, unit = 'quarter') - lubridate::days(1)
   return(previous_year_qtr)
 }
 

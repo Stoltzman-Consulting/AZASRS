@@ -161,20 +161,23 @@ test_that("P2P IRR is equivalent", {
   con = AZASRS_DATABASE_CONNECTION()
 
   start_dt = '2018-03-31'
-  end_dt = '2019-03-31'
-  valdate = '2019-03-31'
+  end_dt = '2019-06-30'
+  valdate = '2019-06-30'
   output_filename = 'data/irr_test_1_year.csv'
 
   pmfi = get_pm_fund_info(con = con, return_tibble = FALSE)
   nav = get_pm_nav_daily(con = con, return_tibble = FALSE)
   cf = get_pm_cash_flow_daily(con = con, return_tibble = FALSE)
 
-  irrs = build_privm_metrics(pm_fund_portfolio, pm_fund_description,
+  metrics = build_privm_metrics(pm_fund_portfolio, pm_fund_description,
                              start_date = start_dt,
                              pcap_date = end_dt,
                              value_date = end_dt)
 
-  irrs = AZASRS::build_privm_p2p_irr(start_date = start_dt, end_date = end_dt, con = con)
+  irrs = build_privm_p2p_irr(start_date = start_dt, end_date = end_dt, con = con)
+
+  fund_irrs = irrs %>% dplyr::filter(grouping_type == 'pm_fund_description') %>%
+    dplyr::transmute(pm_fund_description = name, irr = irr)
 
   cf_young_funds = cf %>%
     dplyr::group_by(pm_fund_description) %>%
@@ -195,7 +198,7 @@ test_that("P2P IRR is equivalent", {
     dplyr::rename(pm_fund_description = `Investment Name`)
 
   a = dist_debt_test_irr %>%
-    dplyr::left_join(itd_irrs, by = 'pm_fund_description')
+    dplyr::left_join(irrs, by = 'pm_fund_description')
   b = a %>%
     dplyr::select(pm_fund_description, `3 Year IRR`, irr) %>%
     dplyr::mutate(irr = round(100*irr, 2),
