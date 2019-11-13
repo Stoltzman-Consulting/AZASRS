@@ -123,9 +123,13 @@ build_privm_metrics = function(...,
                      contributions = sum(contributions, na.rm = TRUE),
                      distributions = sum(distributions, na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
-    tibble::as_tibble() %>%
-    tidyr::drop_na(effective_date)
-  nav_cf_daily_val[is.na(nav_cf_daily_val)] = 0
+    dplyr::mutate(cash_flow = dplyr::if_else(is.na(cash_flow), 0, cash_flow),
+                  contributions = dplyr::if_else(is.na(contributions), 0, contributions),
+                  distributions = dplyr::if_else(is.na(distributions), 0, distributions),
+                  nav_cutoff = dplyr::if_else(is.na(nav_cutoff), 0, nav_cutoff))
+  #   tibble::as_tibble() %>%
+  #   tidyr::drop_na(effective_date)
+  # nav_cf_daily_val[is.na(nav_cf_daily_val)] = 0
 
   nav_cf_daily_end = pcap_funds %>%
     dplyr::left_join(cf_bench_daily, by = 'pm_fund_id') %>%
@@ -139,16 +143,21 @@ build_privm_metrics = function(...,
                      contributions = sum(contributions, na.rm = TRUE),
                      distributions = sum(distributions, na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
-    tibble::as_tibble() %>%
-    tidyr::drop_na(effective_date)
-  nav_cf_daily_end[is.na(nav_cf_daily_end)] = 0
+    dplyr::mutate(cash_flow = dplyr::if_else(is.na(cash_flow), 0, cash_flow),
+                  contributions = dplyr::if_else(is.na(contributions), 0, contributions),
+                  distributions = dplyr::if_else(is.na(distributions), 0, distributions),
+                  nav_cutoff = dplyr::if_else(is.na(nav_cutoff), 0, nav_cutoff)) #%>%
+  #   tibble::as_tibble() %>%
+  #   tidyr::drop_na(effective_date)
+  # nav_cf_daily_end[is.na(nav_cf_daily_end)] = 0
 
-  nav_cf_daily = dplyr::bind_rows(nav_cf_daily_val, nav_cf_daily_end) %>%
+  nav_cf_daily = dplyr::union_all(nav_cf_daily_val, nav_cf_daily_end) %>%
     dplyr::mutate(cash_flow_cutoff = cash_flow + nav_cutoff) %>%
-    dplyr::left_join(bench_daily %>% tibble::as_tibble(),
-                     by = c('pm_fund_id', 'effective_date')) %>%
-    tidyr::drop_na(effective_date)
-  nav_cf_daily[is.na(nav_cf_daily)] = 0
+    dplyr::left_join(bench_daily) %>%
+    dplyr::mutate(cash_flow = dplyr::if_else(is.na(cash_flow), 0, cash_flow)) #%>% tibble::as_tibble(),
+                     # by = c('pm_fund_id', 'effective_date')) #%>%
+  #   tidyr::drop_na(effective_date)
+  # nav_cf_daily[is.na(nav_cf_daily)] = 0
 
 
   #PME setup calcs
@@ -162,23 +171,25 @@ build_privm_metrics = function(...,
     dplyr::left_join(fv_index_factors, by = c('pm_fund_id', 'pcap'))
 
   final_data = nav_cf_w_fv %>%
-    dplyr::left_join(pmfi %>% tibble::as_tibble(),
-                     by = 'pm_fund_id') %>%
+    dplyr::left_join(pmfi) %>% #tibble::as_tibble(), by = 'pm_fund_id') %>%
     dplyr::ungroup()
 
   # Allow for calc of 'TOTAL PM'
-  final_data$TOTAL = 'TOTAL PM'
+  final_data = final_data %>% dplyr::mutate(TOTAL = 'TOTAL PM')
 
   # Calculate IRR, DPI, TVPI, Appreciation, DVA
-  fund_metrics = final_data %>%
+  fund_metrics_prep = final_data %>%
     dplyr::group_by(pcap, !!! group_vars, effective_date) %>%
-    dplyr:: summarize(cash_flow_cutoff = sum(cash_flow_cutoff),
-                      contributions = sum(contributions),
-                      distributions = sum(distributions),
-                      nav_cutoff = sum(nav_cutoff),
-                      cash_flow = sum(cash_flow),
-                      last_index_value = sum(last_index_value),
-                      index_value = sum(index_value)) %>%
+    dplyr:: summarize(cash_flow_cutoff = sum(cash_flow_cutoff, na.rm = TRUE),
+                      contributions = sum(contributions, na.rm = TRUE),
+                      distributions = sum(distributions, na.rm = TRUE),
+                      nav_cutoff = sum(nav_cutoff, na.rm = TRUE),
+                      cash_flow = sum(cash_flow, na.rm = TRUE),
+                      last_index_value = sum(last_index_value, na.rm = TRUE),
+                      index_value = sum(index_value, na.rm = TRUE)) %>%
+    tibble::as_tibble()
+
+  fund_metrics = fund_metrics_prep %>%
     dplyr::group_by(pcap, !!! group_vars) %>%
     dplyr::summarize(irr = calc_irr(cash_flow_cutoff, effective_date),
                      dpi = calc_dpi(distributions, contributions, nav_cutoff),
@@ -191,6 +202,7 @@ build_privm_metrics = function(...,
   fund_metrics_false = fund_metrics %>% dplyr::filter(pcap == 0) %>% dplyr::select(-pcap)
   fund_metrics_true = fund_metrics %>% dplyr::filter(pcap == 1) %>% dplyr::select(!!! group_vars, irr, -pcap) %>% dplyr::rename(irr_pcap = irr)
   fund_metrics_final = fund_metrics_false %>% dplyr::left_join(fund_metrics_true, by = group_vars_char)
+  fund_metrics_final = fund_metrics_final %>% tibble::as_tibble()
 
   return(fund_metrics_final)
 }
