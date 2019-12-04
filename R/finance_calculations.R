@@ -91,22 +91,11 @@ calc_pme = function(distributions, contributions, nav, fv_index_factors){
 #'
 #' @description Calculates DVA that is NOT based off of asrsMethods library.
 #' @param cash_flow is the cash flow tibble
-#' @param nav is NAV at the beginning and end with zeros in between. Both NAV are positive.
 #' @param fv_index_factors are a c() of future value data points based off of index value divided by first index value (i.e. 1.18, 1.11, 1.05, 1.00)
 #' @export
-calc_dva = function(distributions, contributions, nav, fv_index_factors){
+calc_dva = function(cash_flow, fv_index_factors){
 
-  if(sum(contributions == 0)){
-    contributions[1] = -1*abs(nav[1])
-  }
-  if(sum(distributions == 0)){
-    distributions[1] = abs(nav[2])
-  }
-
-  total_fv_distributions = sum((distributions * fv_index_factors) + nav)
-  total_fv_contributions = abs(sum(contributions * fv_index_factors))
-
-  dva = total_fv_contributions + total_fv_distributions
+  dva = sum(cash_flow * fv_index_factors)
 
   return(dva)
 }

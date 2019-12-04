@@ -196,7 +196,7 @@ build_privm_metrics = function(...,
                      tvpi = calc_tvpi(distributions, contributions, nav_cutoff),
                      appreciation = calc_appreciation(cash_flow, nav_cutoff),
                      pme = calc_pme(distributions, contributions, nav_cutoff, last_index_value/index_value),
-                     dva = calc_dva(distributions, contributions, nav_cutoff, last_index_value/index_value)) %>%
+                     dva = calc_dva(cash_flow_cutoff, last_index_value/index_value)) %>%
     dplyr::ungroup()
 
   fund_metrics_false = fund_metrics %>% dplyr::filter(pcap == 0) %>% dplyr::select(-pcap)

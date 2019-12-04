@@ -55,8 +55,8 @@ calc_previous_year_qtr(ending_date, years = 0, qtrs = 1)
 Easily create a lot of comparisons
 ```{r}
 # one quarter back, then years 1, 3, 5, 7, 10
-years_quarters = tibble(years    = c(0, 1, 3, 5, 7, 10), 
-                       quarters = c(1, 0, 0, 0, 0, 0)) %>%
+years_quarters = tibble(years    = c(0, 1, 3, 5, 7, 10, 30), 
+                       quarters = c(1, 0, 0, 0, 0, 0, 0)) %>%
   mutate(end_date = as_date(ending_date),
          start_date = calc_previous_year_qtr(end_date, years, quarters))
 years_quarters
@@ -76,6 +76,10 @@ years_quarters = tibble(years    = c(0, 1, 3, 5, 10, 70),
                                           levels = c('one_quarter', 'one_year', 'three_year', 'five_year', 'ten_year', 'itd'))) %>%
   mutate(end_date = ending_date,
          start_date = calc_previous_year_qtr(ending_date, years, quarters))
+
+
+df = years_quarters %>%
+  mutate(irrs = purrr::pmap(list(start_date, end_date), build_privm_p2p_irr))
 
 # nav = get_pm_nav_daily()
 # cf = get_pm_cash_flow_daily()

@@ -12,9 +12,6 @@ build_benchmark_fv_index_factor = function(...,
                                value_date = get_value_date(),
                                bench_type = 'PVT',
                                benchmark_daily = get_benchmark_daily_index(con = con, return_tibble = FALSE),
-                               pm_fund_info = get_pm_fund_info(con = con, return_tibble = FALSE) %>%
-                                 dplyr::select(pm_fund_info_id, pm_fund_id, pm_fund_portfolio,
-                                               pm_fund_category_description, pm_fund_description),
                                return_tibble = FALSE){
 
   bmd = benchmark_daily %>%
@@ -33,13 +30,10 @@ build_benchmark_fv_index_factor = function(...,
     dplyr::mutate(index_factor = last_index_value / index_value) %>%
     dplyr::select(effective_date, benchmark_info_id, pm_fund_info_id, index_factor, index_value)
 
-  bmd_final_pmfi = bmd_final %>%
-    dplyr::left_join(pm_fund_info, by = 'pm_fund_info_id')
-
   if(return_tibble == TRUE){
-    return(bmd_final_pmfi %>% tibble::as_tibble())
+    return(bmd_final %>% tibble::as_tibble())
   }
   else{
-    return(bmd_final_pmfi)
+    return(bmd_final)
   }
 }
