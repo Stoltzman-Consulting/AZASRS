@@ -4,14 +4,12 @@
 \alias{calc_dva}
 \title{DVA}
 \usage{
-calc_dva(distributions, contributions, nav, fv_index_factors)
+calc_dva(cash_flow, fv_index_factors)
 }
 \arguments{
-\item{nav}{is NAV at the beginning and end with zeros in between. Both NAV are positive.}
+\item{cash_flow}{is the cash flow tibble}
 
 \item{fv_index_factors}{are a c() of future value data points based off of index value divided by first index value (i.e. 1.18, 1.11, 1.05, 1.00)}
-
-\item{cash_flow}{is the cash flow tibble}
 }
 \description{
 Calculates DVA that is NOT based off of asrsMethods library.

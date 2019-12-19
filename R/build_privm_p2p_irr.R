@@ -17,12 +17,20 @@ build_privm_p2p_irr = function(start_date = '2017-12-31', end_date = get_value_d
     dplyr::mutate(cash_flow_mod = nav, cash_flow = 0)
   # removes NA for upcoming bind_rows
 
+  min_nav_dates = nav_daily %>%
+    dplyr::group_by(pm_fund_id) %>%
+    dplyr::summarize(min_date = min(effective_date)) %>%
+    dplyr::ungroup()
+
   cf_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE) %>%
-    dplyr::filter(effective_date >= start_date & effective_date <= end_date) %>%
+    dplyr::filter(effective_date >= min_date & effective_date <= end_date) %>%
     dplyr::select(pm_fund_id, effective_date, cash_flow) %>%
     dplyr::mutate(cash_flow_mod = cash_flow, nav = 0) # removes NA for upcoming bind_rows
 
   nav_cf = dplyr::union_all(nav_daily, cf_daily) %>%
+    dplyr::left_join(min_nav_dates, by = 'pm_fund_id') %>%
+    dplyr::filter(effective_date >= min_date) %>%
+    dplyr::select(-min_date) %>%
     dplyr::group_by(pm_fund_id, effective_date) %>%
     dplyr::summarize(cash_flow_mod = sum(cash_flow_mod)) %>%
     dplyr::group_by(pm_fund_id) %>%

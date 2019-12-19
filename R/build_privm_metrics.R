@@ -40,13 +40,13 @@ build_privm_metrics = function(...,
 
   nav_min_dates = nav_daily_filtered %>%
     dplyr::group_by(pm_fund_id) %>%
-    dplyr::summarize(min_date = min(effective_date)) %>%
+    dplyr::summarize(min_date = min(effective_date, na.rm = TRUE)) %>%
     dplyr::ungroup()
 
   cf_daily_filtered = cf_daily %>%
     dplyr::left_join(nav_min_dates, by = 'pm_fund_id') %>%
-    dplyr::filter(effective_date > start_date & effective_date <= pcap_date) %>%
-    dplyr::filter(effective_date > min_date) %>%
+    dplyr::filter(effective_date >= start_date & effective_date <= pcap_date) %>%
+    dplyr::filter(effective_date >= min_date) %>%
     dplyr::select(-min_date)
 
   benchmark_daily_filtered = benchmark_daily %>%
@@ -65,7 +65,7 @@ build_privm_metrics = function(...,
   # get nav values for: first, value_date (or date cutoff specified), and last in date range
   nav_pcap_dates = nav_daily_filtered %>%
     dplyr::group_by(pm_fund_id) %>%
-    dplyr::mutate(beg_date = min(effective_date), end_date = max(effective_date)) %>%
+    dplyr::mutate(beg_date = min(effective_date, na.rm = TRUE), end_date = max(effective_date, na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(beg_nav = dplyr::if_else(effective_date == beg_date, nav, 0),
                   end_nav = dplyr::if_else(effective_date == end_date, nav, 0),
@@ -153,7 +153,7 @@ build_privm_metrics = function(...,
 
   nav_cf_daily = dplyr::union_all(nav_cf_daily_val, nav_cf_daily_end) %>%
     dplyr::mutate(cash_flow_cutoff = cash_flow + nav_cutoff) %>%
-    dplyr::left_join(bench_daily) %>%
+    dplyr::left_join(bench_daily, by = c("pm_fund_id", "effective_date")) %>%
     dplyr::mutate(cash_flow = dplyr::if_else(is.na(cash_flow), 0, cash_flow)) #%>% tibble::as_tibble(),
                      # by = c('pm_fund_id', 'effective_date')) #%>%
   #   tidyr::drop_na(effective_date)
@@ -171,7 +171,7 @@ build_privm_metrics = function(...,
     dplyr::left_join(fv_index_factors, by = c('pm_fund_id', 'pcap'))
 
   final_data = nav_cf_w_fv %>%
-    dplyr::left_join(pmfi) %>% #tibble::as_tibble(), by = 'pm_fund_id') %>%
+    dplyr::left_join(pmfi, by = "pm_fund_id") %>% #tibble::as_tibble(), by = 'pm_fund_id') %>%
     dplyr::ungroup()
 
   # Allow for calc of 'TOTAL PM'
