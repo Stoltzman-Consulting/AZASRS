@@ -18,7 +18,7 @@ build_privm_p2p_irr = function(start_date = '2017-12-31', end_date = get_value_d
   # removes NA for upcoming bind_rows
 
   cf_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE) %>%
-    dplyr::filter(effective_date >= min_date & effective_date <= end_date) %>%
+    dplyr::filter(effective_date >= start_date & effective_date <= end_date) %>%
     dplyr::select(pm_fund_id, effective_date, cash_flow) %>%
     dplyr::mutate(cash_flow_mod = cash_flow, nav = 0) # removes NA for upcoming bind_rows
 
