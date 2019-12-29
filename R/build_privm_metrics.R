@@ -45,21 +45,25 @@ build_privm_metrics = function(...,
 
   cf_daily_filtered = cf_daily %>%
     dplyr::left_join(nav_min_dates, by = 'pm_fund_id') %>%
-    dplyr::filter(effective_date >= start_date & effective_date <= pcap_date) %>%
+    dplyr::filter(effective_date >= start_date) %>%
+    dplyr::filter(effective_date <= pcap_date) %>%
     dplyr::filter(effective_date >= min_date) %>%
     dplyr::select(-min_date)
 
   benchmark_daily_filtered = benchmark_daily %>%
-    dplyr::filter(benchmark_type == 'PVT') %>%
+    # dplyr::filter(benchmark_type == 'PVT') %>% # should be default in get_benchmark_info function
     dplyr::filter(effective_date >= start_date & effective_date <= pcap_date) %>%
     dplyr::left_join(pmfi, by = 'pm_fund_info_id')
 
   bench_daily = benchmark_daily_filtered %>%
     dplyr::select(pm_fund_id, effective_date, index_value)
 
+  bench_daily_join_prep = bench_daily %>% dplyr::filter(effective_date >= start_date & effective_date <= pcap_date)
+
   ### benchmark issue!!! this needs each day to count to final right?? this would filter to only same days as join allows
   cf_bench_daily = cf_daily_filtered %>%
-    dplyr::left_join(bench_daily, by = c('pm_fund_id', 'effective_date')) %>%
+    dplyr::left_join(bench_daily_join_prep, by = c('pm_fund_id', 'effective_date')) %>%
+    #dplyr::left_join(bench_daily, by = c('pm_fund_id', 'effective_date')) %>%
     dplyr::select(pm_fund_id, effective_date, cash_flow, contributions, distributions, index_value)
 
   # get nav values for: first, value_date (or date cutoff specified), and last in date range
@@ -171,7 +175,7 @@ build_privm_metrics = function(...,
     dplyr::left_join(fv_index_factors, by = c('pm_fund_id', 'pcap'))
 
   final_data = nav_cf_w_fv %>%
-    dplyr::left_join(pmfi, by = "pm_fund_id") %>% #tibble::as_tibble(), by = 'pm_fund_id') %>%
+    dplyr::left_join(pmfi, by = "pm_fund_id") %>%
     dplyr::ungroup()
 
   # Allow for calc of 'TOTAL PM'
@@ -194,7 +198,7 @@ build_privm_metrics = function(...,
     dplyr::summarize(irr = calc_irr(cash_flow_cutoff, effective_date),
                      dpi = calc_dpi(distributions, contributions, nav_cutoff),
                      tvpi = calc_tvpi(distributions, contributions, nav_cutoff),
-                     appreciation = calc_appreciation(cash_flow, nav_cutoff),
+                     appreciation = calc_appreciation(cash_flow = cash_flow, nav = nav_cutoff),
                      pme = calc_pme(distributions, contributions, nav_cutoff, last_index_value/index_value),
                      dva = calc_dva(cash_flow_cutoff, last_index_value/index_value)) %>%
     dplyr::ungroup()

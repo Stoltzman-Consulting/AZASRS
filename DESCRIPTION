@@ -41,7 +41,8 @@ Imports:
     zoo,
     RPostgreSQL,
     odbc,
-    RODBC
+    RODBC,
+    AzureStor
 RoxygenNote: 6.1.1
 Suggests: 
     knitr,

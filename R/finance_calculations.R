@@ -59,7 +59,7 @@ calc_dpi = function(distributions, contributions, nav){
 #' @param nav is NAV at the beginning and end with zeros in between. Both NAV are positive.
 #' @export
 calc_appreciation = function(cash_flow, nav){
-  dat = sum(nav) - sum(cash_flow)
+  dat = sum(nav) + sum(cash_flow)
   return(dat)
 }
 
