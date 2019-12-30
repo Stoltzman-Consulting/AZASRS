@@ -40,7 +40,7 @@ If you are joining these, you will need to utilize a single connection, availabl
 
 ```
 con = AZASRS_DATABASE_CONNECTION()
-tbl_pm_nav_daily(con) %>%
+tbl_pm_fund_nav_daily(con) %>%
   left_join(tbl_pm_fund_info(con), by = 'pm_fund_info_id')
 ```
 
@@ -71,6 +71,5 @@ Examples provided in `examples` folder.
 
 ## Notes  
   
-  - Updating the database requires files to be uploaded into Azure Blob Storage. These must be created and updated utilizing the `data-pipeline` repository. Currently, this requires a Bloomberg connection and files located in a specific location on the `P:` drive. (Kerry is documenting the location of this)
-  - Please reach out to scotts@azasrs.gov if you have any questions!
+  - Updating the database requires files to be uploaded into Azure Blob Storage. These must be created and updated utilizing the `data-pipeline` repository <https://github.com/AZASRS/data-pipeline>. 
 
