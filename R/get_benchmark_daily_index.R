@@ -18,7 +18,7 @@
 #' #   fund_size_m <dbl>
 #' @export
 get_benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION(),
-                                     return_tibble = TRUE){
+                                     return_tibble = FALSE){
 
   dat = get_benchmark_fund_relationship(con) %>%
     dplyr::select(benchmark_info_id, benchmark_type) %>%
