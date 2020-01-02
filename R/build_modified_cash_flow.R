@@ -9,8 +9,6 @@
 #' @export
 build_modified_cash_flow = function(..., con = AZASRS_DATABASE_CONNECTION(), start_date = '2017-12-31', end_date = get_value_date(), return_tibble = FALSE){
 
-  pmfi = get_pm_fund_info(con = con, return_tibble = FALSE)
-
   nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE) %>%
     dplyr::filter(effective_date == start_date | effective_date == end_date) %>%
     dplyr::group_by(..., effective_date) %>%
