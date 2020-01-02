@@ -18,11 +18,11 @@ build_modified_cash_flow = function(..., con = AZASRS_DATABASE_CONNECTION(), sta
     dplyr::mutate(cash_flow = dplyr::if_else(effective_date == min(effective_date, na.rm = TRUE), -1*cash_flow, cash_flow))
 
   cf_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE) %>%
-    dplyr::filter(effective_date >= start_date & effective_date <= end_date) %>%
+    dplyr::filter(effective_date > start_date & effective_date < end_date) %>%
     dplyr::group_by(..., effective_date) %>%
     dplyr::summarize(cash_flow = sum(cash_flow, na.rm = TRUE))
 
-  dat = dplyr::union_all(nav_daily, cf_daily) %>%
+  dat = dplyr::union(nav_daily, cf_daily) %>%
     dplyr::arrange(..., effective_date)
 
   if(return_tibble){
@@ -30,4 +30,5 @@ build_modified_cash_flow = function(..., con = AZASRS_DATABASE_CONNECTION(), sta
   } else{
     return(dat)
   }
+
 }
