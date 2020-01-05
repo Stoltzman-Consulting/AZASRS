@@ -22,7 +22,7 @@ build_grouped_irrs = function(...,
       dplyr::group_by(...) %>%
       dplyr::summarize(min_date = min(effective_date, na.rm = TRUE)) %>%
       dplyr::ungroup() %>%
-      dplyr::select(pm_fund_portfolio, min_date)
+      dplyr::select(..., min_date)
 
     nav_max_dates = nav_daily %>%
       dplyr::select(..., effective_date, nav) %>%
