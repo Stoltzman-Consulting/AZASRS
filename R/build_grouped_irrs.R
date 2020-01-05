@@ -30,16 +30,16 @@ build_grouped_irrs = function(...,
       dplyr::filter(effective_date == end_date) %>%
       dplyr::ungroup() %>%
       dplyr::group_by(..., effective_date) %>%
-      dplyr::summarize(cash_flows = sum(nav)) %>%
-      dplyr::select(..., effective_date, cash_flows)
+      dplyr::summarize(cash_flow = sum(nav)) %>%
+      dplyr::select(..., effective_date, cash_flow)
 
     cash_flows_between = cash_flow_daily %>%
       dplyr::left_join(cash_flow_min_dates) %>%
-      dplyr::filter(effective_date >= min_date & effective_date < end_date) %>%
+      dplyr::filter(effective_date >= min_date & effective_date <= end_date) %>%
       dplyr::select(..., effective_date, cash_flow) %>%
+      dplyr::union_all(nav_max_dates) %>%
       dplyr::group_by(..., effective_date) %>%
       dplyr::summarize(cash_flows = sum(cash_flow)) %>%
-      dplyr::union(nav_max_dates) %>%
       dplyr::arrange(..., effective_date) %>%
       tibble::as_tibble()
 
