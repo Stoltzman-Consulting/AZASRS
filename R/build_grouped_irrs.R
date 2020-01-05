@@ -12,10 +12,49 @@ build_grouped_irrs = function(...,
                               nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE),
                               cash_flow_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),
                               start_date = '2017-12-31',
-                              end_date = get_value_date(con = con)){
+                              end_date = get_value_date(con = con),
+                              itd = FALSE){
 
-  nav_min_max = nav_daily %>%
-    dplyr::filter(effective_date == start_date | effective_date == end_date) %>%
+  if(itd){
+
+    cash_flow_min_dates = cash_flow_daily %>%
+      dplyr:: select(..., effective_date) %>%
+      dplyr::group_by(...) %>%
+      dplyr::summarize(min_date = min(effective_date, na.rm = TRUE)) %>%
+      dplyr::ungroup() %>%
+      dplyr::select(pm_fund_portfolio, min_date)
+
+    nav_max_dates = nav_daily %>%
+      dplyr::select(..., effective_date, nav) %>%
+      dplyr::group_by(...) %>%
+      dplyr::filter(effective_date == end_date) %>%
+      dplyr::ungroup() %>%
+      dplyr::group_by(..., effective_date) %>%
+      dplyr::summarize(cash_flows = sum(nav)) %>%
+      dplyr::select(..., effective_date, cash_flows)
+
+    cash_flows_between = cash_flow_daily %>%
+      dplyr::left_join(cash_flow_min_dates) %>%
+      dplyr::filter(effective_date >= min_date & effective_date < end_date) %>%
+      dplyr::select(..., effective_date, cash_flow) %>%
+      dplyr::group_by(..., effective_date) %>%
+      dplyr::summarize(cash_flows = sum(cash_flow)) %>%
+      dplyr::union(nav_max_dates) %>%
+      dplyr::arrange(..., effective_date) %>%
+      tibble::as_tibble()
+
+    dat = cash_flows_between %>%
+      dplyr::group_by(...) %>%
+      dplyr::summarize(irr = calc_irr(cash_flow = cash_flows, dates = effective_date))
+
+    return(dat)
+  }
+
+
+  nav_min_max_prep = nav_daily %>%
+    dplyr::filter(effective_date == start_date | effective_date == end_date)
+
+  nav_min_max = nav_min_max_prep %>%
     dplyr::select(..., effective_date, nav)%>%
     dplyr::group_by(..., effective_date) %>%
     dplyr::summarize(nav = sum(nav)) %>%
