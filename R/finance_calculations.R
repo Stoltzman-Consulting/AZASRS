@@ -11,6 +11,21 @@ calc_irr = function(cash_flow, dates){
   return(dat)
 }
 
+#' IRR abstraction for calc_irr via a dataframe
+#'
+#' @description Abstraction to allow us to use calc_irr from a dataframe rather than a
+#' @param cash_flow_df is a tibble with 2 columns "cash_flow" and "effective_date"
+#' @export
+calc_irr_from_df = function(cash_flow_df){
+  cash_flow_df = cash_flow_df %>%
+    dplyr::group_by(effective_date) %>%
+    dplyr::summarize(cash_flow = sum(cash_flow, na.rm = TRUE))
+  cash_flow = cash_flow_df %>% dplyr::select(cash_flow) %>% dplyr::pull()
+  dates = cash_flow_df %>% dplyr::select(effective_date) %>% dplyr::pull()
+  dat = calc_irr(cash_flow, dates)
+  return(dat)
+}
+
 
 #' TVPI
 #'

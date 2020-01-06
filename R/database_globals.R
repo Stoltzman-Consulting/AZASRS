@@ -39,6 +39,7 @@ AZASRS_DATABASE_CONNECTION = function(){
                        Port     = Sys.getenv('PORT'))
       }
       )
+    print('new connection!')
     return(connection)}
 
 
