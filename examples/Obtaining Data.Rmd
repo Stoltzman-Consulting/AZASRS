@@ -1,0 +1,51 @@
+---
+title: "Obtaining Data"
+author: "ASRS"
+date: "1/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library('AZASRS')
+library('tidyverse')
+```
+
+
+### NAV daily  
+
+  - `return_tibble` is important if you are joining. `FALSE` returns a SQL object rather than a tibble
+```{r}
+get_pm_nav_daily(return_tibble = TRUE) %>% head(5)
+# However, in this case, the default is TRUE so it is not needed
+```
+
+
+### Cash flow daily  
+
+  - `return_tibble` is important if you are joining. `FALSE` returns a SQL object rather than a tibble
+```{r}
+get_pm_cash_flow_daily(return_tibble = FALSE) %>% head(5)
+```
+
+
+### Fund Info  
+
+  - Caution, this returns ALL columns, which you should limit if possible
+```{r}
+get_pm_fund_info() %>% head(5)
+```
+
+
+### Benchmarks
+
+  - For large queries (like benchmarks) it's important to filter data
+  - Requires a connection directly to DB
+```{r}
+con = AZASRS_DATABASE_CONNECTION()
+get_benchmark_daily_index(con, return_tibble = FALSE) %>% 
+  filter(effective_date >= '2018-01-01') %>%
+  as_tibble()
+```
+
+
