@@ -45,7 +45,8 @@ get_pm_fund_info() %>% head(5)
 con = AZASRS_DATABASE_CONNECTION()
 get_benchmark_daily_index(con, return_tibble = FALSE) %>% 
   filter(effective_date >= '2018-01-01') %>%
-  as_tibble()
+  as_tibble() %>%
+  head(10)
 ```
 
 
