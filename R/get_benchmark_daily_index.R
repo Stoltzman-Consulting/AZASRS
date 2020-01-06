@@ -18,14 +18,13 @@
 #' #   fund_size_m <dbl>
 #' @export
 get_benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION(),
-                                     return_tibble = FALSE){
+                                     bench_type = 'PVT',
+                                     return_tibble = TRUE){
 
-  dat = get_benchmark_fund_relationship(con) %>%
-    dplyr::select(benchmark_info_id, benchmark_type) %>%
-    dplyr::distinct_all() %>%
-    dplyr::inner_join(tbl_benchmark_info(con), by = 'benchmark_info_id') %>%
-    dplyr::inner_join(tbl_benchmark_daily_index(con), by = 'benchmark_info_id')
-
+  dat = tbl_benchmark_daily_index(con) %>%
+    dplyr::left_join(tbl_pm_fund_info_benchmark_info(con), by = 'benchmark_info_id') %>%
+    dplyr::left_join(tbl_benchmark_type(con), by = 'benchmark_type_id') %>%
+    dplyr::filter(benchmark_type == bench_type)
 
   if(return_tibble){
     return(dat %>% tibble::as_tibble())
