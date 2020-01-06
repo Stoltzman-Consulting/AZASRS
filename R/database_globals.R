@@ -7,7 +7,7 @@ AZASRS__welcome__message__ = print("Loading AZASRS package, please ensure this i
 
 #' AZASRS TEST DIRECTORY
 #' @description Data for testing purposes
-AZASRS_TEST_DATA_DIRECTORY = './tests/data/'
+AZASRS_TEST_DATA_DIRECTORY = './tests/testthat/data/'
 
 
 #' Opens a database connection
@@ -50,6 +50,10 @@ AZASRS_DATABASE_CONNECTION = function(){
     return(connection)}
 
 
+#' Updates database with AZURE files
+#' @description To be used with individual files. Note: the first connection takes a long time to spin up the server, then should work quickly if more files are necessary.
+#' @examples
+#' UPDATE_DATABASE('pm_fund_info.csv')
 #' @export
 UPDATE_DATABASE = function(filename, local = FALSE){
   request_url = paste0('https://populate-database.azurewebsites.net/api/HttpTrigger?code=', Sys.getenv('ASRS_FUNCTIONS_CODE'),
@@ -79,6 +83,10 @@ UPDATE_DATABASE = function(filename, local = FALSE){
 }
 
 
+#' Initially populates ALL tables via .csv files
+#' @description To be used in the event the database needs a total refresh. Note: the benchmark data will fail to upload the first time simply due to its size, upon running again it will work.
+#' @examples
+#' UPDATE_DATABASE('pm_fund_info.csv')
 #' @export
 INITIAL_DATABASE_POPULATION = function(local = FALSE){
   files = c('constants.csv',
