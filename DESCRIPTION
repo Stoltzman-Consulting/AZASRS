@@ -43,7 +43,7 @@ Imports:
     odbc,
     RODBC,
     AzureStor
-RoxygenNote: 7.0.2
+RoxygenNote: 6.1.1
 Suggests: 
     knitr,
     rmarkdown,

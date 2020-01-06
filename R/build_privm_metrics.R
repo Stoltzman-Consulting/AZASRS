@@ -45,24 +45,25 @@ build_privm_metrics = function(...,
 
   cf_daily_filtered = cf_daily %>%
     dplyr::left_join(nav_min_dates, by = 'pm_fund_id') %>%
-    dplyr::filter(effective_date >= start_date & effective_date <= pcap_date) %>%
+    dplyr::filter(effective_date >= start_date) %>%
+    dplyr::filter(effective_date <= pcap_date) %>%
     dplyr::filter(effective_date >= min_date) %>%
     dplyr::select(-min_date)
 
   benchmark_daily_filtered = benchmark_daily %>%
-    dplyr::filter(benchmark_type == 'PVT') %>% # should be default in get_benchmark_info function
+    # dplyr::filter(benchmark_type == 'PVT') %>% # should be default in get_benchmark_info function
     dplyr::filter(effective_date >= start_date & effective_date <= pcap_date) %>%
     dplyr::left_join(pmfi, by = 'pm_fund_info_id')
 
   bench_daily = benchmark_daily_filtered %>%
     dplyr::select(pm_fund_id, effective_date, index_value)
 
-  # bench_daily_join_prep = bench_daily %>% dplyr::filter(effective_date >= start_date & effective_date <= pcap_date)
+  bench_daily_join_prep = bench_daily %>% dplyr::filter(effective_date >= start_date & effective_date <= pcap_date)
 
   ### benchmark issue!!! this needs each day to count to final right?? this would filter to only same days as join allows
   cf_bench_daily = cf_daily_filtered %>%
-    #dplyr::left_join(bench_daily_join_prep, by = c('pm_fund_id', 'effective_date')) %>%
-    dplyr::left_join(bench_daily, by = c('pm_fund_id', 'effective_date')) %>%
+    dplyr::left_join(bench_daily_join_prep, by = c('pm_fund_id', 'effective_date')) %>%
+    #dplyr::left_join(bench_daily, by = c('pm_fund_id', 'effective_date')) %>%
     dplyr::select(pm_fund_id, effective_date, cash_flow, contributions, distributions, index_value)
 
   # get nav values for: first, value_date (or date cutoff specified), and last in date range
@@ -149,7 +150,7 @@ build_privm_metrics = function(...,
     dplyr::mutate(cash_flow = dplyr::if_else(is.na(cash_flow), 0, cash_flow),
                   contributions = dplyr::if_else(is.na(contributions), 0, contributions),
                   distributions = dplyr::if_else(is.na(distributions), 0, distributions),
-                  nav_cutoff = dplyr::if_else(is.na(nav_cutoff), 0, nav_cutoff))
+                  nav_cutoff = dplyr::if_else(is.na(nav_cutoff), 0, nav_cutoff)) #%>%
   #   tibble::as_tibble() %>%
   #   tidyr::drop_na(effective_date)
   # nav_cf_daily_end[is.na(nav_cf_daily_end)] = 0
@@ -157,9 +158,7 @@ build_privm_metrics = function(...,
   nav_cf_daily = dplyr::union_all(nav_cf_daily_val, nav_cf_daily_end) %>%
     dplyr::mutate(cash_flow_cutoff = cash_flow + nav_cutoff) %>%
     dplyr::left_join(bench_daily, by = c("pm_fund_id", "effective_date")) %>%
-    dplyr::mutate(cash_flow = dplyr::if_else(is.na(cash_flow), 0, cash_flow)) %>%
-    dplyr::filter(!is.na(index_value))
-  #%>% tibble::as_tibble(),
+    dplyr::mutate(cash_flow = dplyr::if_else(is.na(cash_flow), 0, cash_flow)) #%>% tibble::as_tibble(),
                      # by = c('pm_fund_id', 'effective_date')) #%>%
   #   tidyr::drop_na(effective_date)
   # nav_cf_daily[is.na(nav_cf_daily)] = 0
@@ -180,9 +179,7 @@ build_privm_metrics = function(...,
     dplyr::ungroup()
 
   # Allow for calc of 'TOTAL PM'
-  final_data = final_data %>%
-    dplyr::mutate(TOTAL = 'TOTAL PM')
-
+  final_data = final_data %>% dplyr::mutate(TOTAL = 'TOTAL PM')
 
   # Calculate IRR, DPI, TVPI, Appreciation, DVA
   fund_metrics_prep = final_data %>%
@@ -192,9 +189,8 @@ build_privm_metrics = function(...,
                       distributions = sum(distributions, na.rm = TRUE),
                       nav_cutoff = sum(nav_cutoff, na.rm = TRUE),
                       cash_flow = sum(cash_flow, na.rm = TRUE),
-                      last_index_value = mean(last_index_value, na.rm = TRUE),
-                      index_value = mean(index_value, na.rm = TRUE)) %>%
-    dplyr::filter(!is.na(last_index_value)) %>%
+                      last_index_value = sum(last_index_value, na.rm = TRUE),
+                      index_value = sum(index_value, na.rm = TRUE)) %>%
     tibble::as_tibble()
 
   fund_metrics = fund_metrics_prep %>%
