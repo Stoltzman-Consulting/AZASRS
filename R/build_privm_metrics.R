@@ -196,7 +196,7 @@ build_privm_metrics = function(...,
   fund_metrics = fund_metrics_prep %>%
     dplyr::group_by(pcap, !!! group_vars) %>%
     dplyr::summarize(irr = calc_irr(cash_flow_cutoff, effective_date),
-                     dpi = calc_dpi(distributions, contributions, nav_cutoff),
+                     dpi = calc_dpi(distributions, contributions),
                      tvpi = calc_tvpi(distributions, contributions, nav_cutoff),
                      appreciation = calc_appreciation(cash_flow = cash_flow, nav = nav_cutoff),
                      pme = calc_pme(distributions, contributions, nav_cutoff, last_index_value/index_value),

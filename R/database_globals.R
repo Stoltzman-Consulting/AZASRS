@@ -1,5 +1,13 @@
 # Global variables - to be used for extremely basic functions interacting with low level connections to the database
 
+#' Opening Remarks
+#' @description Prints statements as the package loads, not really a function
+AZASRS__welcome__message__ = print("Loading AZASRS package, please ensure this is up-to-date by using devtools::install_github('AZASRS/AZASRS') and that your .Renviron is up-to-date and in the right location.")
+
+
+#' AZASRS TEST DIRECTORY
+#' @description Data for testing purposes
+AZASRS_TEST_DATA_DIRECTORY = './tests/data/'
 
 
 #' Opens a database connection
@@ -128,12 +136,6 @@ INITIAL_DATABASE_POPULATION = function(local = FALSE){
 }
 
 
-#' List all tables and views in database
-#' @description Aids in displaying table names, simply add tbl_ in front of the name to access the function that accesses the table
-#' @export
-SHOW_ALL_TABLES = print('Welcome to the AZASRS package!')
-#SHOW_ALL_TABLES = print(dplyr::src_tbls(AZASRS_DATABASE_CONNECTION()))
-
 
 #' Disconnect from database
 #' @description Disconnect from database if using AZASRS_DATABASE_CONNECTION
@@ -144,7 +146,7 @@ SHOW_ALL_TABLES = print('Welcome to the AZASRS package!')
 #'        as_tibble()
 #' AZASRS_DATABASE_DISCONNECT(con)
 #' @export
-AZASRS_DATABASE_DISCONNECT = function(con){ DBI::dbDisconnect(con$con) }
+AZASRS_DATABASE_DISCONNECT = function(con){ DBI::dbDisconnect(conn = con) }
 
 
 #' Get value date

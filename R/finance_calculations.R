@@ -15,8 +15,8 @@ calc_irr = function(cash_flow, dates){
 #' TVPI
 #'
 #' @description Calculates TVPI that is NOT based off of asrsMethods library. asrsMethods needs to be updated because it does not reflect TVPI as Kerry calculates.
-#' @param distributions are negative cash flow
-#' @param contributions are positive cash flow
+#' @param contributions are negative cash flow
+#' @param distributions are positive cash flow
 #' @param nav is NAV at the beginning and end with zeros in between. Both NAV are positive.
 #' @export
 calc_tvpi = function(distributions, contributions, nav){
@@ -36,18 +36,10 @@ calc_tvpi = function(distributions, contributions, nav){
 #' DPI
 #'
 #' @description Calculates DPI that is NOT based off of asrsMethods library. asrsMethods needs to be updated because it does not reflect TVPI as Kerry calculates.
-#' @param distributions are negative cash flow
-#' @param contributions are positive cash flow
+#' @param distributions are positive cash flow
+#' @param contributions are negative cash flow
 #' @export
-calc_dpi = function(distributions, contributions, nav){
-
-  if(sum(contributions == 0)){
-    contributions[1] = -1*abs(nav[1])
-  }
-  if(sum(distributions == 0)){
-    distributions[1] = abs(nav[2])
-  }
-
+calc_dpi = function(distributions, contributions){
   dat = sum(abs(distributions)) / sum(abs(contributions))
   return(dat)
 }

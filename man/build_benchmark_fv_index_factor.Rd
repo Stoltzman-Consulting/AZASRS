@@ -4,10 +4,15 @@
 \alias{build_benchmark_fv_index_factor}
 \title{Build a tibble of benchmark index future value factor}
 \usage{
-build_benchmark_fv_index_factor(..., con = AZASRS_DATABASE_CONNECTION(),
-  start_date = "2004-09-30", value_date = get_value_date(),
-  bench_type = "PVT", benchmark_daily = get_benchmark_daily_index(con =
-  con, return_tibble = FALSE), return_tibble = FALSE)
+build_benchmark_fv_index_factor(
+  ...,
+  con = AZASRS_DATABASE_CONNECTION(),
+  start_date = "2004-09-30",
+  value_date = get_value_date(),
+  bench_type = "PVT",
+  benchmark_daily = get_benchmark_daily_index(con = con, return_tibble = FALSE),
+  return_tibble = FALSE
+)
 }
 \arguments{
 \item{...}{grouping variables (pm_fund_id, pm_fund_portfolio, etc.)}
