@@ -1,3 +1,5 @@
+AZASRS_TEST_DATA_DIRECTORY = './test_data'
+
 #' @export
 saveRDS_test = function(data){
   # Insert check to see if
