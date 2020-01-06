@@ -4,8 +4,7 @@
 \alias{calc_previous_year_qtr}
 \title{Calculate previous year and quarter}
 \usage{
-calc_previous_year_qtr(end_date = get_value_date(), years = 0,
-  qtrs = 0)
+calc_previous_year_qtr(end_date = get_value_date(), years = 0, qtrs = 0)
 }
 \arguments{
 \item{years}{is the number of years to subract (integer)}

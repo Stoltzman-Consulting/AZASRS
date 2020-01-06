@@ -4,8 +4,7 @@
 \alias{get_pm_fund_info}
 \title{Get all pm_fund_info}
 \usage{
-get_pm_fund_info(con = AZASRS_DATABASE_CONNECTION(),
-  return_tibble = TRUE)
+get_pm_fund_info(con = AZASRS_DATABASE_CONNECTION(), return_tibble = TRUE)
 }
 \arguments{
 \item{...}{filtering expressions. i.e. pm_fund_portfolio == 'Credit'}

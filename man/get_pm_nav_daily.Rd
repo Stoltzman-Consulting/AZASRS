@@ -4,8 +4,7 @@
 \alias{get_pm_nav_daily}
 \title{Query pm_nav_daily table from database}
 \usage{
-get_pm_nav_daily(con = AZASRS_DATABASE_CONNECTION(),
-  return_tibble = TRUE)
+get_pm_nav_daily(con = AZASRS_DATABASE_CONNECTION(), return_tibble = TRUE)
 }
 \arguments{
 \item{...}{are for filtering the tables, can take values: category, portfolio, asset_class, sub_portfolio, previous_saa, sponsor, saa_benchmark, imp_benchmark, ticker, city}

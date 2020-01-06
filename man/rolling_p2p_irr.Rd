@@ -4,8 +4,10 @@
 \alias{rolling_p2p_irr}
 \title{BUILD PRIVATE MARKET P2P IRR TIBBLE}
 \usage{
-rolling_p2p_irr(end_date = get_value_date(),
-  con = AZASRS_DATABASE_CONNECTION())
+rolling_p2p_irr(
+  end_date = get_value_date(),
+  con = AZASRS_DATABASE_CONNECTION()
+)
 }
 \arguments{
 \item{end_date}{is the last date you would like the IRR to be calculated to
