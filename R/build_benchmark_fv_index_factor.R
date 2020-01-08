@@ -11,11 +11,10 @@ build_benchmark_fv_index_factor = function(...,
                                start_date = '2004-09-30',
                                value_date = get_value_date(),
                                bench_type = 'PVT',
-                               benchmark_daily = get_benchmark_daily_index(con = con, return_tibble = FALSE),
+                               benchmark_daily = get_benchmark_daily_index(con = con, bench_type = bench_type, return_tibble = FALSE),
                                return_tibble = FALSE){
 
   bmd = benchmark_daily %>%
-    dplyr::filter(benchmark_type == bench_type) %>%
     dplyr::filter(effective_date <= value_date) %>%
     dplyr::filter(effective_date >= start_date)
 
