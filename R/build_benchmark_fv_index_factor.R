@@ -28,7 +28,7 @@ build_benchmark_fv_index_factor = function(...,
   bmd_final = bmd %>%
     dplyr::left_join(bmd_end, by = 'benchmark_info_id') %>%
     dplyr::mutate(index_factor = last_index_value / index_value) %>%
-    dplyr::select(effective_date, benchmark_info_id, pm_fund_info_id, index_factor, index_value)
+    dplyr::select(effective_date, benchmark_id, index_factor, index_value, benchmark_info_id, pm_fund_info_id)
 
   if(return_tibble == TRUE){
     return(bmd_final %>% tibble::as_tibble())

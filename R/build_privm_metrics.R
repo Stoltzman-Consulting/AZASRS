@@ -50,12 +50,9 @@ build_privm_metrics = function(...,
     dplyr::filter(effective_date >= min_date) %>%
     dplyr::select(-min_date)
 
-  benchmark_daily_filtered = benchmark_daily %>%
-    # dplyr::filter(benchmark_type == 'PVT') %>% # should be default in get_benchmark_info function
+  bench_daily = benchmark_daily %>%
     dplyr::filter(effective_date >= start_date & effective_date <= pcap_date) %>%
-    dplyr::left_join(pmfi, by = 'pm_fund_info_id')
-
-  bench_daily = benchmark_daily_filtered %>%
+    dplyr::left_join(pmfi, by = 'pm_fund_info_id') %>%
     dplyr::select(pm_fund_id, effective_date, index_value)
 
   bench_daily_join_prep = bench_daily %>% dplyr::filter(effective_date >= start_date & effective_date <= pcap_date)

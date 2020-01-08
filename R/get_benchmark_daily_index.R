@@ -19,12 +19,14 @@
 #' @export
 get_benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION(),
                                      bench_type = 'PVT',
-                                     return_tibble = TRUE){
+                                     return_tibble = FALSE){
 
   dat = tbl_benchmark_daily_index(con) %>%
-    dplyr::left_join(tbl_pm_fund_info_benchmark_info(con), by = 'benchmark_info_id') %>%
-    dplyr::left_join(tbl_benchmark_type(con), by = 'benchmark_type_id') %>%
-    dplyr::filter(benchmark_type == bench_type)
+    # dplyr::left_join(tbl_pm_fund_info_benchmark_info(con), by = 'benchmark_info_id') %>%
+    # dplyr::left_join(tbl_benchmark_type(con), by = 'benchmark_type_id') %>%
+    # dplyr::filter(benchmark_type == bench_type) %>%
+    dplyr::left_join(tbl_benchmark_info(con), by = 'benchmark_info_id') %>%
+    dplyr::select(benchmark_info_id, effective_date, index_value, benchmark_id)
 
   if(return_tibble){
     return(dat %>% tibble::as_tibble())
