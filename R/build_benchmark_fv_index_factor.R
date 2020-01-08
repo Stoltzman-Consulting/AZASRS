@@ -24,15 +24,15 @@ build_benchmark_fv_index_factor = function(...,
     dplyr::distinct(benchmark_info_id, index_value) %>%
     dplyr::rename(last_index_value = index_value)
 
-  bmd_final = bmd %>%
+  dat = bmd %>%
     dplyr::left_join(bmd_end, by = 'benchmark_info_id') %>%
     dplyr::mutate(index_factor = last_index_value / index_value) %>%
-    dplyr::select(effective_date, benchmark_id, index_factor, index_value, benchmark_info_id, pm_fund_info_id)
+    dplyr::select(benchmark_info_id, benchmark_id, effective_date, index_value, index_factor)
 
   if(return_tibble == TRUE){
-    return(bmd_final %>% tibble::as_tibble())
+    return(dat %>% tibble::as_tibble())
   }
   else{
-    return(bmd_final)
+    return(dat)
   }
 }
