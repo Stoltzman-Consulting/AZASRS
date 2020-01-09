@@ -22,7 +22,7 @@ build_grouped_irrs = function(...,
     dplyr::mutate(start_date = dplyr::lag(date, n_qtrs), con = list(con)) %>% # number of quarters, 4 = 1yr
     dplyr::rename(end_date = date) %>%
     tidyr::drop_na(start_date) %>%
-    dplyr::mutate(itd = FALSE)
+    dplyr::mutate(itd = itd)
 
   dat = my_dates %>%
     dplyr::mutate(irr = purrr::pmap(.l = list(enexpr(grouping_vars)[1],
