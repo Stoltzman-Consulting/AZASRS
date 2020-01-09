@@ -1,82 +1,46 @@
-#' BUILDS IRR's
+#' Build a tibble of rolling IRRs by any grouping
 #'
-#' @description Builds cash flow list properly and adds NAV where required
-#' @param ... is the grouping set of variable(s) requested
-#' @param start_date is the beginning date you would like the IRR to be calculated from
-#' Should be in string format: 'yyyy-mm-dd'
-#' @param end_date is the last date you would like the IRR to be calculated to
-#' Should be in string format: 'yyyy-mm-dd'
+#' @param ... grouping variables (pm_fund_id, pm_fund_portfolio, etc.)
+#' @param start_date is first date
+#' @param end_date is last date
+#' @param time_delta is type of lag (quarters or years)
+#' @param n_qtrs is how far back the lookback window should be (4 = 1 year, 20 = 5 years if time_delta is quarters)
+#' @param itd whether or not you would like to have an ITD variable appended
+#' @return Returns a tibble with grouping variables and all of their respective metrics
 #' @export
 build_grouped_irrs = function(...,
-                              con = AZASRS_DATABASE_CONNECTION(),
-                              nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE),
-                              cash_flow_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),
+                              con = AZASRS::AZASRS_DATABASE_CONNECTION(),
                               start_date = '2017-12-31',
                               end_date = get_value_date(con = con),
+                              time_delta = 'quarters',
+                              n_qtrs = 4,
                               itd = FALSE){
 
+  grouping_vars = enquos(...)
+
+  my_dates = filled_list_of_dates(start_date = start_date, end_date = end_date, time_delta = time_delta) %>%
+    dplyr::mutate(start_date = dplyr::lag(date, n_qtrs), con = list(con)) %>% # number of quarters, 4 = 1yr
+    dplyr::rename(end_date = date) %>%
+    tidyr::drop_na(start_date) %>%
+    dplyr::mutate(itd = FALSE)
+
   if(itd){
-
-    cash_flow_min_dates = cash_flow_daily %>%
-      dplyr:: select(..., effective_date) %>%
-      dplyr::group_by(...) %>%
-      dplyr::summarize(min_date = min(effective_date, na.rm = TRUE)) %>%
-      dplyr::ungroup() %>%
-      dplyr::select(..., min_date)
-
-    nav_max_dates = nav_daily %>%
-      dplyr::select(..., effective_date, nav) %>%
-      dplyr::group_by(...) %>%
-      dplyr::filter(effective_date == end_date) %>%
-      dplyr::ungroup() %>%
-      dplyr::group_by(..., effective_date) %>%
-      dplyr::summarize(cash_flow = sum(nav)) %>%
-      dplyr::select(..., effective_date, cash_flow)
-
-    cash_flows_between = cash_flow_daily %>%
-      dplyr::left_join(cash_flow_min_dates) %>%
-      dplyr::filter(effective_date >= min_date & effective_date <= end_date) %>%
-      dplyr::select(..., effective_date, cash_flow) %>%
-      dplyr::union_all(nav_max_dates) %>%
-      dplyr::group_by(..., effective_date) %>%
-      dplyr::summarize(cash_flows = sum(cash_flow)) %>%
-      dplyr::arrange(..., effective_date) %>%
-      tibble::as_tibble()
-
-    dat = cash_flows_between %>%
-      dplyr::group_by(...) %>%
-      dplyr::summarize(irr = calc_irr(cash_flow = cash_flows, dates = effective_date))
-
-    return(dat)
+    my_dates = my_dates %>%
+      dplyr::bind_rows(tibble(start_date = as_date('1900-12-31'), end_date = as_date(end_date),
+                              con = list(con), itd = TRUE)) #adds ITD
   }
 
+  dat = my_dates %>%
+    dplyr::mutate(irr = purrr::pmap(.l = list(enexpr(grouping_vars)[1],
+                                              con = con,
+                                              start_date = start_date,
+                                              end_date = end_date,
+                                              itd = itd),
+                                    calc_grouped_irrs)) %>%
+    dplyr::select(start_date, end_date, irr) %>%
+    tidyr::unnest(cols = c(irr))
 
-  nav_min_max_prep = nav_daily %>%
-    dplyr::filter(effective_date == start_date | effective_date == end_date)
-
-  nav_min_max = nav_min_max_prep %>%
-    dplyr::select(..., effective_date, nav)%>%
-    dplyr::group_by(..., effective_date) %>%
-    dplyr::summarize(nav = sum(nav)) %>%
-    dplyr::group_by(...) %>%
-    dplyr::mutate(nav = if_else(effective_date == start_date, -1*nav, nav)) %>%
-    dplyr::rename(nav_cf = nav)
-
-  cash_flows_between = cash_flow_daily %>%
-    dplyr::filter(effective_date > start_date, effective_date <= end_date) %>%
-    dplyr::select(..., effective_date, cash_flow) %>%
-    dplyr::group_by(..., effective_date) %>%
-    dplyr::summarize(cash_flow = sum(cash_flow)) %>%
-    dplyr::rename(nav_cf = cash_flow)
-
-  final_dat = dplyr::union(nav_min_max, cash_flows_between) %>%
-    dplyr::arrange(..., effective_date) %>%
-    tibble::as_tibble()
-
-  dat = final_dat %>%
-    dplyr::group_by(...) %>%
-    dplyr::summarize(irr = calc_irr(cash_flow = nav_cf, dates = effective_date))
-
+  a=0
   return(dat)
 
 }
