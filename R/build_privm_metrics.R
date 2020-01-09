@@ -1,4 +1,4 @@
-#' Build a tibble of major private market metrics including: IRR, DPI, TVPI, PME
+#' Build a tibble of major private market metrics including: IRR, DPI, TVPI, PME -- Assumes benchmark type is PVT
 #'
 #' @param ... grouping variables (pm_fund_id, pm_fund_portfolio, etc.)
 #' @param nav_daily is data from get_pm_nav_daily() and can be previously loaded and filtered
@@ -20,7 +20,7 @@ build_privm_metrics = function(...,
                                con = AZASRS_DATABASE_CONNECTION(),
                                nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE),
                                cf_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),
-                               benchmark_daily = get_benchmark_daily_index(con = con, return_tibble = FALSE),
+                               benchmark_daily = build_benchmark_fv_index_factor(con = con, return_tibble = FALSE),
                                pmfi = get_pm_fund_info(con = con, return_tibble = FALSE),
                                start_date = '1900-01-01',
                                value_date = get_value_date(con = con),
@@ -33,6 +33,11 @@ build_privm_metrics = function(...,
   group_vars = dplyr::enquos(...)
   group_vars_char = c()
   for(i in as.character(dplyr::quos(!!! group_vars))){group_vars_char = c(group_vars_char, substring(as.character(i), 2))}
+
+  # Assumes benchmark type is PVT
+  bm_fi = get_benchmark_fund_relationship(con) %>%
+    dplyr::filter(benchmark_type == 'PVT') %>%
+    dplyr::left_join(pmfi, by = 'pm_fund_info_id')
 
   #### filtering all dates
   nav_daily_filtered = nav_daily %>%
@@ -50,18 +55,15 @@ build_privm_metrics = function(...,
     dplyr::filter(effective_date >= min_date) %>%
     dplyr::select(-min_date)
 
-  bench_daily = benchmark_daily %>%
+  bench_daily = bm_fi %>%
+    dplyr::left_join(benchmark_daily, by = 'benchmark_info_id') %>%
     dplyr::filter(effective_date >= start_date & effective_date <= pcap_date) %>%
-    dplyr::left_join(pmfi, by = 'pm_fund_info_id') %>%
-    dplyr::select(pm_fund_id, effective_date, index_value)
-
-  bench_daily_join_prep = bench_daily %>% dplyr::filter(effective_date >= start_date & effective_date <= pcap_date)
+    dplyr::select(pm_fund_id, benchmark_id, effective_date, index_value, index_factor)
 
   ### benchmark issue!!! this needs each day to count to final right?? this would filter to only same days as join allows
   cf_bench_daily = cf_daily_filtered %>%
-    dplyr::left_join(bench_daily_join_prep, by = c('pm_fund_id', 'effective_date')) %>%
-    #dplyr::left_join(bench_daily, by = c('pm_fund_id', 'effective_date')) %>%
-    dplyr::select(pm_fund_id, effective_date, cash_flow, contributions, distributions, index_value)
+    dplyr::left_join(bench_daily, by = c('pm_fund_id', 'effective_date')) %>%
+    dplyr::select(pm_fund_id, effective_date, cash_flow, contributions, distributions, index_value, index_factor)
 
   # get nav values for: first, value_date (or date cutoff specified), and last in date range
   nav_pcap_dates = nav_daily_filtered %>%
@@ -163,17 +165,9 @@ build_privm_metrics = function(...,
 
   #PME setup calcs
   # Get last
-  fv_index_factors = nav_cf_daily %>%
-    dplyr::filter(effective_date == pcap_date | effective_date == value_date) %>%
-    dplyr::select(pm_fund_id, index_value ,pcap) %>%
-    dplyr::rename(last_index_value = index_value)
 
-  nav_cf_w_fv = nav_cf_daily %>%
-    dplyr::left_join(fv_index_factors, by = c('pm_fund_id', 'pcap'))
-
-  final_data = nav_cf_w_fv %>%
-    dplyr::left_join(pmfi, by = "pm_fund_id") %>%
-    dplyr::ungroup()
+  final_data = nav_cf_daily %>%
+    dplyr::left_join(pmfi, by = "pm_fund_id")
 
   # Allow for calc of 'TOTAL PM'
   final_data = final_data %>% dplyr::mutate(TOTAL = 'TOTAL PM')
