@@ -24,12 +24,6 @@ build_grouped_irrs = function(...,
     tidyr::drop_na(start_date) %>%
     dplyr::mutate(itd = FALSE)
 
-  if(itd){
-    my_dates = my_dates %>%
-      dplyr::bind_rows(tibble(start_date = as_date('1900-12-31'), end_date = as_date(end_date),
-                              con = list(con), itd = TRUE)) #adds ITD
-  }
-
   dat = my_dates %>%
     dplyr::mutate(irr = purrr::pmap(.l = list(enexpr(grouping_vars)[1],
                                               con = con,
