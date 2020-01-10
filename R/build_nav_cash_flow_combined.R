@@ -23,7 +23,11 @@ build_nav_cash_flow_combined = function(...,
   dat = dplyr::union_all(nav, cf) %>%
     dplyr::group_by(..., effective_date) %>%
     dplyr::summarize(nav_cf = sum(nav_cf, na.rm = TRUE)) %>%
-    dplyr::arrange(..., effective_date)
+    dplyr::arrange(..., effective_date) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(distributions = dplyr::if_else(nav_cf > 0, nav_cf, 0),
+           contributions = dplyr::if_else(nav_cf < 0, nav_cf, 0),
+           nav = if_else(effective_date == start_date | effective_date == end_date, nav_cf, 0))
 
   if(return_tibble){
     return(dat %>% tibble::as_tibble())
