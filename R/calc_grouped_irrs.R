@@ -14,7 +14,7 @@ calc_grouped_irrs = function(...,
                               start_date = '2017-12-31',
                               end_date = get_value_date(con = con)){
 
-  grouping_vars = enquos(...)
+  grouping_vars = dplyr::enquos(...)
 
   nav_min_max_prep = nav_daily %>%
     dplyr::filter(effective_date == start_date | effective_date == end_date)

@@ -2,27 +2,34 @@
 % Please edit documentation in R/build_grouped_irrs.R
 \name{build_grouped_irrs}
 \alias{build_grouped_irrs}
-\title{BUILDS IRR's}
+\title{Build a tibble of rolling IRRs by any grouping}
 \usage{
 build_grouped_irrs(
   ...,
-  con = AZASRS_DATABASE_CONNECTION(),
-  nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE),
-  cash_flow_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),
+  con = AZASRS::AZASRS_DATABASE_CONNECTION(),
   start_date = "2017-12-31",
   end_date = get_value_date(con = con),
+  time_delta = "quarters",
+  n_qtrs = 4,
   itd = FALSE
 )
 }
 \arguments{
-\item{...}{is the grouping set of variable(s) requested}
+\item{...}{grouping variables (pm_fund_id, pm_fund_portfolio, etc.)}
 
-\item{start_date}{is the beginning date you would like the IRR to be calculated from
-Should be in string format: 'yyyy-mm-dd'}
+\item{start_date}{is first date}
 
-\item{end_date}{is the last date you would like the IRR to be calculated to
-Should be in string format: 'yyyy-mm-dd'}
+\item{end_date}{is last date}
+
+\item{time_delta}{is type of lag (quarters or years)}
+
+\item{n_qtrs}{is how far back the lookback window should be (4 = 1 year, 20 = 5 years if time_delta is quarters)}
+
+\item{itd}{whether or not you would like to have an ITD variable appended}
+}
+\value{
+Returns a tibble with grouping variables and all of their respective metrics
 }
 \description{
-Builds cash flow list properly and adds NAV where required
+Build a tibble of rolling IRRs by any grouping
 }

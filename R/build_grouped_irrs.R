@@ -30,7 +30,7 @@ build_grouped_irrs = function(...,
   }
 
   dat = my_dates %>%
-    dplyr::mutate(irr = purrr::pmap(.l = list(enexpr(grouping_vars)[1],
+    dplyr::mutate(irr = purrr::pmap(.l = list(quos(!!!grouping_vars),
                                               con = con,
                                               start_date = start_date,
                                               end_date = end_date),

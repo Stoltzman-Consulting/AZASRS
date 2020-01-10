@@ -8,7 +8,7 @@ build_benchmark_fv_index_factor(
   ...,
   con = AZASRS_DATABASE_CONNECTION(),
   start_date = "2004-01-01",
-  value_date = get_value_date(),
+  value_date = get_value_date(con = con),
   bench_type = "PVT",
   benchmark_daily = get_benchmark_daily_index(con = con, return_tibble = FALSE),
   return_tibble = FALSE
