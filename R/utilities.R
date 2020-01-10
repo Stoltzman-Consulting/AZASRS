@@ -36,22 +36,15 @@ tibble_to_zoo_list = function(tibb, omit_na = TRUE){
   return(dat)
 }
 
-
-#' @export
-filled_list_of_dates = function(start_date = '1969-12-31', end_date = get_value_date(), time_delta = 'quarters'){
-  quarter_ends = c('-03-31', '-06-30', '-09-30', '-12-31') # ensure dates land on proper NAV dates
-
-  if(is.na(!match(substring(start_date, 5), quarter_ends)) | is.na(!match(substring(end_date, 5), quarter_ends))){
-    warning(paste0('Your start_date or end_date needs to end in one of the following ', quarter_ends))
-    break
-  }
-
-  start_date = lubridate::as_date(start_date)
-  end_date = lubridate::as_date(end_date) + lubridate::days(1) # add 1 to include end_date in results
-  date_seq = seq(start_date, end_date, by = time_delta)
-  final_dates = tibble::tibble(date = date_seq) %>%
-    dplyr::mutate(date = lubridate::round_date(date, unit = 'quarters') - lubridate::days(1)) %>% #round dates to fix
-    dplyr::arrange(date)
-
-  return(final_dates)
-}
+# Creates a csv from every single table in db
+# library(tidyverse)
+# library(AZASRS)
+# con = AZASRS_DATABASE_CONNECTION()
+# tbl_names = dplyr::src_tbls(con)
+#
+# for(tbl_name in tbl_names){
+#   print(tbl_name)
+#   if(tbl_name %in% c('all_account_info', 'all_pm_fund_info', 'all_benchmark_daily')){next}
+#   dat = dplyr::tbl(con, tbl_name) %>% as_tibble()
+#   write_csv(dat, paste0('data_tables/',tbl_name,'.csv'))
+# }

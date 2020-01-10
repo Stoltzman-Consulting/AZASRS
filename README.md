@@ -10,6 +10,10 @@
 Ensure that you have received the `.Renviron` file and put it into your home folder. Locate your home folder via: `path.expand("~")`. This `.Renviron` file contains all of the environment variables that you need in order to connect to the database. It's important that you have your own `GITHUB_PAT` and this will not work if you do not have a blank line at the end of the file (strange requirement, but important).
 
 
+## Contributions  
+Please utilize the projects section: <https://github.com/AZASRS/AZASRS/projects/1> in order to give your ideas and start planning projects. We can keep track of things here and make sure that we are not duplicating efforts or repeating mistakes. We'll start to develop a process surrounding this that will allow us to keep our workflow integrated and our code nice and clean. Please note, that you should always make a branch to work on, commit your changes regularly with good notes, and make pull requests on a small set of features. Doing anything large-scale will result in merge conflicts and changes will take longer to complete. Consistently fetching new branches and merging into the branch you are working on is also a good practice. Upon finishing a feature in the branch you created, you will make a pull request and then we can talk through it and make changes if necessary. All tests must pass before you can merge changes. Running `testthat::test_dir('tests')` will check existing code. You will be required to write tests for any code you will be adding as well in order to ensure we can trust changes moving forward.
+
+
 ## Important Functions
 
 `library('AZASRS')`  

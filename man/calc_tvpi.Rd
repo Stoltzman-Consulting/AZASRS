@@ -7,9 +7,9 @@
 calc_tvpi(distributions, contributions, nav)
 }
 \arguments{
-\item{distributions}{are negative cash flow}
+\item{distributions}{are positive cash flow}
 
-\item{contributions}{are positive cash flow}
+\item{contributions}{are negative cash flow}
 
 \item{nav}{is NAV at the beginning and end with zeros in between. Both NAV are positive.}
 }
