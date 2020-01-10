@@ -2,14 +2,14 @@
 % Please edit documentation in R/build_privm_metrics.R
 \name{build_privm_metrics}
 \alias{build_privm_metrics}
-\title{Build a tibble of major private market metrics including: IRR, DPI, TVPI, PME}
+\title{Build a tibble of major private market metrics including: IRR, DPI, TVPI, PME -- Assumes benchmark type is PVT}
 \usage{
 build_privm_metrics(
   ...,
   con = AZASRS_DATABASE_CONNECTION(),
   nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE),
   cf_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),
-  benchmark_daily = get_benchmark_daily_index(con = con, return_tibble = FALSE),
+  benchmark_daily = build_benchmark_fv_index_factor(con = con, return_tibble = FALSE),
   pmfi = get_pm_fund_info(con = con, return_tibble = FALSE),
   start_date = "1900-01-01",
   value_date = get_value_date(con = con),
@@ -33,7 +33,7 @@ build_privm_metrics(
 Returns a tibble with grouping variables and all of their respective metrics
 }
 \description{
-Build a tibble of major private market metrics including: IRR, DPI, TVPI, PME
+Build a tibble of major private market metrics including: IRR, DPI, TVPI, PME -- Assumes benchmark type is PVT
 }
 \examples{
 build_privm_metrics(pm_fund_portfolio, pm_fund_id)
