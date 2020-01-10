@@ -7,33 +7,32 @@
 #' @return Returns a tibble with grouping variables and all of their respective metrics
 #' @export
 build_benchmark_fv_index_factor = function(...,
-                               con = AZASRS_DATABASE_CONNECTION(),
-                               start_date = '2004-01-01',
-                               value_date = get_value_date(con = con),
-                               bench_type = 'PVT',
-                               benchmark_daily = get_benchmark_daily_index(con = con, return_tibble = FALSE),
-                               return_tibble = FALSE){
+                                           con = AZASRS_DATABASE_CONNECTION(),
+                                           start_date = '2004-09-30',
+                                           value_date = get_value_date(),
+                                           bench_type = 'PVT',
+                                           benchmark_daily = get_benchmark_daily_index(con = con, bench_type = bench_type, return_tibble = FALSE),
+                                           return_tibble = FALSE){
 
   bmd = benchmark_daily %>%
-    dplyr::filter(benchmark_type == bench_type) %>%
     dplyr::filter(effective_date <= value_date) %>%
     dplyr::filter(effective_date >= start_date)
 
   bmd_end = bmd %>%
-    dplyr::group_by(benchmark_info_id) %>%
-    dplyr::filter(effective_date == max(value_date, na.rm = TRUE)) %>%
+    dplyr::filter(effective_date == value_date) %>%
     dplyr::select(benchmark_info_id, index_value) %>%
+    dplyr::distinct(benchmark_info_id, index_value) %>%
     dplyr::rename(last_index_value = index_value)
 
-  bmd_final = bmd %>%
+  dat = bmd %>%
     dplyr::left_join(bmd_end, by = 'benchmark_info_id') %>%
     dplyr::mutate(index_factor = last_index_value / index_value) %>%
-    dplyr::select(benchmark_info_id, benchmark_id, benchmark_description, effective_date, index_factor, index_value)
+    dplyr::select(benchmark_info_id, benchmark_id, effective_date, index_value, index_factor)
 
   if(return_tibble == TRUE){
-    return(bmd_final %>% tibble::as_tibble())
+    return(dat %>% tibble::as_tibble())
   }
   else{
-    return(bmd_final)
+    return(dat)
   }
 }
