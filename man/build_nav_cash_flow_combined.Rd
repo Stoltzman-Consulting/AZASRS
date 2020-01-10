@@ -7,10 +7,11 @@
 build_nav_cash_flow_combined(
   ...,
   con = AZASRS_DATABASE_CONNECTION(),
-  start_date = "2004-12-31",
+  start_date = "2017-12-31",
   end_date = get_value_date(con = con),
   nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE),
   cash_flow_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),
+  itd = FALSE,
   return_tibble = FALSE
 )
 }
