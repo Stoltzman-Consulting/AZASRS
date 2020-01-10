@@ -13,7 +13,7 @@ build_nav_cash_flow_combined = function(...,
     dplyr::filter(effective_date == start_date | effective_date == end_date) %>%
     dplyr::group_by(..., effective_date) %>%
     dplyr::summarize(nav_cf = sum(nav, na.rm = TRUE)) %>%
-    dplyr::mutate(nav_cf = dplyr::if_else(effective_date == min(effective_date, na.rm = TRUE), -1*nav_cf, nav_cf))
+    dplyr::mutate(nav_cf = dplyr::if_else(effective_date == start_date, -1*nav_cf, nav_cf))
 
   cf = cash_flow_daily %>%
     dplyr::filter(effective_date >= start_date, effective_date < end_date) %>%
