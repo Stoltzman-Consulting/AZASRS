@@ -12,6 +12,18 @@ calc_irr = function(cash_flow, dates){
 }
 
 
+#' IRR from dataframe
+#'
+#' @description Abstraction of calc_irr to use with dataframe
+#' @param df is a dataframe with columns named cash_flow and dates
+#' @export
+calc_irr_from_df = function(df){
+  dat = calc_irr(df$cash_flow, df$dates)
+  return(dat)
+}
+
+
+
 #' TVPI
 #'
 #' @description Calculates TVPI that is NOT based off of asrsMethods library. asrsMethods needs to be updated because it does not reflect TVPI as Kerry calculates.
