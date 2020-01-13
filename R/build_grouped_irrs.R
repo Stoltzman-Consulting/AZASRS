@@ -16,7 +16,9 @@ build_grouped_irrs = function(...,
                               n_qtrs = 4,
                               itd = FALSE){
 
-  grouping_vars = enquos(...)
+  exprs = dplyr::enquos(...)
+
+  rlang::qq_show(dplyr::group_by(!!!exprs))
 
   itd_end_date = end_date
 
@@ -29,12 +31,10 @@ build_grouped_irrs = function(...,
     dplyr::mutate(end_date = itd_end_date)
   }
 
+
   dat = my_dates %>%
-    dplyr::mutate(irr = purrr::pmap(.l = list(quos(!!!grouping_vars),
-                                              con = con,
-                                              start_date = start_date,
-                                              end_date = end_date),
-                                    calc_grouped_irrs)) %>%
+    dplyr::mutate(irr = purrr::pmap(.l = list(list(exprs), con = con, start_date = start_date, end_date = end_date),
+                                    .f = calc_grouped_irrs)) %>%
     dplyr::select(start_date, end_date, irr) %>%
     tidyr::unnest(cols = c(irr))
 
