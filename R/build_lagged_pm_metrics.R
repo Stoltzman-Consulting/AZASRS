@@ -66,6 +66,7 @@ build_lagged_pm_metrics = function(...,
       dat = dat_with_bench_factor %>%
         dplyr::group_by_at(names(dat_with_bench_factor)[-grep(deselect_cols_lower_level, names(dat_with_bench_factor))]) %>%
         dplyr::summarize(irr = calc_irr(cash_flow = nav_cf, dates = effective_date),
+                         benchmark_irr = max(index_factor, na.rm = TRUE) - 1,
                          tvpi = calc_tvpi(distributions, contributions, nav),
                          dpi = calc_dpi(distributions, contributions),
                          appreciation = calc_appreciation(contributions+distributions, nav),
