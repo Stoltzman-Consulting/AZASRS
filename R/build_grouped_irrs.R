@@ -18,8 +18,6 @@ build_grouped_irrs = function(...,
 
   exprs = dplyr::enquos(...)
 
-  rlang::qq_show(dplyr::group_by(!!!exprs))
-
   itd_end_date = end_date
 
   my_dates = filled_list_of_dates(start_date = start_date, end_date = end_date, time_delta = time_delta) %>%
@@ -27,10 +25,10 @@ build_grouped_irrs = function(...,
     dplyr::rename(end_date = date) %>%
     tidyr::drop_na(start_date)
 
-  if(itd){my_dates = my_dates %>%
-    dplyr::mutate(end_date = itd_end_date)
+  if(itd){
+    my_dates = my_dates %>%
+      dplyr::mutate(end_date = itd_end_date)
   }
-
 
   dat = my_dates %>%
     dplyr::mutate(irr = purrr::pmap(.l = list(list(exprs), con = con, start_date = start_date, end_date = end_date),

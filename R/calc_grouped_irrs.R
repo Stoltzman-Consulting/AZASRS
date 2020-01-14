@@ -9,13 +9,12 @@
 #' @export
 calc_grouped_irrs = function(...,
                              con = AZASRS_DATABASE_CONNECTION(),
-                              nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE),
-                              cash_flow_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),
-                              start_date = '2017-12-31',
-                              end_date = get_value_date(con = con)){
+                             nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE),
+                             cash_flow_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),
+                             start_date = '2017-12-31',
+                             end_date = get_value_date(con = con)){
 
   exprs = dplyr::enquos(...)
-  rlang::qq_show(dplyr::group_by(!!!exprs))
   nav_min_max_prep = nav_daily %>%
     dplyr::filter(effective_date == start_date | effective_date == end_date)
 

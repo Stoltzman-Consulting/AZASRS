@@ -27,7 +27,7 @@ get_benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION(),
 
   dat = pmfi_bmi %>%
     dplyr::left_join(tbl_benchmark_daily_index(con), by = 'benchmark_info_id') %>%
-    dplyr::left_join(tbl_benchmark_info(con) %>% select(benchmark_info_id, benchmark_id), by = 'benchmark_info_id')
+    dplyr::left_join(tbl_benchmark_info(con) %>% dplyr::select(benchmark_info_id, benchmark_id), by = 'benchmark_info_id')
 
   if(return_tibble){
     return(dat %>% tibble::as_tibble())
