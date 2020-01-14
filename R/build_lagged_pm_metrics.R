@@ -5,10 +5,16 @@ build_lagged_pm_metrics = function(...,
                    end_date = get_value_date(con = con),
                    time_delta = 'quarters',
                    n_qtrs = 4,
-                   benchmark_lookup,
                    return_calcs = TRUE){
+
   # benchmark_lookup is a tibble to match for DVA & PME calcs
   # benchmark_lookup = tibble::tibble(pm_fund_portfolio = c("Credit", "PE",   "RE"), benchmark_id = c("ODCE",   "ODCE", "LSTA+250"))
+  test_existing = dplyr::enquos(...)
+  if(is.null(test_existing$benchmark_lookup)){
+    benchmark_lookup = default_benchmark_lookup
+  }
+
+
 
   bench_tbl = build_benchmark_fv_index_factor(...,
                                               con = con, # con defined in parent function
