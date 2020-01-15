@@ -151,10 +151,8 @@ build_lagged_pm_metrics = function(...,
       tidyr::unnest(cols = c(irr)) %>%
       dplyr::mutate(lagged_period = round(as.integer(end_date - start_date)/365, 2),
                     lagged_period = as.character(dplyr::if_else(lagged_period >= 1, round(lagged_period), lagged_period)),
-                    lagged_period = dplyr::if_else(lagged_period == '0.25',
-                                                   '3 Months',
-                                                   dplyr::if_else(lagged_period == '0.50',
-                                                                  '6 Months',
+                    lagged_period = dplyr::if_else(lagged_period == '0.25','3 Months',
+                                                   dplyr::if_else(lagged_period == '0.50' | lagged_period == '0.5', '6 Months',
                                                                   paste(lagged_period, 'Year'))),
                     lagged_period = dplyr::if_else(itd == TRUE, 'ITD', lagged_period)) %>%
       dplyr::ungroup()
