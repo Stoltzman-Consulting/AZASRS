@@ -16,7 +16,7 @@ options(scipen = 999)
 
 ```{r message = FALSE}
 end_date = '2019-06-30'
-years_to_lag = c(0.25, 0.5, 1, 3, 5)
+years_to_lag = c(0.25, 0.5, 1, 3, 5, 7)
 
 all_db_irrs = tibble()
 for(years_back in years_to_lag){
@@ -45,10 +45,6 @@ all_db_irrs = bind_rows(all_db_irrs, db_irrs_itd)
 all_db_irrs %>% head()
 ```
 
-```{r}
-all_db_irrs %>% 
-```
-
 
 ```{r}
 data_directory = './reconciliation_data/'
@@ -60,8 +56,9 @@ csv_irrs_raw = tibble()
 for(file in all_files$name){
   tmp = read_csv(paste0(data_directory, file)) 
   tmp = tmp %>%
-    select(`Client Grouping 1`, Quarter = `3 Month IRR`, `6 Month IRR`,
-                   `1 Year IRR`, `3 Year IRR`, `5 Year IRR`, `7 Year IRR`, `10 Year IRR`, `ITD IRR`) %>%
+    select(`Client Grouping 1`, `3 Months` = `3 Month IRR`, `6 Months` = `6 Month IRR`,
+           `1 Year` = `1 Year IRR`, `3 Year` = `3 Year IRR`, `5 Year` = `5 Year IRR`, 
+           `7 Year` = `7 Year IRR`, `10 Year` = `10 Year IRR`, `ITD` = `ITD IRR`) %>%
     drop_na(`Client Grouping 1`) %>%
     mutate_all(as.character)
   csv_irrs_raw = bind_rows(csv_irrs_raw, tmp)
@@ -85,30 +82,53 @@ csv_irrs %>% head()
 
 
 ```{r}
-df1 = db_irrs %>% mutate(source = 'database')
-df2 = csv_irrs %>% mutate(source = 'csv') %>% rename(pm_fund_id = `Client Grouping 1`)
-df = bind_rows(df1, df2)
+irrs_database = all_db_irrs %>% 
+  select(pm_fund_id, irr, lagged_period) %>% 
+  mutate(irr = if_else(is.na(irr), 0, irr))
 
-diffs = df %>%
-  gather(key = time_period, value = 'irr', -fund_id, -source) %>%
-  mutate(irr = if_else(source == 'csv', -1*irr/100, irr)) %>%
-  group_by(fund_id, time_period) %>%
-  summarize(diff = sum(irr)) %>%
+irrs_csv = csv_irrs %>% 
+  rename(pm_fund_id = `Client Grouping 1`) %>%
+  pivot_longer(-pm_fund_id, names_to = "lagged_period", values_to = 'irr') %>%
+  mutate(irr = irr/100)
+
+
+irrs_comparison_db = irrs_database %>%
+  left_join(irrs_csv, by = c('pm_fund_id', 'lagged_period')) %>%
+  mutate(diff = irr.x - irr.y) %>%
+  arrange(-diff)
+  
+irrs_comparison_csv = irrs_csv %>%
+  left_join(irrs_database, by = c('pm_fund_id', 'lagged_period'))  %>%
+  mutate(diff = irr.x - irr.y) %>%
   arrange(-diff)
 
-diffs %>% left_join(db_irrs_unnested %>% select(fund_id, time_period, end_date, start_date), by = c('fund_id', 'time_period')) %>%
-  write_csv('irr_diffs.csv')
-```
-
-```{r}
-diff
+write_csv(irrs_comparison_db, 'irr_db_on_left.csv')
+write_csv(irrs_comparison_csv, 'irr_csv_on_left.csv')
 ```
 
 
 ```{r}
-df %>% dplyr::filter(fund_id == 'K3') 
+summary(irrs_comparison_db$diff)
 ```
 
+
 ```{r}
-cf_df %>% dplyr::filter(pm_fund_id == 'Lindn4')
+summary(irrs_comparison_db$diff)
+```
+
+
+```{r}
+irrs_comparison_db %>%
+  ggplot(aes(x = lagged_period, y = diff, col = lagged_period)) + 
+  geom_boxplot() + 
+  geom_point()
+```
+
+
+
+```{r}
+irrs_comparison_csv %>%
+  ggplot(aes(x = lagged_period, y = diff, col = lagged_period)) + 
+  geom_boxplot() + 
+  geom_point()
 ```
