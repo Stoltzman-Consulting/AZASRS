@@ -57,4 +57,5 @@ filled_list_of_dates = function(start_date = '1969-12-31', end_date = get_value_
 }
 
 #' @export
-default_benchmark_lookup = tibble::tibble(pm_fund_portfolio = c("Credit", "PE",   "RE"), benchmark_id = c("ODCE",   "ODCE", "LSTA+250"))
+default_benchmark_lookup = tibble::tibble(pm_fund_portfolio = c("Credit", "PE",   "RE"),
+                                          benchmark_id = c("ODCE",   "R2K-ACWI", "LSTA+250"))
