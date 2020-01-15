@@ -24,7 +24,7 @@ build_lagged_pm_metrics = function(...,
     dplyr::pull()
 
   bench_tbl = build_benchmark_fv_index_factor(...,
-                                              con = con, # con defined in parent function
+                                              con = con,
                                               start_date = min_nav_date,
                                               value_date = end_date,
                                               return_tibble = FALSE) %>%
@@ -34,9 +34,14 @@ build_lagged_pm_metrics = function(...,
   bench = benchmark_lookup %>%
     dplyr::left_join(bench_tbl)
 
+  dates_df = build_lagged_date_range_df(con = con, start_date = start_date, end_date = end_date,
+                                        time_delta = time_delta, n_qtrs = n_qtrs) %>%
+    dplyr::mutate(itd = FALSE)
 
-
-  dates_df = build_lagged_date_range_df(con = con, start_date = start_date, end_date = end_date, time_delta = time_delta, n_qtrs = n_qtrs)
+  if(itd){
+    tmp_dates = tibble::tibble(start_date = lubridate::as_date('1900-12-31'), end_date = lubridate::as_date(end_date), itd = TRUE)
+    dates_df = dplyr::bind_rows(dates_df, tmp_dates)
+  }
 
   dat = dates_df %>%
     dplyr::group_by(start_date, end_date) %>%
@@ -44,47 +49,48 @@ build_lagged_pm_metrics = function(...,
                                                                     con = con,
                                                                     start_date = start_date,
                                                                     end_date = end_date,
+                                                                    itd = itd,
                                                                     return_tibble = TRUE)))
 
-  if(itd){
-    dat_itd_prep = build_nav_cash_flow_combined(...,
-                                           con = con,
-                                           start_date = start_date,
-                                           end_date = end_date,
-                                           itd = itd,
-                                           return_tibble = TRUE) %>%
-      dplyr::left_join(bench)
-
-    dat_itd_prep_end = dat_itd_prep %>%
-      dplyr::group_by(...) %>%
-      dplyr::filter(effective_date == min(effective_date, na.rm = TRUE)) %>%
-      dplyr::select(..., last_index_value = index_value)
-
-    dat_itd = dat_itd_prep %>%
-      dplyr::left_join(dat_itd_prep_end) %>%
-      dplyr::mutate(index_factor = last_index_value / index_value) %>%
-      dplyr::group_by(...) %>%
-      dplyr::arrange(effective_date) %>%
-      dplyr::summarize(irr = calc_irr(cash_flow = nav_cf, dates = effective_date),
-                       tvpi = calc_tvpi(distributions, contributions, nav),
-                       dpi = calc_dpi(distributions, contributions),
-                       appreciation = calc_appreciation(contributions+distributions, nav),
-                       dva = calc_dva(contributions+distributions, index_factor),
-                       pme = calc_pme(distributions, contributions, nav, index_factor))
-
-    min_max_dates = get_pm_nav_daily(con = con, return_tibble = FALSE) %>%
-      dplyr::filter(effective_date %in% qtr_dates) %>%
-      dplyr::group_by(...) %>%
-      dplyr::summarize(start_date = min(effective_date, na.rm = TRUE), end_date = max(effective_date, na.rm = TRUE)) %>%
-      dplyr::ungroup() %>%
-      tibble::as_tibble()
-
-    dat_itd_final = dat_itd %>%
-      dplyr::left_join(min_max_dates) %>%
-      dplyr::left_join(benchmark_lookup) %>%
-      dplyr::mutate(itd = TRUE)
-
-  }
+  # if(itd){
+  #   dat_itd_prep = build_nav_cash_flow_combined(...,
+  #                                          con = con,
+  #                                          start_date = start_date,
+  #                                          end_date = end_date,
+  #                                          itd = itd,
+  #                                          return_tibble = TRUE) %>%
+  #     dplyr::left_join(bench)
+  #
+  #   dat_itd_prep_end = dat_itd_prep %>%
+  #     dplyr::group_by(...) %>%
+  #     dplyr::filter(effective_date == min(effective_date, na.rm = TRUE)) %>%
+  #     dplyr::select(..., last_index_value = index_value)
+  #
+  #   dat_itd = dat_itd_prep %>%
+  #     dplyr::left_join(dat_itd_prep_end) %>%
+  #     dplyr::mutate(index_factor = last_index_value / index_value) %>%
+  #     dplyr::group_by(...) %>%
+  #     dplyr::arrange(effective_date) %>%
+  #     dplyr::summarize(irr = calc_irr(cash_flow = nav_cf, dates = effective_date),
+  #                      tvpi = calc_tvpi(distributions, contributions, nav),
+  #                      dpi = calc_dpi(distributions, contributions),
+  #                      appreciation = calc_appreciation(contributions+distributions, nav),
+  #                      dva = calc_dva(contributions+distributions, index_factor),
+  #                      pme = calc_pme(distributions, contributions, nav, index_factor))
+  #
+  #   min_max_dates = get_pm_nav_daily(con = con, return_tibble = FALSE) %>%
+  #     dplyr::filter(effective_date %in% qtr_dates) %>%
+  #     dplyr::group_by(...) %>%
+  #     dplyr::summarize(start_date = min(effective_date, na.rm = TRUE), end_date = max(effective_date, na.rm = TRUE)) %>%
+  #     dplyr::ungroup() %>%
+  #     tibble::as_tibble()
+  #
+  #   dat_itd_final = dat_itd %>%
+  #     dplyr::left_join(min_max_dates) %>%
+  #     dplyr::left_join(benchmark_lookup) %>%
+  #     dplyr::mutate(itd = TRUE)
+  #
+  # }
 
 
 
@@ -133,11 +139,14 @@ build_lagged_pm_metrics = function(...,
                                       .f = tmp_irr_calc)) %>%
       dplyr::select(-nav_cash_flow) %>%
       tidyr::unnest(cols = c(irr)) %>%
-      dplyr::mutate(itd = FALSE)
+      dplyr::mutate(lagged_period = round(as.integer(end_date - start_date)/365, 2),
+                    lagged_period = as.character(dplyr::if_else(lagged_period >= 1, round(lagged_period), lagged_period)),
+                    lagged_period = dplyr::if_else(lagged_period == '0.25', 'Quarter', paste(lagged_period, 'Year')),
+                    lagged_period = dplyr::if_else(itd == TRUE, 'ITD', lagged_period))
 
-    if(itd){
-      dat = dplyr::bind_rows(dat, dat_itd_final)
-    }
+    # if(itd){
+    #   dat = dplyr::bind_rows(dat, dat_itd_final)
+    # }
 
   return(dat)
 }
