@@ -156,7 +156,8 @@ build_lagged_pm_metrics = function(...,
                                                    dplyr::if_else(lagged_period == '0.50',
                                                                   '6 Months',
                                                                   paste(lagged_period, 'Year'))),
-                    lagged_period = dplyr::if_else(itd == TRUE, 'ITD', lagged_period))
+                    lagged_period = dplyr::if_else(itd == TRUE, 'ITD', lagged_period)) %>%
+      dplyr::ungroup()
 
     # if(itd){
     #   dat = dplyr::bind_rows(dat, dat_itd_final)
