@@ -15,12 +15,33 @@ options(scipen = 999)
 
 
 ```{r message = FALSE}
-#end_date = get_value_date()
 end_date = '2019-06-30'
-start_date = AZASRS::calc_previous_year_qtr(end_date = end_date, years = 10)
-db_irrs = build_lagged_pm_metrics(pm_fund_portfolio, pm_fund_category, pm_fund_id, 
+years_to_lag = c(0.25, 1, 3, 5)
+
+all_db_irrs = tibble()
+for(years_back in years_to_lag){
+  print(paste('Number of years looking back:', as.character(years_back)))
+
+  if(years_back >= 1){
+    start_date = AZASRS::calc_previous_year_qtr(end_date = end_date, years = years_back)
+  } else {
+    start_date = AZASRS::calc_previous_year_qtr(end_date = end_date, qtrs = 4*years_back)
+  }
+
+  db_irrs = build_lagged_pm_metrics(pm_fund_portfolio, pm_fund_category, pm_fund_id,
+                                    start_date = start_date, end_date = end_date, itd=FALSE,
+                                    n_qtrs = years_back*4)
+  all_db_irrs = bind_rows(all_db_irrs, db_irrs)
+}
+
+# Add ITD
+db_irrs_itd = build_lagged_pm_metrics(pm_fund_portfolio, pm_fund_category, pm_fund_id,
                                   start_date = start_date, end_date = end_date, itd=TRUE,
-                                  n_qtrs = 10*4)
+                                  n_qtrs = 4) %>%
+  filter(itd == TRUE)
+
+all_db_irrs = bind_rows(all_db_irrs, db_irrs_itd)
+
 ```
 
 
