@@ -15,6 +15,8 @@ options(scipen = 999)
 
 
 ```{r message = FALSE}
+pmfi = get_pm_fund_info() # for aggregation purposes at the end
+
 end_date = '2019-09-30'
 years_to_lag = c(0.25, 0.50, 1, 3, 5, 7)
 
@@ -95,12 +97,14 @@ irrs_csv = csv_irrs %>%
 irrs_comparison_db = irrs_database %>%
   left_join(irrs_csv, by = c('pm_fund_id', 'lagged_period')) %>%
   mutate(diff = irr.x - irr.y) %>%
-  arrange(-diff)
+  arrange(-diff) %>%
+  left_join(pmfi, by = 'pm_fund_id')
   
 irrs_comparison_csv = irrs_csv %>%
   left_join(irrs_database, by = c('pm_fund_id', 'lagged_period'))  %>%
   mutate(diff = irr.x - irr.y) %>%
-  arrange(-diff)
+  arrange(-diff) %>%
+  left_join(pmfi, by = 'pm_fund_id')
 
 write_csv(irrs_comparison_db, 'irr_db_on_left.csv')
 write_csv(irrs_comparison_csv, 'irr_csv_on_left.csv')
