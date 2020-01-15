@@ -16,7 +16,7 @@ options(scipen = 999)
 
 ```{r message = FALSE}
 end_date = '2019-06-30'
-years_to_lag = c(0.25, 1, 3, 5)
+years_to_lag = c(0.25, 0.5, 1, 3, 5)
 
 all_db_irrs = tibble()
 for(years_back in years_to_lag){
@@ -42,6 +42,11 @@ db_irrs_itd = build_lagged_pm_metrics(pm_fund_portfolio, pm_fund_category, pm_fu
 
 all_db_irrs = bind_rows(all_db_irrs, db_irrs_itd)
 
+all_db_irrs %>% head()
+```
+
+```{r}
+all_db_irrs %>% 
 ```
 
 
@@ -55,7 +60,7 @@ csv_irrs_raw = tibble()
 for(file in all_files$name){
   tmp = read_csv(paste0(data_directory, file)) 
   tmp = tmp %>%
-    select(`Client Grouping 1`, `3 Month IRR`, `6 Month IRR`,
+    select(`Client Grouping 1`, Quarter = `3 Month IRR`, `6 Month IRR`,
                    `1 Year IRR`, `3 Year IRR`, `5 Year IRR`, `7 Year IRR`, `10 Year IRR`, `ITD IRR`) %>%
     drop_na(`Client Grouping 1`) %>%
     mutate_all(as.character)
@@ -74,12 +79,14 @@ csv_irrs = csv_irrs_raw %>%
   mutate_all(remove_parenthesis) %>% 
   bind_cols(csv_irrs_ids) %>%
   select(`Client Grouping 1`, everything())
+
+csv_irrs %>% head()
 ```
 
 
 ```{r}
 df1 = db_irrs %>% mutate(source = 'database')
-df2 = csv_irrs %>% mutate(source = 'csv') %>% rename(fund_id = `Client Grouping 1`) %>% filter()
+df2 = csv_irrs %>% mutate(source = 'csv') %>% rename(pm_fund_id = `Client Grouping 1`)
 df = bind_rows(df1, df2)
 
 diffs = df %>%
