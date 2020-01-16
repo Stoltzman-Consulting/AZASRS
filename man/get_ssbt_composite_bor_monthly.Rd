@@ -4,8 +4,10 @@
 \alias{get_ssbt_composite_bor_monthly}
 \title{Get SSBT composite book of record monthly}
 \usage{
-get_ssbt_composite_bor_monthly(..., con = AZASRS_DATABASE_CONNECTION(),
-  return_tibble = TRUE)
+get_ssbt_composite_bor_monthly(
+  con = AZASRS_DATABASE_CONNECTION(),
+  return_tibble = TRUE
+)
 }
 \arguments{
 \item{...}{filtering expressions. i.e. effective_date >= '2018-01-01'}

@@ -1,16 +1,17 @@
 # Global variables - to be used for extremely basic functions interacting with low level connections to the database
 
-#' Database location - should reflect production database "shared" location
-#'
-#' @examples
-#' "P:/IMD/2018 Database Project/Database/asrs_database.db"
-#' @export
-AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\Database\\asrs_database.db"
-#AZASRS_DATABASE_LOCATION = "C:\\Users\\scotts\\Desktop\\2018 Database Project\\Database\\asrs_database.db" ##For local development only
+#' Opening Remarks
+#' @description Prints statements as the package loads, not really a function
+AZASRS__welcome__message__ = print("Loading AZASRS package, please ensure this is up-to-date by using devtools::install_github('AZASRS/AZASRS') and that your .Renviron is up-to-date and in the right location.")
 
 
-#' Opens database connection
-#' @description Uses AZASRS_DATABASE_LOCATION and should only be used with tbl_ functions. Allows for chaining of tbl_ functions to optimize SQL queries. Must close connection after usage.
+#' AZASRS TEST DIRECTORY
+#' @description Data for testing purposes
+AZASRS_TEST_DATA_DIRECTORY = './tests/testthat/data/'
+
+
+#' Opens a database connection
+#' @description Uses AZASRS_DATABASE_LOCATION and should only be used with tbl_ functions. Allows for chaining of tbl_ functions to optimize SQL queries. Must close connection after usage. You must have .Renviron on your computer in the directory found by executing normalizePath('~/') in your console. Environment variables in there will allow you to connect to the database.
 #' @examples
 #' con = AZASRS_DATABASE_CONNECTION()
 #' data = tbl_pm_fund_nav_daily(con) %>%
@@ -18,19 +19,130 @@ AZASRS_DATABASE_LOCATION = "P:\\IMD\\2018 Database Project\\Database\\asrs_datab
 #'        as_tibble()
 #' AZASRS_DATABASE_DISCONNECT(con)
 #' @export
-AZASRS_DATABASE_CONNECTION = function(){ return(dplyr::src_sqlite(AZASRS_DATABASE_LOCATION)) }
+AZASRS_DATABASE_CONNECTION = function(){
+    #detect OS & set driver
+    os <- Sys.info()[1]
+    if(os == "Darwin"){driverName <- "ODBC Driver 17 for SQL Server"}
+    else if(os == "Windows"){driverName <- "SQL Server"}
+    else{driverName <- "SQLServer"}
+    tryCatch({
+      connection = DBI::dbConnect(odbc::odbc(),
+                                 Driver   = driverName,
+                                 Server   = Sys.getenv('SERVER'),
+                                 Database = Sys.getenv('DATABASE'),
+                                 UID      = Sys.getenv('UID'),
+                                 PWD      = Sys.getenv('PWD'),
+                                 Port     = Sys.getenv('PORT'))},
+      error = function(e){
+        print('Database will start up momentarily (sleeps when there is inactivity over 24 hours).
+              Following error was thrown:')
+        print(e)
+        UPDATE_DATABASE('constants.csv')
+        DBI::dbConnect(odbc::odbc(),
+                       Driver   = driverName,
+                       Server   = Sys.getenv('SERVER'),
+                       Database = Sys.getenv('DATABASE'),
+                       UID      = Sys.getenv('UID'),
+                       PWD      = Sys.getenv('PWD'),
+                       Port     = Sys.getenv('PORT'))
+      }
+      )
+    return(connection)}
 
 
-#' Location of test data
-#' @description .rds files saved and read from this location for tests
+#' Updates database with AZURE files
+#' @description To be used with individual files. Note: the first connection takes a long time to spin up the server, then should work quickly if more files are necessary.
+#' @examples
+#' UPDATE_DATABASE('pm_fund_info.csv')
 #' @export
-AZASRS_TEST_DATA_DIRECTORY = "P:/IMD/2018 Database Project/Application Data/etl_check_data/"
+UPDATE_DATABASE = function(filename, local = FALSE){
+  request_url = paste0('https://populate-database.azurewebsites.net/api/HttpTrigger?code=', Sys.getenv('ASRS_FUNCTIONS_CODE'),
+                       '&username=', Sys.getenv('UID'),
+                       '&password=', Sys.getenv('PWD'),
+                       '&account_name=asrs',
+                       '&account_key=', Sys.getenv('ASRS_FUNCTIONS_KEY'),
+                       '&filename=', filename)
+
+  if(local){request_url = paste0('http://localhost:7071/api/HttpTrigger?code=', Sys.getenv('ASRS_FUNCTIONS_CODE'),
+                                 '&username=', Sys.getenv('ASRS_USER'),
+                                 '&password=', Sys.getenv('ASRS_PASSWORD'),
+                                 '&account_name=asrs',
+                                 '&account_key=', Sys.getenv('ASRS_FUNCTIONS_KEY'),
+                                 '&filename=', filename,
+                                 '&local=True')}
+
+  print('Attempting to GET URL: ')
+  print(request_url)
+  r = httr::GET(request_url)
+  if(r$status_code != 200) {
+    print(paste('ERROR Status Returned: ', r$status_code, '\n FROM GET REQUEST on: ', r$url))
+  } else {
+    print(paste('SUCCESS Status Returned', r$status_code, '\n FROM GET REQUEST on: ', r$url))
+  }
+  return(r)
+}
 
 
-#' List all tables and views in database
-#' @description Aids in displaying table names, simply add tbl_ in front of the name to access the function that accesses the table
+#' Initially populates ALL tables via .csv files
+#' @description To be used in the event the database needs a total refresh. Note: the benchmark data will fail to upload the first time simply due to its size, upon running again it will work.
+#' @examples
+#' UPDATE_DATABASE('pm_fund_info.csv')
 #' @export
-SHOW_ALL_TABLES = print(dplyr::src_tbls(AZASRS_DATABASE_CONNECTION()))
+INITIAL_DATABASE_POPULATION = function(local = FALSE){
+  files = c('constants.csv',
+            'pm_fund_info.csv',
+            'pm_fund_cash_flow_daily.csv',
+            'pm_fund_nav_daily.csv',
+            'benchmark_info.csv',
+            'benchmark_symbol_lookup.csv',
+            'benchmark_index.csv',
+            'account_info.csv',
+            'account_info_benchmark_info.csv',
+            'pm_fund_info_benchmark_info.csv',
+            'ssbt_composite_info.csv',
+            'ssbt_composite_info_account_info.csv',
+            'composite_book_of_record_daily.csv',
+            'composite_book_of_record_monthly.csv',
+            'account_book_of_record_daily.csv',
+            'account_book_of_record_monthly.csv',
+            'create_views')
+
+  n_succeed = c()
+  n_fail = c()
+
+  for(f in files){
+    if(local){
+      r = UPDATE_DATABASE(f, local=TRUE)
+      } else{
+        r = UPDATE_DATABASE(f)
+         }
+
+    if(r$status_code == 200){
+      n_succeed = c(n_succeed, f)
+    } else{
+      n_fail = c(n_fail, f)
+    }
+    print("=======================================")
+    print("Successes: ")
+    if(length(n_succeed) > 0){
+      print(paste0(n_succeed))
+    } else{
+      print("No successes have occurred.")
+    }
+    print("=======================================")
+    print("Failures: ")
+    if(length(n_fail) > 0){
+      print(paste0(n_fail))
+    } else{
+        print("No failures have occurred.")
+      }
+    print("=======================================")
+
+  }
+  return(list(success = n_succeed,
+              fail = n_fail))
+}
+
 
 
 #' Disconnect from database
@@ -42,7 +154,7 @@ SHOW_ALL_TABLES = print(dplyr::src_tbls(AZASRS_DATABASE_CONNECTION()))
 #'        as_tibble()
 #' AZASRS_DATABASE_DISCONNECT(con)
 #' @export
-AZASRS_DATABASE_DISCONNECT = function(con){ DBI::dbDisconnect(con$con) }
+AZASRS_DATABASE_DISCONNECT = function(con){ DBI::dbDisconnect(conn = con) }
 
 
 #' Get value date
@@ -110,7 +222,7 @@ tbl_benchmark_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con
 tbl_benchmark_monthly_return = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "benchmark_monthly_return")}
 
 #' @export
-tbl_benchmark_type_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "benchmark_type_info")}
+tbl_benchmark_type = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "benchmark_type")}
 
 #' @export
 tbl_constants = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "constants")}
@@ -120,6 +232,9 @@ tbl_pm_fund_cash_flow_daily = function(con = AZASRS_DATABASE_CONNECTION()){dplyr
 
 #' @export
 tbl_pm_fund_category = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "pm_fund_category")}
+
+#' @export
+tbl_pm_fund_category_description = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "pm_fund_category_description")}
 
 #' @export
 tbl_pm_fund_city = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "pm_fund_city")}
@@ -157,16 +272,11 @@ tbl_ssbt_composite_info_account_info = function(con = AZASRS_DATABASE_CONNECTION
 #' @export
 tbl_ssbt_composite_info_benchmark_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "ssbt_composite_info_benchmark_info")}
 
+# Views go below (we will still refer to these as tbl_view_ to stay consistent with naming)
 
-#### Joins to become views:
-# library(tidyverse)
-# con = AZASRS_DATABASE_CONNECTION()
-# tbl_pm_fund_info(con) %>%
-#   left_join(tbl_pm_fund_category(con) , by = 'pm_fund_category_id') %>%
-#   left_join(tbl_pm_fund_city(con) , by = 'pm_fund_city_id') %>%
-#   left_join(tbl_pm_fund_portfolio(con) , by = 'pm_fund_portfolio_id') %>%
-#   left_join(tbl_pm_fund_sector(con) , by = 'pm_fund_sector_id') %>%
-#   left_join(tbl_pm_fund_sponsor(con) , by = 'pm_fund_sponsor_id') %>%
-#   select(-pm_fund_category_id, pm_fund_city_id, pm_fund_portfolio_id, pm_fund_sector_id, pm_fund_sponsor_id) %>%
-#   show_query()
-#
+#' @export
+tbl_view_all_pm_fund_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "all_pm_fund_info")}
+
+#' @export
+tbl_view_all_account_info = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "all_account_info")}
+

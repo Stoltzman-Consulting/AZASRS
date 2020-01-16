@@ -15,12 +15,13 @@
 #' # ... with 4 more variables: account_portfolio <chr>, account_sponsor <chr>, account_sub_portfolio <chr>,
 #' #   account_sponsor_id <int>
 #' @export
-get_account_info = function(..., con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
-  args = rlang::enexprs(...)
-  dat = dplyr::tbl(con, "all_account_info")
-  if(length(args) > 0){
-    dat = dat %>%
-      dplyr::filter(!!! args)
-  }
-  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
-  return(dat)}
+get_account_info = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
+
+  dat = tbl_view_all_account_info(con = con)
+
+  if(return_tibble){
+    return(dat %>% tibble::as_tibble())
+  } else{
+      return(dat)
+    }
+}

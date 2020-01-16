@@ -9,11 +9,14 @@
 #' get_total_fund_value(at_date = '2018-06-30')
 #' # 39656200393
 #' @export
-get_total_fund_value = function(at_date = get_value_date(), con = AZASRS_DATABASE_CONNECTION()){
+get_total_fund_value = function(value_date = get_value_date(), con = AZASRS_DATABASE_CONNECTION()){
+
   dat = tbl_ssbt_composite_book_of_record_daily(con) %>%
-    dplyr::filter(effective_date == paste(as.character(at_date), '00:00:00')) %>%
+    dplyr::filter(effective_date == value_date) %>%
     dplyr::left_join(tbl_ssbt_composite_info(con), by = 'ssbt_composite_info_id') %>%
     dplyr::filter(ssbt_composite_id == 'ASRSA001') %>%
     dplyr::select(ending_market_value) %>%
     dplyr::pull()
-  return(dat)}
+
+  return(dat)
+}

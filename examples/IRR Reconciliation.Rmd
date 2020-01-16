@@ -1,0 +1,151 @@
+---
+title: "IRR Reconciliation"
+date: "11/13/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE, message=FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library('AZASRS')
+library('purrr')
+library('tidyverse')
+library('lubridate')
+options(scipen = 999)
+```
+
+
+```{r message = FALSE}
+pmfi = get_pm_fund_info() # for aggregation purposes at the end
+
+end_date = '2019-09-30'
+years_to_lag = c(0.25, 0.50, 1, 3, 5, 7)
+
+all_db_irrs = tibble()
+for(years_back in years_to_lag){
+  print(paste('Number of years looking back:', as.character(years_back)))
+
+  if(years_back >= 1){
+    start_date = AZASRS::calc_previous_year_qtr(end_date = end_date, years = years_back)
+  } else {
+    start_date = AZASRS::calc_previous_year_qtr(end_date = end_date, qtrs = 4*years_back)
+  }
+
+  db_irrs = build_lagged_pm_metrics(pm_fund_portfolio, pm_fund_category, pm_fund_id,
+                                    start_date = start_date, end_date = end_date, itd=FALSE,
+                                    n_qtrs = years_back*4)
+  all_db_irrs = bind_rows(all_db_irrs, db_irrs)
+}
+
+# Add ITD
+db_irrs_itd = build_lagged_pm_metrics(pm_fund_portfolio, pm_fund_category, pm_fund_id,
+                                  start_date = start_date, end_date = end_date, itd=TRUE,
+                                  n_qtrs = 4) %>%
+  filter(itd == TRUE)
+
+all_db_irrs = bind_rows(all_db_irrs, db_irrs_itd)
+
+all_db_irrs %>% head()
+```
+
+
+```{r}
+data_directory = './reconciliation_data/'
+cont = AzureStor::blob_container(Sys.getenv('ASRS_BLOB_PM_RECONCILIATION'), key = Sys.getenv('ASRS_BLOB_KEY'))
+all_files = AzureStor::list_blobs(cont) %>% filter(!str_detect(name, '/'))
+AzureStor::multidownload_blob(cont, '*.csv', data_directory, overwrite = TRUE)
+
+csv_irrs_raw = tibble()
+for(file in all_files$name){
+  tmp = read_csv(paste0(data_directory, file)) 
+  tmp = tmp %>%
+    select(`Client Grouping 1`, `3 Months` = `3 Month IRR`, `6 Months` = `6 Month IRR`,
+           `1 Year` = `1 Year IRR`, `3 Year` = `3 Year IRR`, `5 Year` = `5 Year IRR`, 
+           `7 Year` = `7 Year IRR`, `10 Year` = `10 Year IRR`, `ITD` = `ITD IRR`) %>%
+    drop_na(`Client Grouping 1`) %>%
+    mutate_all(as.character)
+  csv_irrs_raw = bind_rows(csv_irrs_raw, tmp)
+}
+
+remove_parenthesis = function(x){
+  y = gsub('\\)', '', x)
+  z = gsub('\\(', '-', y)
+  as.numeric(z)
+}
+# remove parentheses
+csv_irrs_ids = csv_irrs_raw %>% select(`Client Grouping 1`)
+csv_irrs = csv_irrs_raw %>% 
+  select(-`Client Grouping 1`) %>% 
+  mutate_all(remove_parenthesis) %>% 
+  bind_cols(csv_irrs_ids) %>%
+  select(`Client Grouping 1`, everything())
+
+csv_irrs %>% head()
+```
+
+
+```{r}
+irrs_database = all_db_irrs %>% 
+  select(pm_fund_id, irr, lagged_period) %>% 
+  mutate(irr = if_else(is.na(irr), 0, irr))
+
+irrs_csv = csv_irrs %>% 
+  rename(pm_fund_id = `Client Grouping 1`) %>%
+  pivot_longer(-pm_fund_id, names_to = "lagged_period", values_to = 'irr') %>%
+  mutate(irr = irr/100)
+
+
+irrs_comparison_db = irrs_database %>%
+  left_join(irrs_csv, by = c('pm_fund_id', 'lagged_period')) %>%
+  mutate(diff = irr.x - irr.y) %>%
+  arrange(-diff) %>%
+  left_join(pmfi, by = 'pm_fund_id')
+  
+irrs_comparison_csv = irrs_csv %>%
+  left_join(irrs_database, by = c('pm_fund_id', 'lagged_period'))  %>%
+  mutate(diff = irr.x - irr.y) %>%
+  arrange(-diff) %>%
+  left_join(pmfi, by = 'pm_fund_id')
+
+write_csv(irrs_comparison_db, 'irr_db_on_left.csv')
+write_csv(irrs_comparison_csv, 'irr_csv_on_left.csv')
+```
+
+
+```{r}
+summary(irrs_comparison_db$diff)
+```
+
+
+```{r}
+summary(irrs_comparison_db$diff)
+```
+
+
+```{r}
+irrs_comparison_db %>%
+  ggplot(aes(x = diff, col = lagged_period, fill = lagged_period)) + 
+  geom_histogram(alpha = 0.5, bins = 50) + 
+  facet_wrap(~lagged_period, scales = 'free_y') + 
+  theme(legend.position = 'none')
+```
+
+
+
+```{r}
+irrs_comparison_csv %>%
+  ggplot(aes(x = diff, col = lagged_period, fill = lagged_period)) + 
+  geom_histogram(alpha = 0.5, bins = 50) + 
+  facet_wrap(~lagged_period, scales = 'free_y') + 
+  theme(legend.position = 'none')
+```
+
+
+```{r}
+irrs_comparison_csv %>%
+  filter(abs(diff) > 0.0001) %>%
+  group_by(pm_fund_id) %>%
+  summarize(n = n(), mean_diff = mean(diff, na.rm = TRUE)) %>%
+  arrange(-n)
+
+```
+

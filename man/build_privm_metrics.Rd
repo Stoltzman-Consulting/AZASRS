@@ -2,13 +2,19 @@
 % Please edit documentation in R/build_privm_metrics.R
 \name{build_privm_metrics}
 \alias{build_privm_metrics}
-\title{Build a tibble of major private market metrics including: IRR, DPI, TVPI, PME}
+\title{Build a tibble of major private market metrics including: IRR, DPI, TVPI, PME -- Assumes benchmark type is PVT}
 \usage{
-build_privm_metrics(..., nav_daily = get_pm_nav_daily(),
-  cf_daily = get_pm_cash_flow_daily(),
-  benchmark_daily = get_benchmark_daily_index(), date_start = "1900-01-01",
-  date_cutoff = as.character(lubridate::today()),
-  valdate = get_value_date())
+build_privm_metrics(
+  ...,
+  con = AZASRS_DATABASE_CONNECTION(),
+  nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE),
+  cf_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),
+  benchmark_daily = build_benchmark_fv_index_factor(con = con, return_tibble = FALSE),
+  pmfi = get_pm_fund_info(con = con, return_tibble = FALSE),
+  start_date = "1900-01-01",
+  value_date = get_value_date(con = con),
+  pcap_date = as.character(lubridate::today())
+)
 }
 \arguments{
 \item{...}{grouping variables (pm_fund_id, pm_fund_portfolio, etc.)}
@@ -17,17 +23,17 @@ build_privm_metrics(..., nav_daily = get_pm_nav_daily(),
 
 \item{cf_daily}{is data from get_pm_cash_flow_daily() and can be previously loaded and filtered}
 
-\item{date_start}{is the earliest date to be used for calculations, use for custom time ranges}
+\item{start_date}{is the earliest date to be used for calculations, use for custom time ranges}
 
-\item{date_cutoff}{is the last date to be used for PCAP, use for custom time ranges}
+\item{value_date}{is the last quarter end, use for custom time ranges}
 
-\item{valdate}{is the last quarter end, use for custom time ranges}
+\item{pcap_date}{is the last date to be used for PCAP, use for custom time ranges}
 }
 \value{
 Returns a tibble with grouping variables and all of their respective metrics
 }
 \description{
-Build a tibble of major private market metrics including: IRR, DPI, TVPI, PME
+Build a tibble of major private market metrics including: IRR, DPI, TVPI, PME -- Assumes benchmark type is PVT
 }
 \examples{
 build_privm_metrics(pm_fund_portfolio, pm_fund_id)

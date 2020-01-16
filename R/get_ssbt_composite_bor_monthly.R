@@ -13,13 +13,15 @@
 #' # ... with 13 more rows, and 4 more variables: ssbt_composite_id <chr>, ssbt_composite_description <chr>,
 #' #   ssbt_composite_short_description <chr>, benchmark_info_id <int>
 #' @export
-get_ssbt_composite_bor_monthly = function(..., con = AZASRS_DATABASE_CONNECTION(), return_tibble = TRUE){
-  args = rlang::enexprs(...)
+get_ssbt_composite_bor_monthly = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble = TRUE){
+
   dat = tbl_ssbt_composite_book_of_record_monthly(con) %>%
     dplyr::left_join(tbl_ssbt_composite_info(con), by = 'ssbt_composite_info_id')
-  if(length(args) > 0){
-    dat = dat %>%
-      dplyr::filter(!!! args)
+
+  if(return_tibble){
+    return(dat %>% tibble::as_tibble())
+  } else{
+    return(dat)
   }
-  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
-  return(dat)}
+
+}

@@ -4,8 +4,7 @@
 \alias{get_account_info}
 \title{Get all account_info}
 \usage{
-get_account_info(..., con = AZASRS_DATABASE_CONNECTION(),
-  return_tibble = TRUE)
+get_account_info(con = AZASRS_DATABASE_CONNECTION(), return_tibble = TRUE)
 }
 \arguments{
 \item{...}{filtering expressions. i.e. account_asset_class == 'Cash'}

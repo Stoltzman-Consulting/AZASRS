@@ -1,3 +1,5 @@
+AZASRS_TEST_DATA_DIRECTORY = './tests/testthat/data/'
+
 #' @export
 saveRDS_test = function(data){
   # Insert check to see if
@@ -12,7 +14,7 @@ saveRDS_test = function(data){
 readRDS_test = function(data){
   # Insert check to see if
   # print location and success/failure
-  test_file_name = paste0(AZASRS_TEST_DATA_DIRECTORY, deparse(substitute(data)), '.rds')
+  test_file_name = paste0('./data/', deparse(substitute(data)), '.rds')
   print("Checking file:")
   print(test_file_name)
   readRDS(test_file_name)

@@ -7,9 +7,9 @@
 calc_dpi(distributions, contributions)
 }
 \arguments{
-\item{distributions}{are negative cash flow}
+\item{distributions}{are positive cash flow}
 
-\item{contributions}{are positive cash flow}
+\item{contributions}{are negative cash flow}
 }
 \description{
 Calculates DPI that is NOT based off of asrsMethods library. asrsMethods needs to be updated because it does not reflect TVPI as Kerry calculates.

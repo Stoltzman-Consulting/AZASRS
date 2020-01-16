@@ -17,26 +17,16 @@
 #' #   pm_fund_category <chr>, pm_fund_category_description <chr>, pm_fund_city <chr>, pm_fund_portfolio <chr>,
 #' #   pm_fund_sector <chr>, pm_fund_sponsor <chr>, contributions <dbl>, distributions <dbl>
 #' @export
-get_pm_cash_flow_daily = function(..., con = AZASRS_DATABASE_CONNECTION()){
+get_pm_cash_flow_daily = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble = TRUE){
 
-  args = rlang::enexprs(...)
-
-  dat = tbl_pm_fund_cash_flow_daily(con)
-
-  pmfi = get_pm_fund_info(con = con, return_tibble=FALSE)
-
-  dat = dat %>%
-    dplyr::left_join(pmfi, by = c('pm_fund_info_id' = 'pm_fund_info_id')) %>%
+  dat = tbl_pm_fund_cash_flow_daily(con = con) %>%
     dplyr::mutate(contributions = ifelse(cash_flow < 0, cash_flow, 0),
-                  distributions = ifelse(cash_flow > 0, cash_flow, 0))
-  if(length(args) > 0){
-    dat = dat %>%
-      dplyr::filter(!!! args)
-  }
+                  distributions = ifelse(cash_flow > 0, cash_flow, 0)) %>%
+    dplyr::left_join(tbl_view_all_pm_fund_info(con = con), by = 'pm_fund_info_id')
 
-  dat = dat %>% tibble::as_tibble() %>%
-    dplyr::mutate(effective_date = as.Date(effective_date, format = '%Y-%m-%d')) %>%
-    dplyr::filter(effective_date > '1900-01-01')
-
-  return(dat)
+  if(return_tibble){
+    return(dat %>% tibble::as_tibble())
+  } else{
+    return(dat)
+    }
 }

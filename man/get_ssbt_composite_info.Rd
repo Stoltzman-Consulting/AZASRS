@@ -4,7 +4,10 @@
 \alias{get_ssbt_composite_info}
 \title{Query ssbt_composite_info table from database}
 \usage{
-get_ssbt_composite_info(...)
+get_ssbt_composite_info(
+  con = AZASRS_DATABASE_CONNECTION(),
+  return_tibble = TRUE
+)
 }
 \arguments{
 \item{...}{are for filtering the tables, can take values: category, portfolio, asset_class, sub_portfolio}

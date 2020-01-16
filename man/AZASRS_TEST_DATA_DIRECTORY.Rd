@@ -3,12 +3,12 @@
 \docType{data}
 \name{AZASRS_TEST_DATA_DIRECTORY}
 \alias{AZASRS_TEST_DATA_DIRECTORY}
-\title{Location of test data}
+\title{AZASRS TEST DIRECTORY}
 \format{An object of class \code{character} of length 1.}
 \usage{
 AZASRS_TEST_DATA_DIRECTORY
 }
 \description{
-.rds files saved and read from this location for tests
+Data for testing purposes
 }
 \keyword{datasets}

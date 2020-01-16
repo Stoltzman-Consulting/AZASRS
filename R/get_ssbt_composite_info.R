@@ -6,18 +6,14 @@
 #' @examples
 #' get_ssbt_composite_info(asset_class == 'Equities', category == 'Large')
 #' @export
-get_ssbt_composite_info = function(...){
+get_ssbt_composite_info = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble = TRUE){
 
-  args = rlang::enexprs(...)
+  dat = tbl_ssbt_composite_info(con)
 
-  dat = tbl_ssbt_composite_info()
-
-  if(length(args) > 0){
-    dat = dat %>%
-      dplyr::filter(!!! args)
+  if(return_tibble){
+    return(dat %>% tibble::as_tibble())
+  } else{
+    return(dat)
   }
 
-  dat = dat %>% tibble::as_tibble()
-
-  return(dat)
 }

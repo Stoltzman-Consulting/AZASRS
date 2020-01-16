@@ -17,12 +17,14 @@
 #' #   pm_fund_category_description <chr>, pm_fund_city <chr>, pm_fund_portfolio <chr>, pm_fund_sector <chr>,
 #' #   pm_fund_sponsor <chr>
 #' @export
-get_pm_fund_info = function(..., con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
-  args = rlang::enexprs(...)
-  dat = dplyr::tbl(con, "all_pm_fund_info")
-  if(length(args) > 0){
-    dat = dat %>%
-      dplyr::filter(!!! args)
+get_pm_fund_info = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble=TRUE){
+
+  dat = tbl_view_all_pm_fund_info(con = con)
+
+  if(return_tibble){
+      return(dat %>% tibble::as_tibble())
+    } else{
+      return(dat)
+    }
+
   }
-  if(return_tibble == TRUE){ dat = dat %>% tibble::as_tibble() }
-  return(dat)}
