@@ -51,7 +51,8 @@ filled_list_of_dates = function(start_date = '1969-12-31', end_date = get_value_
   date_seq = seq(start_date, end_date, by = time_delta)
   final_dates = tibble::tibble(date = date_seq) %>%
     dplyr::mutate(date = lubridate::round_date(date, unit = 'quarters') - lubridate::days(1)) %>% #round dates to fix
-    dplyr::arrange(date)
+    dplyr::arrange(date) %>%
+    dplyr::rename(effective_date = date)
 
   return(final_dates)
 }

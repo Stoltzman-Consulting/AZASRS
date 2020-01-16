@@ -25,6 +25,6 @@ test_that("Next quarter is one after valdate", {
 })
 
 test_that("PM Fund Info has not changed", {
-  tbl_pm_fund_info = tbl_pm_fund_info() %>% tibble::as_tibble()
-  expect_equal(tbl_pm_fund_info, readRDS_test(tbl_pm_fund_info))
+  tbl_pm_fund_info = tbl_pm_fund_info() %>% tibble::as_tibble() %>% head(3)
+  expect_equal(tbl_pm_fund_info, readRDS_test(tbl_pm_fund_info) %>% head(3))
 })
