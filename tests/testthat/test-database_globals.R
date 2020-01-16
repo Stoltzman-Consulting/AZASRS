@@ -2,7 +2,6 @@
 
 test_that("Database connection", {
   con = AZASRS_DATABASE_CONNECTION()
-  print('here')
   expect_equal(con@info$dbms.name, "Microsoft SQL Server")
   AZASRS_DATABASE_DISCONNECT(con)
 })
