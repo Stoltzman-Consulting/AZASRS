@@ -4,13 +4,21 @@
 \alias{get_pm_fund_info}
 \title{Get all pm_fund_info}
 \usage{
-get_pm_fund_info(con = AZASRS_DATABASE_CONNECTION(), return_tibble = TRUE)
+get_pm_fund_info(
+  con = AZASRS_DATABASE_CONNECTION(),
+  add_benchmark = FALSE,
+  return_tibble = TRUE
+)
 }
 \arguments{
+\item{return_tibble}{when TRUE it returns a tibble rather than a SQL call}
+
 \item{...}{filtering expressions. i.e. pm_fund_portfolio == 'Credit'}
+
+\item{bench_addon}{appends multiple benchmarks as their own columns. i.e. PVT_Benchmark, SAA_Benchmark, etc.}
 }
 \value{
-Returns a tibble with all pm_fund_info metadata.
+Returns a tibble or SQL result with all pm_fund_info metadata.
 }
 \description{
 A view to get all private market fund info, can be filtered. By default, SQL --> SELECT * FROM all_pm_fund_info;
