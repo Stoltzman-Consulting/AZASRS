@@ -5,5 +5,5 @@ test_that("get_pm_fund_info() returns matching tibble", {
   pm_fund_info_head = pm_fund_info %>% head(3)
 
   expect_equal(pm_fund_info_head, readRDS_test(pm_fund_info_head))
-  expect_true(count(pm_fund_info) %>% dplyr::pull(n) > 277)
+  expect_true(dplyr::count(pm_fund_info) %>% dplyr::pull(n) > 277)
 })

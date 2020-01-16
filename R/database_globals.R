@@ -228,7 +228,7 @@ tbl_benchmark_type = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con
 tbl_constants = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "constants")}
 
 #' @export
-tbl_pm_fund_cash_flow_daily = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "pm_fund_cash_flow_daily")}
+tbl_pm_fund_cash_flow_daily = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "pm_fund_cash_flow_daily") %>% dplyr::mutate(cash_flow = round(cash_flow, 2))}
 
 #' @export
 tbl_pm_fund_category = function(con = AZASRS_DATABASE_CONNECTION()){dplyr::tbl(con, "pm_fund_category")}
