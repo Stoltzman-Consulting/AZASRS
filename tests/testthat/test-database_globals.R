@@ -16,12 +16,12 @@ test_that("Database disconnect", {
 
 test_that("Proper value date (valdate)", {
   valdate = get_value_date()
-  expect_equal(valdate, "2019-06-30")
+  expect_equal(valdate, "2019-09-30")
 })
 
 test_that("Next quarter is one after valdate", {
   next_quarter = get_next_quarter()
-  expect_equal(next_quarter, "2019-09-30")
+  expect_equal(next_quarter, "2019-12-31")
 })
 
 test_that("PM Fund Info has not changed", {
