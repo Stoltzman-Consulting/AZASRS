@@ -7,7 +7,7 @@
 #' @param end_date is the last date you would like the IRR to be calculated to
 #' Should be in string format: 'yyyy-mm-dd'
 #' @export
-calc_grouped_irrs = function(...,
+builid_grouped_irrs = function(...,
                              con = AZASRS_DATABASE_CONNECTION(),
                              nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE),
                              cash_flow_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),
