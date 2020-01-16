@@ -10,7 +10,7 @@ build_nav_cash_flow_combined = function(...,
                                         itd = FALSE,
                                         return_tibble = FALSE){
 
-  qtr_dates = filled_list_of_dates(start_date = '1900-12-31', end_date = end_date)$date
+  qtr_dates = filled_list_of_dates(start_date = '1900-12-31', end_date = end_date)$effective_date
 
   nav_prep = nav_daily %>%
     #dplyr::filter(nav > 0) %>% # TODO: figure out why negative NAV values are messing up my calculations

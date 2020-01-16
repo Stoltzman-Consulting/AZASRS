@@ -2,7 +2,7 @@
 % Please edit documentation in R/calc_grouped_irrs.R
 \name{calc_grouped_irrs}
 \alias{calc_grouped_irrs}
-\title{BUILDS IRR's}
+\title{Calculates IRR's given a date range}
 \usage{
 calc_grouped_irrs(
   ...,
@@ -10,7 +10,8 @@ calc_grouped_irrs(
   nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE),
   cash_flow_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),
   start_date = "2017-12-31",
-  end_date = get_value_date(con = con)
+  end_date = get_value_date(con = con),
+  itd = FALSE
 )
 }
 \arguments{
@@ -24,4 +25,7 @@ Should be in string format: 'yyyy-mm-dd'}
 }
 \description{
 Calculates cash flow list properly and adds NAV where required
+}
+\examples{
+con = calc_grouped_irrs(pm_fund_portfolio, pm_fund_category, start_date = '2018-12-31')
 }
