@@ -138,3 +138,14 @@ irrs_comparison_csv %>%
   facet_wrap(~lagged_period, scales = 'free_y') + 
   theme(legend.position = 'none')
 ```
+
+
+```{r}
+irrs_comparison_csv %>%
+  filter(abs(diff) > 0.0001) %>%
+  group_by(pm_fund_id) %>%
+  summarize(n = n(), mean_diff = mean(diff, na.rm = TRUE)) %>%
+  arrange(-n)
+
+```
+
