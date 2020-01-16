@@ -6,6 +6,8 @@
 #' Should be in string format: 'yyyy-mm-dd'
 #' @param end_date is the last date you would like the IRR to be calculated to
 #' Should be in string format: 'yyyy-mm-dd'
+#' @examples
+#' con = builid_grouped_irrs(pm_fund_portfolio, pm_fund_category, start_date = '2018-12-31')
 #' @export
 builid_grouped_irrs = function(...,
                              con = AZASRS_DATABASE_CONNECTION(),
@@ -27,7 +29,7 @@ builid_grouped_irrs = function(...,
     dplyr::rename(nav_cf = nav)
 
   cash_flows_between = cash_flow_daily %>%
-    dplyr::filter(effective_date > start_date, effective_date < end_date) %>%
+    dplyr::filter(effective_date >= start_date, effective_date < end_date) %>%
     dplyr::select(!!!exprs, effective_date, cash_flow) %>%
     dplyr::group_by(!!!exprs, effective_date) %>%
     dplyr::summarize(cash_flow = sum(cash_flow, na.rm = TRUE)) %>%
