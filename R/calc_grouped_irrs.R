@@ -53,7 +53,7 @@ calc_grouped_irrs = function(...,
     dplyr::mutate(nav = 0)
 
   if(itd){
-    final_dat = dplyr::union(nav_min_max, cash_flows_between) %>%
+    final_dat_prep = dplyr::union(nav_min_max, cash_flows_between) %>%
       dplyr::left_join(get_pm_fund_info(con = con, return_tibble = FALSE), by = 'pm_fund_id') %>%
       dplyr::group_by(!!!exprs, effective_date) %>%
       dplyr::summarize(nav = sum(nav, na.rm = TRUE),
@@ -64,14 +64,22 @@ calc_grouped_irrs = function(...,
                     cash_flow = dplyr::if_else(effective_date > min_date & effective_date != end_date, cash_flow, 0),
                     nav_cf = nav + cash_flow) %>%
       dplyr::select(!!!exprs, effective_date, nav_cf)
+
+    final_dat = final_dat_prep %>%
+      dplyr::group_by(!!!exprs, effective_date) %>%
+      dplyr::summarise(nav_cf = sum(nav_cf))
   } else {
-    final_dat = dplyr::union(nav_min_max, cash_flows_between) %>%
+    final_dat_prep = dplyr::union(nav_min_max, cash_flows_between) %>%
       dplyr::left_join(get_pm_fund_info(con = con, return_tibble = FALSE), by = 'pm_fund_id') %>%
       dplyr::mutate(nav = dplyr::if_else(effective_date == start_date | effective_date == end_date, nav, 0),
                     cash_flow = dplyr::if_else(effective_date >= start_date & effective_date < end_date, cash_flow, 0)) %>%
       dplyr::group_by(!!!exprs, effective_date) %>%
       dplyr::summarize(nav_cf = sum(nav) + sum(cash_flow)) %>%
       dplyr::select(!!!exprs, effective_date, nav_cf)
+
+    final_dat = final_dat_prep %>%
+      dplyr::group_by(!!!exprs, effective_date) %>%
+      dplyr::summarise(nav_cf = sum(nav_cf))
   }
 
   dat = final_dat %>%
