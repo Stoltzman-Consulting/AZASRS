@@ -5,5 +5,5 @@ test_that("get_pm_cash_flow_daily() returns matching tibbles", {
   pm_cash_flow_daily_head = cf %>% head(3)
 
   expect_equal(pm_cash_flow_daily_head, readRDS_test(pm_cash_flow_daily_head))
-  expect_true(dplyr::count(cf) %>% dplyr::pull(n) > 11161)
+  expect_true(dplyr::count(cf) %>% dplyr::pull(n) > 11159)
 })
