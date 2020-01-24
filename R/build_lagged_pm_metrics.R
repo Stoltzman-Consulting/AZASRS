@@ -15,11 +15,8 @@ build_lagged_pm_metrics = function(...,
     benchmark_lookup = default_benchmark_lookup
   }
 
-  qtr_dates = filled_list_of_dates(start_date = '1900-12-31', end_date = end_date)$effective_date
-
   min_nav_date = tbl_pm_fund_nav_daily(con) %>%
     dplyr::select(effective_date) %>%
-    dplyr::filter(effective_date %in% qtr_dates) %>%
     dplyr::summarize(effective_date = min(effective_date, na.rm = TRUE)) %>%
     dplyr::pull()
 
