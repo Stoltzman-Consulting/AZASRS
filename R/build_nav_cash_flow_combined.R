@@ -10,50 +10,52 @@ build_nav_cash_flow_combined = function(...,
                                         itd = FALSE,
                                         return_tibble = FALSE){
 
-  qtr_dates = filled_list_of_dates(start_date = '1900-12-31', end_date = end_date)$effective_date
-
-  nav_prep = nav_daily %>%
-    #dplyr::filter(nav > 0) %>% # TODO: figure out why negative NAV values are messing up my calculations
-    dplyr::filter(effective_date %in% qtr_dates)
-
   if(itd){
-    nav = nav_prep %>%
+    nav = nav_daily %>%
       dplyr::group_by(...) %>%
+      dplyr::filter(nav != 0) %>%
       dplyr::mutate(min_date = min(effective_date, na.rm = TRUE),
-                    max_date = end_date) %>%
+                    max_date = max(effective_date, na.rm = TRUE)) %>%
       dplyr::filter(effective_date == min_date | effective_date == max_date) %>%
       dplyr::group_by(..., effective_date) %>%
-      dplyr::summarize(nav_cf = sum(nav, na.rm = TRUE)) %>%
+      dplyr::summarize(nav = sum(nav, na.rm = TRUE)) %>%
       dplyr::ungroup() %>%
       dplyr::group_by(...) %>%
       dplyr::mutate(min_date = min(effective_date, na.rm = TRUE),
-                    max_date = end_date) %>%
+                    max_date = max(effective_date, na.rm = TRUE)) %>%
       dplyr::ungroup() %>%
-      dplyr::mutate(nav_cf = dplyr::if_else(effective_date == min_date, -1*abs(nav_cf), nav_cf))
+      dplyr::mutate(nav = dplyr::if_else(effective_date == min_date, -1*nav, nav))
 
   } else{
-    nav = nav_prep %>%
+    nav = nav_daily %>%
       dplyr::filter(effective_date == start_date | effective_date == end_date) %>%
       dplyr::group_by(..., effective_date) %>%
-      dplyr::summarize(nav_cf = sum(nav, na.rm = TRUE)) %>%
-      dplyr::mutate(nav_cf = dplyr::if_else(effective_date == start_date, -1*abs(nav_cf), nav_cf))
+      dplyr::summarize(nav = sum(nav, na.rm = TRUE)) %>%
+      dplyr::mutate(nav = dplyr::if_else(effective_date == start_date, -1*nav, nav))
   }
 
   cf_date_filter = nav %>%
     dplyr::group_by(...) %>%
     dplyr::summarize(min_date = min(effective_date, na.rm = TRUE),
-                     max_date = max(effective_date, na.rm = TRUE)) %>%
+                     max_date = end_date) %>%
     dplyr::ungroup()
 
   cf = cash_flow_daily %>%
     dplyr::left_join(cf_date_filter) %>%
     dplyr::filter(effective_date >= min_date, effective_date < max_date) %>%
     dplyr::group_by(..., effective_date) %>%
-    dplyr::summarize(nav_cf = sum(cash_flow, na.rm = TRUE))
+    dplyr::summarize(cash_flow = sum(cash_flow, na.rm = TRUE))
+
+  # Prep for union
+  nav = nav %>%
+    dplyr::mutate(cash_flow = 0) %>%
+    dplyr::select(-min_date, -max_date)
+  cf = cf %>%
+    dplyr::mutate(nav = 0)
 
   dat = dplyr::union_all(nav, cf) %>%
     dplyr::group_by(..., effective_date) %>%
-    dplyr::summarize(nav_cf = sum(nav_cf, na.rm = TRUE)) %>%
+    dplyr::summarize(nav_cf = sum(nav, na.rm = TRUE) + sum(cash_flow, na.rm = TRUE)) %>%
     dplyr::arrange(..., effective_date) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(distributions = dplyr::if_else(nav_cf > 0, nav_cf, 0),
