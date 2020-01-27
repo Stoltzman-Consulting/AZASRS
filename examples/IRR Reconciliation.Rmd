@@ -82,11 +82,33 @@ csv_irrs = csv_irrs_raw %>%
 csv_irrs %>% head()
 ```
 
+```{r}
+csv = csv_irrs %>% select(pm_fund_id = `Client Grouping 1`, irr_csv = ITD) %>% mutate(irr_csv = irr_csv/100)
+csv
+```
+
+
+```{r}
+db = db_irrs_itd %>% select(pm_fund_id, irr_db = irr)
+db
+```
+
+
+```{r}
+csv_db = csv %>% left_join(db) %>% mutate(diff = abs(irr_csv - irr_db))
+csv_db
+```
+
+```{r}
+csv_db_f = csv_db %>% filter(diff > 0.02)
+csv_db_f
+```
+
 
 ```{r}
 con = AZASRS_DATABASE_CONNECTION()
 nav_dates_prep = get_pm_nav_daily(con = con, return_tibble = FALSE) %>%
-  filter(nav != 0) %>%
+  #filter(nav != 0) %>%
   filter(effective_date <= end_date) %>%
   group_by(pm_fund_id) %>%
   summarize(first_nav_date = min(effective_date, na.rm = TRUE),
@@ -98,14 +120,14 @@ nav_dates_prep = get_pm_nav_daily(con = con, return_tibble = FALSE) %>%
          days_since_last_nav = as.integer(end_date - last_nav_date))
 
 nav_firsts = get_pm_nav_daily(con = con, return_tibble = FALSE) %>%
-  filter(nav != 0) %>%
+  #filter(nav != 0) %>%
   group_by(pm_fund_id) %>%
   filter(effective_date == min(effective_date, na.rm = TRUE)) %>%
   ungroup() %>%
-  select(pm_fund_id, first_nav) %>%
+  select(pm_fund_id, first_nav = nav) %>%
   as_tibble()
 
-nav_dates = nav_dates %>% left_join(nav_firsts)
+nav_dates = nav_dates_prep %>% left_join(nav_firsts)
 
 ```
 
@@ -172,24 +194,13 @@ irrs_comparison_csv %>%
 
 ```{r}
 irrs_comparison_csv %>%
-  filter(abs(diff) > 0.001) %>%
+  filter(abs(diff) > 0.01) %>%
   filter(days_of_fund_life != 0) %>% # Fund had no difference between start and end date
-  # filter(days_since_last_nav != 0) %>% # Fund ended before end_date (non-zero nav date)
+  #filter(days_since_last_nav != 0) %>% # Fund ended before end_date (non-zero nav date)
   filter(irr.x != 0) %>%
   filter(irr.y != 0) %>%
-  arrange(-diff)
-  
-  
-  
-  group_by(pm_fund_id, lagged_period) %>%
-  summarize(n = n(),
-            mean_diff = mean(diff, na.rm = TRUE)) %>%
-  arrange(pm_fund_id, -n)
-# 
-# 
-# 
-# irrs_comparison_csv %>%
-#   filter(abs(diff) > 0.0001) %>%
-#   filter(days_since_last_nav != 0)
+  filter(lagged_period != 'ITD') %>%
+  arrange(-abs(diff))
 ```
+
 
