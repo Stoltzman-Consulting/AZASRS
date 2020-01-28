@@ -29,6 +29,7 @@ for(years_back in years_to_lag){
   } else {
     start_date = AZASRS::calc_previous_year_qtr(end_date = end_date, qtrs = 4*years_back)
   }
+  print(start_date)
 
   db_irrs = build_lagged_pm_metrics(pm_fund_portfolio, pm_fund_category, pm_fund_id,
                                     start_date = start_date, end_date = end_date, itd=FALSE,
@@ -100,7 +101,7 @@ csv_db
 ```
 
 ```{r}
-csv_db_f = csv_db %>% filter(diff > 0.02)
+csv_db_f = csv_db %>% filter(diff > 0.002)
 csv_db_f
 ```
 
@@ -195,11 +196,11 @@ irrs_comparison_csv %>%
 ```{r}
 irrs_comparison_csv %>%
   filter(abs(diff) > 0.01) %>%
-  filter(days_of_fund_life != 0) %>% # Fund had no difference between start and end date
+  #filter(days_of_fund_life != 0) %>% # Fund had no difference between start and end date
   #filter(days_since_last_nav != 0) %>% # Fund ended before end_date (non-zero nav date)
-  filter(irr.x != 0) %>%
-  filter(irr.y != 0) %>%
-  filter(lagged_period != 'ITD') %>%
+  #filter(irr.x != 0) %>%
+  #filter(irr.y != 0) %>%
+  #filter(lagged_period != 'ITD') %>%
   arrange(-abs(diff))
 ```
 
