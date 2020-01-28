@@ -31,7 +31,7 @@ build_lagged_pm_metrics = function(...,
   bench = benchmark_lookup %>%
     dplyr::left_join(bench_tbl)
 
-  if(itd){
+  if(itd == TRUE){
     dates_df = tibble::tibble(start_date = lubridate::as_date('1900-12-31'), end_date = lubridate::as_date(end_date), itd = TRUE)
   } else{
     dates_df = build_lagged_date_range_df(con = con, start_date = start_date, end_date = end_date,

@@ -15,37 +15,72 @@ options(scipen = 999)
 
 
 ```{r message = FALSE}
+con = AZASRS::AZASRS_DATABASE_CONNECTION()
 pmfi = get_pm_fund_info() # for aggregation purposes at the end
 
 end_date = '2019-09-30'
 years_to_lag = c(0.25, 0.50, 1, 3, 5, 7)
 
-all_db_irrs = tibble()
-for(years_back in years_to_lag){
-  print(paste('Number of years looking back:', as.character(years_back)))
 
-  if(years_back >= 1){
-    start_date = AZASRS::calc_previous_year_qtr(end_date = end_date, years = years_back)
-  } else {
-    start_date = AZASRS::calc_previous_year_qtr(end_date = end_date, qtrs = 4*years_back)
+db_irr_prep = tibble(years = c(0, 0, 1, 3, 5, 7), qtrs = c(1, 2, 0, 0, 0, 0)) %>%
+  mutate(end_date = end_date) %>%
+  mutate(start_date = pmap(
+    .l = list(end_date = end_date, years = years, qtrs = qtrs),
+    .f = calc_previous_year_qtr
+  )) %>%
+  unnest(cols = c(start_date)) %>%
+  mutate(itd = FALSE) %>%
+  bind_rows(tibble(years=0, qtrs=0, end_date = end_date, start_date = as_date("1900-12-31"), itd = TRUE)) %>%
+  mutate(end_date = as_date(end_date),
+         con = list(con))
+
+build_lagged_pm_metrics2 = function(start_date, end_date, itd, n_qtrs, con, years_back){
+  build_lagged_pm_metrics(pm_fund_portfolio, pm_fund_category, pm_fund_id,
+                          start_date = start_date, end_date = end_date, itd=itd,
+                          n_qtrs = n_qtrs)
   }
-  print(start_date)
 
-  db_irrs = build_lagged_pm_metrics(pm_fund_portfolio, pm_fund_category, pm_fund_id,
-                                    start_date = start_date, end_date = end_date, itd=FALSE,
-                                    n_qtrs = years_back*4)
-  all_db_irrs = bind_rows(all_db_irrs, db_irrs)
-}
 
-# Add ITD
-db_irrs_itd = build_lagged_pm_metrics(pm_fund_portfolio, pm_fund_category, pm_fund_id,
-                                  start_date = start_date, end_date = end_date, itd=TRUE,
-                                  n_qtrs = 4) %>%
-  filter(itd == TRUE)
+db_metrics = db_irr_prep %>%
+  mutate(n_qtrs = if_else(years == 0, qtrs, years * 4)) %>%
+  mutate(metrics = pmap(
+    .l = list(con, start_date = start_date, end_date = end_date, 
+              n_qtrs = n_qtrs, itd = itd, years_back = years),
+    .f = build_lagged_pm_metrics2
+  ))
 
-all_db_irrs = bind_rows(all_db_irrs, db_irrs_itd)
+  
 
-all_db_irrs %>% head()
+  
+  
+
+# 
+# all_db_irrs = tibble()
+# for(years_back in years_to_lag){
+#   print(paste('Number of years looking back:', as.character(years_back)))
+# 
+#   if(years_back >= 1){
+#     start_date = AZASRS::calc_previous_year_qtr(end_date = end_date, years = years_back)
+#   } else {
+#     start_date = AZASRS::calc_previous_year_qtr(end_date = end_date, qtrs = 4*years_back)
+#   }
+#   print(start_date)
+# 
+#   db_irrs = build_lagged_pm_metrics(pm_fund_portfolio, pm_fund_category, pm_fund_id,
+#                                     start_date = start_date, end_date = end_date, itd=FALSE,
+#                                     n_qtrs = years_back*4)
+#   all_db_irrs = bind_rows(all_db_irrs, db_irrs)
+# }
+# 
+# # Add ITD
+# db_irrs_itd = build_lagged_pm_metrics(pm_fund_portfolio, pm_fund_category, pm_fund_id,
+#                                   start_date = start_date, end_date = end_date, itd=TRUE,
+#                                   n_qtrs = 4) %>%
+#   filter(itd == TRUE)
+# 
+# all_db_irrs = bind_rows(all_db_irrs, db_irrs_itd)
+# 
+# all_db_irrs %>% head()
 ```
 
 
@@ -198,9 +233,9 @@ irrs_comparison_csv %>%
   filter(abs(diff) > 0.001) %>%
   #filter(days_of_fund_life != 0) %>% # Fund had no difference between start and end date
   #filter(days_since_last_nav != 0) %>% # Fund ended before end_date (non-zero nav date)
-  #filter(irr.x != 0) %>%
+  filter(irr.x != 0) %>%
   #filter(irr.y != 0) %>%
-  #filter(lagged_period != 'ITD') %>%
+  filter(lagged_period != 'ITD') %>%
   arrange(-abs(diff))
 ```
 

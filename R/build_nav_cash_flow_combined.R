@@ -22,7 +22,7 @@ build_nav_cash_flow_combined = function(...,
     dplyr::summarize(max_non_zero_nav_date = max(effective_date, na.rm = TRUE)) %>%
     dplyr::ungroup()
 
-  if(itd){
+  if(itd == TRUE){
     nav = nav_daily %>%
       dplyr::left_join(min_max_nav_dates) %>%
       dplyr::left_join(max_non_zero_nav_dates) %>%
