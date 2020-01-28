@@ -55,13 +55,30 @@ build_lagged_pm_metrics = function(pm_fund_portfolio, pm_fund_category, pm_fund_
                      nav = sum(nav)) %>%
     dplyr::ungroup()
 
-  dat = dat_prep %>%
+  dat_with_bench = dat_prep %>%
+    dplyr::left_join(bench)
+
+  dat_with_bench_end = dat_with_bench %>%
+    dplyr::group_by(pm_fund_portfolio, pm_fund_category, pm_fund_id) %>%
+    dplyr::filter(effective_date == max(effective_date, na.rm = TRUE)) %>%
+    dplyr::ungroup() %>%
+    dplyr::group_by(benchmark_id) %>%
+    dplyr::summarize(last_index_value = max(index_value, na.rm = TRUE))
+
+  dat_with_bench_factor = dat_with_bench %>%
+    dplyr::left_join(dat_with_bench_end, by = 'benchmark_id') %>%
+    dplyr::mutate(index_factor = last_index_value / index_value)
+
+  dat = dat_with_bench_factor %>%
     dplyr::group_by(pm_fund_portfolio, pm_fund_category, pm_fund_id, start_date, end_date, itd) %>%
     dplyr::arrange(effective_date) %>%
     dplyr::summarize(irr = calc_irr(cash_flow = nav_cash_flow, dates = effective_date),
                      tvpi = calc_tvpi(distributions, contributions, nav),
                      dpi = calc_dpi(distributions, contributions),
-                     appreciation = calc_appreciation(contributions+distributions, nav))
+                     appreciation = calc_appreciation(contributions+distributions, nav),
+                     dva = calc_dva(contributions+distributions, index_factor),
+                     pme = calc_pme(distributions, contributions, nav, index_factor))
+
 
   return(dat)
 }
