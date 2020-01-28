@@ -17,12 +17,135 @@ options(scipen = 999)
 ```{r message = FALSE}
 con = AZASRS::AZASRS_DATABASE_CONNECTION()
 pmfi = get_pm_fund_info() # for aggregation purposes at the end
+nav = get_pm_nav_daily() %>% 
+  select(pm_fund_portfolio, pm_fund_category, pm_fund_id, effective_date, nav)
+cash_flow = get_pm_cash_flow_daily() %>% 
+  select(pm_fund_portfolio, pm_fund_category, pm_fund_id, effective_date, cash_flow)
+```
 
+
+```{r}
+# Setup dates dataframe for data filtering
+minimum_nav_date = min(nav$effective_date)
+years_to_lag = c(0.25, 0.50, 1, 3, 5, 7, 10)
+
+all_lagged_dates = tibble()
+for(i in years_to_lag){
+  lagged_dates = build_lagged_date_range_df(con = con, start_date = minimum_nav_date, n_qtrs = i*4) %>%
+    mutate(years_lagged = i)
+  all_lagged_dates = bind_rows(all_lagged_dates, lagged_dates)
+}
+
+all_lagged_dates = bind_rows(all_lagged_dates, tibble(start_date = as_date('1900-03-31'),
+                                                      end_date = as_date(get_value_date()),
+                                                      years_lagged = 100))
+all_lagged_dates = all_lagged_dates %>%
+  mutate(nav = list(nav), cash_flow = list(cash_flow))
+```
+
+```{r}
+# Build function to merge NAV and CF
+merge_nav_and_cf = function(start_date, end_date, nav, cash_flow){
+  
+  if(start_date > '1900-12-31'){
+    # Non ITD NAV will only be counted if still open (both nav dates land), first nav converted to negative
+    nav_first_last = nav %>%
+      filter(nav != 0) %>%
+      group_by(pm_fund_portfolio, pm_fund_category, pm_fund_id) %>%
+      filter(effective_date == end_date | effective_date == start_date) %>%
+      mutate(n = n()) %>%
+      ungroup() %>%
+      filter(n == 2) %>%
+      select(-n) %>%
+      mutate(nav = if_else(effective_date == start_date, -1*nav, nav)) %>%
+      mutate(cash_flow = 0,
+             data_type = 'NAV')
+    
+    # Cash flow includes start, does not include end
+    cf_filtered = cash_flow %>%
+      filter(cash_flow != 0) %>%
+      filter(effective_date >= start_date, effective_date < end_date) %>%
+      mutate(nav = 0,
+             data_type = 'CF')
+    
+    combined_nav_cf = bind_rows(nav_first_last, cf_filtered) %>%
+      group_by(pm_fund_portfolio, pm_fund_category, pm_fund_id, effective_date) %>%
+      summarize(nav = sum(nav), cash_flow = sum(cash_flow)) %>%
+      ungroup() %>%
+      mutate(modified_cash_flows = nav + cash_flow) %>%
+      mutate(contributions = if_else(modified_cash_flows < 0, modified_cash_flows, 0),
+             distributions = if_else(modified_cash_flows > 0, modified_cash_flows, 0))
+    
+  } else{
+    # ITD exists only during exact fund dates
+    nav_first_last = nav %>%
+      filter(nav != 0) %>%
+      group_by(pm_fund_portfolio, pm_fund_category, pm_fund_id) %>%
+      filter(effective_date == min(effective_date) | effective_date == max(effective_date)) %>%
+      mutate(n = n()) %>%
+      mutate(date_type = if_else(effective_date == min(effective_date), 'START', 'END')) %>%
+      mutate(nav = if_else(date_type == 'START', -1*nav, nav)) %>%
+      ungroup() %>%
+      filter(n == 2) %>%
+      select(-n) %>%
+      mutate(cash_flow = 0,
+             data_type = 'NAV')
+    
+    nav_dates = nav_first_last %>%
+      select(pm_fund_portfolio, pm_fund_category, pm_fund_id, effective_date, date_type) %>%
+      pivot_wider(names_from = date_type, values_from = effective_date)
+    
+    # Cash flow includes start, does not include end
+    cf_filtered = cash_flow %>%
+      left_join(nav_dates) %>%
+      filter(effective_date >= START, effective_date < END) %>%
+      mutate(nav = 0,
+             data_type = 'CF') %>%
+      select(-START, -END)
+    
+    combined_nav_cf = bind_rows(nav_first_last, cf_filtered) %>%
+      group_by(pm_fund_portfolio, pm_fund_category, pm_fund_id, effective_date) %>%
+      summarize(nav = sum(nav), cash_flow = sum(cash_flow)) %>%
+      ungroup() %>%
+      mutate(modified_cash_flows = nav + cash_flow) %>%
+      mutate(contributions = if_else(modified_cash_flows < 0, modified_cash_flows, 0),
+             distributions = if_else(modified_cash_flows > 0, modified_cash_flows, 0))
+  }
+  
+  return(combined_nav_cf)
+}
+
+```
+
+
+```{r}
+# Mutate new column of tibble for NAV and Cash Flow
+all_trailing_data = all_lagged_dates %>%
+  mutate(nav_and_cash_flow = pmap(.l = list(start_date, end_date, nav, cash_flow), .f = merge_nav_and_cf)) %>%
+  select(-nav, -cash_flow)
+```
+
+
+```{r}
+Create 
+```
+
+
+```{r}
+all_trailing_metrics = all_trailing
+```
+
+
+```{r}
 end_date = '2019-09-30'
 years_to_lag = c(0.25, 0.50, 1, 3, 5, 7)
 
+all_possible_dates = filled_list_of_dates(start_date = '2004-03-31', end_date = get_value_date()) %>% rename(end_date = effective_date)
 
-db_irr_prep = tibble(years = c(0, 0, 1, 3, 5, 7), qtrs = c(1, 2, 0, 0, 0, 0)) %>%
+
+create_all_metrics = function(end_date){
+  
+  db_irr_prep = tibble(years = c(0, 0, 1, 3, 5, 7), qtrs = c(1, 2, 0, 0, 0, 0)) %>%
   mutate(end_date = end_date) %>%
   mutate(start_date = pmap(
     .l = list(end_date = end_date, years = years, qtrs = qtrs),
@@ -47,10 +170,16 @@ db_metrics = db_irr_prep %>%
     .l = list(con, start_date = start_date, end_date = end_date, 
               n_qtrs = n_qtrs, itd = itd, years_back = years),
     .f = build_lagged_pm_metrics2
-  ))
+  )) %>%
+select(metrics)
 
-  
+return(db_metrics)
 
+}
+
+
+all_trailing_metrics = all_possible_dates %>%
+  mutate(metrics = map(.x = end_date, .f = create_all_metrics))
   
   
 
