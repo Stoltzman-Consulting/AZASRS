@@ -195,7 +195,7 @@ irrs_comparison_csv %>%
 
 ```{r}
 irrs_comparison_csv %>%
-  filter(abs(diff) > 0.01) %>%
+  filter(abs(diff) > 0.001) %>%
   #filter(days_of_fund_life != 0) %>% # Fund had no difference between start and end date
   #filter(days_since_last_nav != 0) %>% # Fund ended before end_date (non-zero nav date)
   #filter(irr.x != 0) %>%
