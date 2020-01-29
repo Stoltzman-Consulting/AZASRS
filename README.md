@@ -5,7 +5,10 @@
 
 ## Installation  
 
-`devtools::install_github('AZASRS/AZASRS', force = TRUE)`  
+```
+devtools::install_github('AZASRS/asrsMethods/asrsMethods')
+devtools::install_github('AZASRS/AZASRS', force = TRUE)
+```  
 
 Ensure that you have received the `.Renviron` file and put it into your home folder. Locate your home folder via: `path.expand("~")`. This `.Renviron` file contains all of the environment variables that you need in order to connect to the database. It's important that you have your own `GITHUB_PAT` and this will not work if you do not have a blank line at the end of the file (strange requirement, but important).
 
