@@ -39,7 +39,6 @@ Imports:
     asrsMethods,
     glue,
     zoo,
-    RPostgreSQL,
     odbc,
     RODBC,
     AzureStor
