@@ -57,7 +57,7 @@ build_nav_cash_flow_combined = function(...,
 
     # Remove funds who either start in the middle of the date range or do not reach the end
     nav_in_range = nav_daily %>%
-      dplyr::group_by(pm_fund_id) %>%
+      dplyr::group_by(...) %>%
       dplyr::mutate(nav_start = min(effective_date, na.rm = TRUE),
              nav_end = max(effective_date, na.rm = TRUE)) %>%
       dplyr::filter(nav_start <= start_date) %>%
@@ -68,7 +68,8 @@ build_nav_cash_flow_combined = function(...,
       dplyr::filter(effective_date == start_date | effective_date == end_date) %>%
       dplyr::group_by(..., effective_date) %>%
       dplyr::summarize(nav = sum(nav, na.rm = TRUE)) %>%
-      dplyr::mutate(nav = dplyr::if_else(effective_date == start_date, -1*nav, nav))
+      dplyr::mutate(nav = dplyr::if_else(effective_date == start_date, -1*nav, nav)) %>%
+      dplyr::ungroup()
 
     cf_date_filter = nav %>%
       dplyr::group_by(...) %>%
@@ -80,7 +81,8 @@ build_nav_cash_flow_combined = function(...,
       dplyr::left_join(cf_date_filter) %>%
       dplyr::filter(effective_date >= min_date, effective_date < max_date) %>%
       dplyr::group_by(..., effective_date) %>%
-      dplyr::summarize(cash_flow = sum(cash_flow, na.rm = TRUE))
+      dplyr::summarize(cash_flow = sum(cash_flow, na.rm = TRUE)) %>%
+      dplyr::ungroup()
 
     # Prep for union
     nav = nav %>%
