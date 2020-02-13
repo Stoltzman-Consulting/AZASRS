@@ -2,9 +2,9 @@
 % Please edit documentation in R/finance_calculations.R
 \name{calc_irr}
 \alias{calc_irr}
-\title{IRR}
+\title{IRR - JD replaced Karl's asrsMethods}
 \usage{
-calc_irr(cash_flow, dates)
+calc_irr(cash_flow, dates, gips = TRUE, cumulative = FALSE)
 }
 \arguments{
 \item{cash_flow}{is a c() of cash_flows with the first being the earliest NAV (negative) and the last being NAV (positive)}
