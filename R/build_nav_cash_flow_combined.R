@@ -12,33 +12,22 @@ build_nav_cash_flow_combined = function(...,
 
   if(itd){
     # ITD only at value date
+
+    #beg of life cash flows up until either cash flows stop or nav
     nav = nav_daily %>%
       dplyr::group_by(...) %>%
-      dplyr::filter(nav != 0) %>%
-      dplyr::mutate(min_date = min(effective_date, na.rm = TRUE),
-                    max_date_end = end_date,
-                    max_date_fund = max(effective_date, na.rm = TRUE),
-                    max_date = dplyr::if_else(max_date_fund < max_date_end, max_date_fund, max_date_end)) %>%
-      dplyr::select(-max_date_end, -max_date_fund) %>%
-      dplyr::filter(effective_date == min_date | effective_date == max_date) %>%
+      dplyr::filter(nav != 0,
+                    effective_date == end_date) %>%
       dplyr::ungroup() %>%
       dplyr::group_by(..., effective_date) %>%
       dplyr::summarize(nav = sum(nav, na.rm = TRUE)) %>%
-      dplyr::ungroup() %>%
-      dplyr::group_by(...) %>%
-      dplyr::mutate(min_date = min(effective_date, na.rm = TRUE),
-                    max_date = max(effective_date, na.rm = TRUE)) %>%
       dplyr::ungroup()
 
     cf = cash_flow_daily %>%
+      dplyr::filter(effective_date < end_date) %>%
       dplyr::group_by(..., effective_date) %>%
       dplyr::summarize(cash_flow = sum(cash_flow, na.rm = TRUE)) %>%
-      dplyr::ungroup() %>%
-      dplyr::group_by(...) %>%
-      dplyr::mutate(min_date = min(effective_date, na.rm = TRUE),
-                       max_date = max(effective_date, na.rm = TRUE)) %>%
       dplyr::ungroup()
-
 
     # Prep for union
     nav = nav %>%
@@ -46,12 +35,7 @@ build_nav_cash_flow_combined = function(...,
     cf = cf %>%
       dplyr::mutate(nav = 0)
 
-    nav_cf_combo = dplyr::union_all(nav, cf) %>%
-      dplyr::group_by(...) %>%
-      dplyr::filter(effective_date != min_date) %>%
-      dplyr::mutate(nav = dplyr::if_else(min_date > min(min_date, na.rm = TRUE) & effective_date == min_date, cash_flow, nav),
-                    nav = dplyr::if_else(effective_date == max_date, nav, -1*nav)) %>%
-      dplyr::ungroup()
+    nav_cf_combo = dplyr::union_all(nav, cf)
 
   } else{
 
