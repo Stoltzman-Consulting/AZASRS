@@ -16,23 +16,22 @@ build_grouped_irrs = function(...,
                               n_qtrs = 4,
                               itd = FALSE){
 
-  exprs = dplyr::enquos(...)
+  #exprs = dplyr::enquos(...)
 
   itd_end_date = end_date
 
   my_dates = filled_list_of_dates(start_date = start_date, end_date = end_date, time_delta = time_delta) %>%
-    dplyr::mutate(start_date = dplyr::lag(date, n_qtrs), con = list(con)) %>% # number of quarters, 4 = 1yr
-    dplyr::rename(end_date = date) %>%
+    dplyr::mutate(start_date = dplyr::lag(effective_date, n_qtrs), con = list(con), qtr_lag = n_qtrs) %>% # number of quarters, 4 = 1yr
+    dplyr::rename(end_date = effective_date) %>%
     tidyr::drop_na(start_date)
 
-  if(itd){
-    my_dates = my_dates %>%
-      dplyr::mutate(end_date = itd_end_date)
-  }
-
   dat = my_dates %>%
-    dplyr::mutate(irr = purrr::pmap(.l = list(list(exprs), con = con, start_date = start_date, end_date = end_date),
-                                    .f = calc_grouped_irrs)) %>%
+    dplyr::mutate(irr = purrr::pmap(.l = list(con = con,
+                                              start_date = start_date,
+                                              end_date = end_date,
+                                              itd = itd),
+                                    .f = calc_grouped_irrs,
+                                    ...)) %>%
     dplyr::select(start_date, end_date, irr) %>%
     tidyr::unnest(cols = c(irr))
 
