@@ -7,7 +7,8 @@
 #' @param dates is a c() of dates that corresponds with the cash_flow
 #' @export
 calc_irr = function(cash_flow, dates, gips = TRUE, cumulative = FALSE){
-  cf_zoo = zoo::zoo(cash_flow, dates)
+
+  cf_zoo = zoo::zoo(as.numeric(cash_flow), dates)
 
   npv.znoadjust <- function(i,cf.z,freq,tdiff) {
     d=(1+(i/freq))^tdiff
