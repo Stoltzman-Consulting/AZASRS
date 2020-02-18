@@ -4,7 +4,7 @@
 \alias{INITIAL_DATABASE_POPULATION}
 \title{Initially populates ALL tables via .csv files}
 \usage{
-INITIAL_DATABASE_POPULATION(local = FALSE)
+INITIAL_DATABASE_POPULATION(development = 0, local_azure_functions = FALSE)
 }
 \description{
 To be used in the event the database needs a total refresh. Note: the benchmark data will fail to upload the first time simply due to its size, upon running again it will work.
