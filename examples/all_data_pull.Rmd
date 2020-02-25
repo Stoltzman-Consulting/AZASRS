@@ -1,0 +1,370 @@
+---
+title: "Trailing IRR Example"
+author: "ASRS"
+date: "1/29/2020"
+output: html_document
+---
+
+
+```{r setup, include=FALSE, message = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+library('tidyverse')
+library('lubridate')
+library('AZASRS')
+library('PRIVM')
+library('purrr')
+library('kableExtra')
+```
+
+```{r all_functions, message=FALSE, warning=FALSE, include=FALSE}
+tbl_out = function(df, n = 10){
+  df %>%
+    head(n) %>%
+    kable() %>%
+    kable_styling()
+}
+
+
+con = AZASRS_DATABASE_CONNECTION()
+itd = FALSE
+btype = 'PVT' # benchmark type
+start_date = '2014-09-30'
+valdate = get_value_date(con)
+end_date = get_value_date(con)
+nav_daily = get_pm_nav_daily(con = con, return_tibble = TRUE) %>% filter(nav != 0)
+cf_daily = get_pm_cash_flow_daily(con = con, return_tibble = TRUE) %>% filter(cash_flow != 0)
+bench_daily = get_benchmark_daily_index(con = con, bench_type = btype, return_tibble = FALSE) %>%
+  left_join(get_benchmark_fund_relationship(con = con, return_tibble = FALSE) %>%
+              filter(benchmark_type == btype) %>%
+              distinct(benchmark_info_id),
+            by = 'benchmark_info_id') %>%
+  select(-benchmark_id) %>%
+  as_tibble()
+bench_relationships = get_benchmark_fund_relationship(con = con, return_tibble = FALSE) %>%
+  filter(benchmark_type == 'PVT') %>%
+  left_join(tbl_benchmark_info(con = con), by = 'benchmark_info_id') %>%
+  as_tibble()
+pmfi = get_pm_fund_info(con = con, return_tibble = TRUE)
+
+
+
+
+############# BEGIN CALCULATING
+calc_all = function(start_date, end_date, itd,
+                    nav_daily, cf_daily, bench_daily, bench_relationships, pmfi,
+                    ...){
+
+  # ITD - simply change start date
+  if(itd){ start_date = '2004-06-30' }
+  #print(paste0('Calculating data between: ', start_date, " to ", end_date))
+
+  # test if pm_fund_id in the ... , no aggregation if this is the case
+  test_for_pm_fund_id <- function(...) {
+    any(c("pm_fund_id", "pm_fund_description", "pm_fund_common_name") %in% c(
+      rlang::enquos(...) %>%
+        purrr::map(rlang::quo_name) %>%
+        unlist()
+    ))
+  }
+
+  IS_NOT_AGGREGATED = test_for_pm_fund_id(...)
+
+  #### USE pm_fund_id to wrangle data, then aggregate if required ####
+
+  # Benchmark daily -- create future value
+  bench_daily_fv = bench_daily %>%
+    filter(effective_date <= end_date, effective_date >= start_date) %>%
+    group_by(benchmark_info_id) %>%
+    mutate(index_fv = last(index_value) / index_value) %>%
+    ungroup() %>%
+    select(-index_value)
+
+  # Gather NAV, CF and filter
+  cf_daily_prep = cf_daily %>%
+    filter(effective_date >= start_date,
+           effective_date < end_date) %>%
+    mutate(nav = 0)
+  nav_daily_prep = nav_daily %>%
+    filter(effective_date == start_date | effective_date == end_date) %>%
+    mutate(cash_flow = 0)
+
+  # Combine NAV and CF
+  nav_cf_combined = bind_rows(nav_daily_prep, cf_daily_prep)
+
+  # Filter out funds that are not active for the full start - end period.
+  # Not applicable to aggregated funds, would filter out important data
+  if(IS_NOT_AGGREGATED){
+    if(!itd){
+      nav_cf_combined = nav_cf_combined %>%
+        group_by(pm_fund_info_id) %>%
+        filter(min(effective_date) <= start_date) %>%
+        filter(max(effective_date) >= end_date) %>%
+        ungroup()
+    }
+  }
+
+  # Aggregate by fund & date, convert first NAV values to negative
+  nav_cf_combined_prep = nav_cf_combined %>%
+    group_by(pm_fund_info_id) %>%
+    mutate(adj_cf = 0,
+           adj_cf = if_else(effective_date == start_date, -1*nav, nav),
+           adj_cf = adj_cf + cash_flow) %>%
+    group_by(pm_fund_info_id, effective_date) %>%
+    summarize(adj_cf = sum(adj_cf),
+              nav = sum(nav),
+              cash_flow = sum(cash_flow)) %>%
+    ungroup()
+
+  nav_cf_w_benchmarks = nav_cf_combined_prep %>%
+    left_join(bench_relationships, by = 'pm_fund_info_id') %>%
+    left_join(bench_daily_fv, by = c('benchmark_info_id', 'effective_date')) %>%
+    left_join(pmfi, by = 'pm_fund_info_id')
+
+  ####### CAN NOW AGGREGATE BEYOND PM_FUND_ID ##########
+
+  # Calculate all adjusted for final cash flows
+  all_adj_cf = nav_cf_w_benchmarks %>%
+    mutate(adj_cf_fv = adj_cf * index_fv,
+           contributions_fv = if_else(adj_cf_fv < 0, adj_cf_fv, 0),
+           distributions_fv = if_else(adj_cf_fv > 0, adj_cf_fv, 0),
+           contributions = if_else(cash_flow < 0, cash_flow, 0),
+           distributions = if_else(cash_flow > 0, cash_flow, 0)) %>%
+    group_by(..., effective_date) %>%
+    summarize(
+      adj_cf_fv = sum(adj_cf_fv),
+      dva = sum(adj_cf * index_fv),
+      contributions_fv = sum(contributions_fv),
+      distributions_fv = sum(distributions_fv),
+      contributions = sum(contributions),
+      distributions = sum(distributions),
+      adj_cf = sum(adj_cf),
+      nav = sum(nav),
+      cash_flow = sum(cash_flow)) %>%
+    ungroup()
+
+  # Calculate all metrics from cash flows
+  dat = all_adj_cf %>%
+    group_by(...) %>%
+    arrange(effective_date) %>%
+    summarize(
+      pme = -sum(distributions_fv) / sum(contributions_fv),
+      irr = calc_irr(cash_flow = adj_cf, dates = effective_date),
+      irr_fv = calc_irr(cash_flow = adj_cf_fv, dates = effective_date),
+      tvpi = calc_tvpi(distributions, contributions, nav),
+      alpha = log(1 + irr_fv),
+      bench_irr = -1 + exp(log(1 + irr) - alpha),
+      dva = sum(dva),
+      nav = last(nav),
+      cash_flow = sum(cash_flow),
+      contributions = sum(contributions),
+      distributions = sum(distributions),
+      adj_cf = sum(adj_cf))
+
+  return(dat)
+}
+
+########### END CALCULATING
+```
+
+```{r all_data, message=FALSE, warning=FALSE, include=FALSE}
+start_date = '2019-06-30'
+# test_results = calc_all(start_date = start_date,
+#                         end_date = end_date,
+#                         itd = FALSE,
+#                         nav_daily = nav_daily,
+#                         cf_daily = cf_daily,
+#                         bench_daily = bench_daily,
+#                         bench_relationships = bench_relationships,
+#                         pmfi = pmfi,
+#                         pm_fund_portfolio)
+# test_results
+
+
+
+date_ranges = tibble()
+for(i in c(1, 4, 12, 20, 40)){
+  date_range = build_lagged_date_range_df(start_date = '2004-06-30',
+                                          end_date = end_date, n_qtrs = i) %>%
+    mutate(n_qtrs = i)
+  date_ranges = bind_rows(date_ranges, date_range)
+}
+
+ports_qtrs = date_ranges %>%
+  mutate(itd = FALSE, nav_daily = list(nav_daily),
+         cf_daily = list(cf_daily), bench_daily = list(bench_daily),
+         bench_relationships = list(bench_relationships),
+         pmfi = list(pmfi)) %>%
+  mutate(irrs = pmap(
+    .l = list(start_date,
+              end_date,
+              itd,
+              nav_daily,
+              cf_daily,
+              bench_daily,
+              bench_relationships,
+              pmfi),
+    .f = calc_all,
+    pm_fund_portfolio
+  )) %>%
+  select(start_date, end_date, n_qtrs, irrs) %>%
+  unnest(cols = c(irrs)) %>%
+  mutate(itd = FALSE)
+
+ports_itd = date_ranges %>%
+  mutate(itd = TRUE, nav_daily = list(nav_daily),
+         cf_daily = list(cf_daily), bench_daily = list(bench_daily),
+         bench_relationships = list(bench_relationships),
+         pmfi = list(pmfi)) %>%
+  mutate(irrs = pmap(
+    .l = list(start_date,
+              end_date,
+              itd,
+              nav_daily,
+              cf_daily,
+              bench_daily,
+              bench_relationships,
+              pmfi),
+    .f = calc_all,
+    pm_fund_portfolio
+  )) %>%
+  select(start_date, end_date, n_qtrs, irrs) %>%
+  unnest(cols = c(irrs)) %>%
+  mutate(itd = TRUE, start_date = NA, end_date = as_date(end_date), n_qtrs = NA)
+
+ports = bind_rows(ports_qtrs, ports_itd)
+#saveRDS(ports, "portfolio.rds")
+#write_csv(ports, 'pm_fund_portfolio.csv')
+
+
+
+
+categs_qtrs = date_ranges %>%
+  mutate(itd = FALSE, nav_daily = list(nav_daily),
+         cf_daily = list(cf_daily), bench_daily = list(bench_daily),
+         bench_relationships = list(bench_relationships),
+         pmfi = list(pmfi)) %>%
+  mutate(irrs = pmap(
+    .l = list(start_date,
+              end_date,
+              itd,
+              nav_daily,
+              cf_daily,
+              bench_daily,
+              bench_relationships,
+              pmfi),
+    .f = calc_all,
+    pm_fund_portfolio, pm_fund_category_description
+  )) %>%
+  select(start_date, end_date, n_qtrs, irrs) %>%
+  unnest(cols = c(irrs)) %>%
+  mutate(itd = FALSE)
+
+categs_itd = date_ranges %>%
+  mutate(itd = TRUE, nav_daily = list(nav_daily),
+         cf_daily = list(cf_daily), bench_daily = list(bench_daily),
+         bench_relationships = list(bench_relationships),
+         pmfi = list(pmfi)) %>%
+  mutate(irrs = pmap(
+    .l = list(start_date,
+              end_date,
+              itd,
+              nav_daily,
+              cf_daily,
+              bench_daily,
+              bench_relationships,
+              pmfi),
+    .f = calc_all,
+    pm_fund_portfolio, pm_fund_category_description
+  )) %>%
+  select(start_date, end_date, n_qtrs, irrs) %>%
+  unnest(cols = c(irrs)) %>%
+  mutate(itd = TRUE, start_date = NA, end_date = as_date(end_date), n_qtrs = NA)
+
+categs = bind_rows(categs_qtrs, categs_itd)
+#saveRDS(categs, 'categories.rds')
+#write_csv(categs, 'pm_fund_category_description.csv')
+
+
+
+
+funds_qtrs = date_ranges %>%
+  mutate(itd = FALSE, nav_daily = list(nav_daily),
+         cf_daily = list(cf_daily), bench_daily = list(bench_daily),
+         bench_relationships = list(bench_relationships),
+         pmfi = list(pmfi)) %>%
+  mutate(irrs = pmap(
+    .l = list(start_date,
+              end_date,
+              itd,
+              nav_daily,
+              cf_daily,
+              bench_daily,
+              bench_relationships,
+              pmfi),
+    .f = calc_all,
+    pm_fund_portfolio, pm_fund_category_description, pm_fund_id
+  )) %>%
+  select(start_date, end_date, n_qtrs, irrs) %>%
+  unnest(cols = c(irrs)) %>%
+  mutate(itd = FALSE)
+
+funds_itd = date_ranges %>%
+  mutate(itd = TRUE, nav_daily = list(nav_daily),
+         cf_daily = list(cf_daily), bench_daily = list(bench_daily),
+         bench_relationships = list(bench_relationships),
+         pmfi = list(pmfi)) %>%
+  mutate(irrs = pmap(
+    .l = list(start_date,
+              end_date,
+              itd,
+              nav_daily,
+              cf_daily,
+              bench_daily,
+              bench_relationships,
+              pmfi),
+    .f = calc_all,
+    pm_fund_portfolio, pm_fund_category_description, pm_fund_id
+  )) %>%
+  select(start_date, end_date, n_qtrs, irrs) %>%
+  unnest(cols = c(irrs)) %>%
+  mutate(itd = TRUE, start_date = NA, end_date = as_date(end_date), n_qtrs = NA)
+
+funds = bind_rows(funds_qtrs, funds_itd)
+#saveRDS(funds, 'funds.rds')
+#write_csv(funds, 'pm_fund_id.csv')
+
+
+all_private_market_calcs = ports %>%
+  mutate(pm_fund_category_description = NA, pm_fund_id = NA) %>%
+  bind_rows(categs %>% mutate(pm_fund_id = NA)) %>%
+  bind_rows(funds)
+saveRDS(all_private_market_calcs, 'all_private_market_calcs')
+write_csv(all_private_market_calcs, 'all_private_market_calcs.csv')
+```
+
+### All calculations, raw
+```{r}
+all_private_market_calcs %>% 
+  tbl_out()
+```
+
+
+### Data from value date
+```{r}
+all_private_market_calcs %>%
+  filter(end_date == valdate) %>%
+  tbl_out()
+```
+
+### Data by portfolio
+```{r}
+all_private_market_calcs %>%
+  filter(end_date == valdate,
+         is.na(pm_fund_category_description),
+         is.na(pm_fund_id)) %>%
+  select(pm_fund_portfolio, n_qtrs, irr) %>%
+  pivot_wider(names_from = n_qtrs, values_from = irr)
+  
+```
+
+
