@@ -127,13 +127,6 @@ calc_irr_from_df = function(df){
 #' @export
 calc_tvpi = function(distributions, contributions, nav){
 
-  if(sum(contributions == 0)){
-    contributions[1] = -1*abs(nav[1])
-  }
-  if(sum(distributions == 0)){
-    distributions[1] = abs(nav[2])
-  }
-
   dat = sum(distributions + nav) / sum(abs(contributions))
   return(dat)
 }
@@ -170,13 +163,6 @@ calc_appreciation = function(cash_flow, nav){
 #' @param fv_index_factors are a c() of future value data points based off of index value divided by first index value (i.e. 1.18, 1.11, 1.05, 1.00)
 #' @export
 calc_pme = function(distributions, contributions, nav, fv_index_factors){
-
-  if(sum(contributions == 0)){
-    contributions[1] = -1*abs(nav[1])
-  }
-  if(sum(distributions == 0)){
-    distributions[1] = abs(nav[2])
-  }
 
   total_fv_distributions = sum((distributions * fv_index_factors) + nav)
   total_fv_contributions = abs(sum(contributions * fv_index_factors))
