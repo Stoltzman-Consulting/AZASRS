@@ -82,7 +82,7 @@ calc_all = function(start_date, end_date, itd,
   # Gather NAV, CF and filter
   cf_daily_prep = cf_daily %>%
     filter(effective_date >= start_date,
-           effective_date < end_date) %>%
+           effective_date <= end_date) %>%
     mutate(nav = 0)
   nav_daily_prep = nav_daily %>%
     filter(effective_date == start_date | effective_date == end_date) %>%
@@ -167,7 +167,7 @@ calc_all = function(start_date, end_date, itd,
 ```
 
 ```{r all_data, message=FALSE, warning=FALSE, include=FALSE}
-start_date = '2019-06-30'
+# start_date = '2019-06-30'
 # test_results = calc_all(start_date = start_date,
 #                         end_date = end_date,
 #                         itd = FALSE,
@@ -188,6 +188,10 @@ for(i in c(1, 4, 12, 20, 40)){
     mutate(n_qtrs = i)
   date_ranges = bind_rows(date_ranges, date_range)
 }
+
+date_range_itd = date_range = build_lagged_date_range_df(start_date = '2004-06-30',
+                                          end_date = end_date, n_qtrs = 1) %>%
+  mutate(n_qtrs = 1)
 
 ports_qtrs = date_ranges %>%
   mutate(itd = FALSE, nav_daily = list(nav_daily),
@@ -210,7 +214,7 @@ ports_qtrs = date_ranges %>%
   unnest(cols = c(irrs)) %>%
   mutate(itd = FALSE)
 
-ports_itd = date_ranges %>%
+ports_itd = date_range_itd %>%
   mutate(itd = TRUE, nav_daily = list(nav_daily),
          cf_daily = list(cf_daily), bench_daily = list(bench_daily),
          bench_relationships = list(bench_relationships),
@@ -259,7 +263,7 @@ categs_qtrs = date_ranges %>%
   unnest(cols = c(irrs)) %>%
   mutate(itd = FALSE)
 
-categs_itd = date_ranges %>%
+categs_itd = date_range_itd %>%
   mutate(itd = TRUE, nav_daily = list(nav_daily),
          cf_daily = list(cf_daily), bench_daily = list(bench_daily),
          bench_relationships = list(bench_relationships),
@@ -308,7 +312,7 @@ funds_qtrs = date_ranges %>%
   unnest(cols = c(irrs)) %>%
   mutate(itd = FALSE)
 
-funds_itd = date_ranges %>%
+funds_itd = date_range_itd %>%
   mutate(itd = TRUE, nav_daily = list(nav_daily),
          cf_daily = list(cf_daily), bench_daily = list(bench_daily),
          bench_relationships = list(bench_relationships),
@@ -363,7 +367,8 @@ all_private_market_calcs %>%
          is.na(pm_fund_category_description),
          is.na(pm_fund_id)) %>%
   select(pm_fund_portfolio, n_qtrs, irr) %>%
-  pivot_wider(names_from = n_qtrs, values_from = irr)
+  pivot_wider(names_from = n_qtrs, values_from = irr) %>% 
+  tbl_out()
   
 ```
 
