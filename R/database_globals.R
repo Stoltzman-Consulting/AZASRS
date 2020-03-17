@@ -46,7 +46,7 @@ AZASRS_DATABASE_CONNECTION = function(development = 0){
         print('Database will start up momentarily (sleeps when there is inactivity over 24 hours).
               Following error was thrown:')
         print(e)
-        UPDATE_DATABASE('constants.csv')
+        # UPDATE_DATABASE('constants.csv')
         DBI::dbConnect(odbc::odbc(),
                        Driver   = driverName,
                        Server   = Sys.getenv('SERVER'),
