@@ -34,7 +34,7 @@ AZASRS_DATABASE_CONNECTION = function(development = 0){
     username = Sys.info()[6]
     if(os == "Darwin"){driverName <- "ODBC Driver 17 for SQL Server"}
     else if(os == "Windows"){driverName <- "SQL Server"}
-    else if(os == "Linux" & username == "asrsadmin"){driverName <- "ODBC Driver 17 for SQL Server"}
+    else if(os == "Linux" & username == "asrsadmin"){driverName <- "SQL Server"}
     else{driverName <- "SQLServer"}
     tryCatch({
       connection = DBI::dbConnect(odbc::odbc(),
