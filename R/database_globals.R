@@ -19,17 +19,30 @@ AZASRS_TEST_DATA_DIRECTORY = './tests/testthat/data/'
 #'        as_tibble()
 #' AZASRS_DATABASE_DISCONNECT(con)
 #' @export
-AZASRS_DATABASE_CONNECTION = function(){
-    #detect OS & set driver
+AZASRS_DATABASE_CONNECTION = function(development = 0){
+
+    # Development will utilize a different database in order to be replicated
+    if(development){
+      print('[FYI] - You are utilizing the DEVELOPMENT database.')
+      database = Sys.getenv('DATABASE_DEVELOPMENT')
+    } else{
+      database = Sys.getenv('DATABASE')
+      }
+
+    #Detect OS & Set Driver (important for Windows, Shiny/Linux, Mac)
     os <- Sys.info()[1]
-    if(os == "Darwin" | os == "Linux"){driverName <- "ODBC Driver 17 for SQL Server"}
+    username = Sys.info()[6]
+    if(os == "Darwin"){driverName <- "ODBC Driver 17 for SQL Server"}
     else if(os == "Windows"){driverName <- "SQL Server"}
+    else if(os == "Linux" & username == "asrsadmin"){
+      driverName <- "ODBC Driver 17 for SQL Server"
+      }
     else{driverName <- "SQLServer"}
     tryCatch({
       connection = DBI::dbConnect(odbc::odbc(),
                                  Driver   = driverName,
                                  Server   = Sys.getenv('SERVER'),
-                                 Database = Sys.getenv('DATABASE'),
+                                 Database = database,
                                  UID      = Sys.getenv('UID'),
                                  PWD      = Sys.getenv('PWD'),
                                  Port     = Sys.getenv('PORT'))},
@@ -37,11 +50,11 @@ AZASRS_DATABASE_CONNECTION = function(){
         print('Database will start up momentarily (sleeps when there is inactivity over 24 hours).
               Following error was thrown:')
         print(e)
-        UPDATE_DATABASE('constants.csv')
+        # UPDATE_DATABASE('constants.csv')
         DBI::dbConnect(odbc::odbc(),
                        Driver   = driverName,
                        Server   = Sys.getenv('SERVER'),
-                       Database = Sys.getenv('DATABASE'),
+                       Database = database,
                        UID      = Sys.getenv('UID'),
                        PWD      = Sys.getenv('PWD'),
                        Port     = Sys.getenv('PORT'))
@@ -55,21 +68,42 @@ AZASRS_DATABASE_CONNECTION = function(){
 #' @examples
 #' UPDATE_DATABASE('pm_fund_info.csv')
 #' @export
-UPDATE_DATABASE = function(filename, local = FALSE){
-  request_url = paste0('https://populate-database.azurewebsites.net/api/HttpTrigger?code=', Sys.getenv('ASRS_FUNCTIONS_CODE'),
+UPDATE_DATABASE = function(filename, development = 0, local_azure_functions = FALSE){
+
+  # Force user to decide if they want to modify things in production or development
+  if(!development){
+    x = readline(
+    "[WARNING] - You are attempting to modify the PRODUCTION database.\n
+    Modifying the DEVELOPMENT database is preferred to avoid data integrity issues.\n
+    Do you wish to proceed to modify the PRODUCTION database? (y / n)"
+    )
+
+  if(x == 'y'){
+      development = 0
+    } else if (x == 'n'){
+      development = 1
+    }
+      else{
+      stop('You must choose y or n!')
+      }
+  }
+
+  # Allow for local func host run --python to populate DB
+  if(local_azure_functions){
+    print("[FYI] - Utilizing local Azure Functions Server.")
+    uri = 'http://localhost:7071/api/PopulateDB?code='
+  } else {
+    uri = 'https://azasrs-populate-database.azurewebsites.net/api/PopulateDB?code='
+  }
+
+  request_url = paste0(uri,
+                       Sys.getenv('ASRS_FUNCTIONS_CODE'),
                        '&username=', Sys.getenv('UID'),
                        '&password=', Sys.getenv('PWD'),
                        '&account_name=asrs',
-                       '&account_key=', Sys.getenv('ASRS_FUNCTIONS_KEY'),
-                       '&filename=', filename)
-
-  if(local){request_url = paste0('http://localhost:7071/api/HttpTrigger?code=', Sys.getenv('ASRS_FUNCTIONS_CODE'),
-                                 '&username=', Sys.getenv('ASRS_USER'),
-                                 '&password=', Sys.getenv('ASRS_PASSWORD'),
-                                 '&account_name=asrs',
-                                 '&account_key=', Sys.getenv('ASRS_FUNCTIONS_KEY'),
-                                 '&filename=', filename,
-                                 '&local=True')}
+                       '&account_key=', Sys.getenv('ASRS_BLOB_KEY'),
+                       '&filename=', filename,
+                       '&development=', development)
 
   print('Attempting to GET URL: ')
   print(request_url)
@@ -88,7 +122,7 @@ UPDATE_DATABASE = function(filename, local = FALSE){
 #' @examples
 #' UPDATE_DATABASE('pm_fund_info.csv')
 #' @export
-INITIAL_DATABASE_POPULATION = function(local = FALSE){
+INITIAL_DATABASE_POPULATION = function(development = 0, local_azure_functions = FALSE){
   files = c('constants.csv',
             'pm_fund_info.csv',
             'pm_fund_cash_flow_daily.csv',
@@ -111,11 +145,7 @@ INITIAL_DATABASE_POPULATION = function(local = FALSE){
   n_fail = c()
 
   for(f in files){
-    if(local){
-      r = UPDATE_DATABASE(f, local=TRUE)
-      } else{
-        r = UPDATE_DATABASE(f)
-         }
+    r = UPDATE_DATABASE(f, development = development, local_azure_functions = local_azure_functions)
 
     if(r$status_code == 200){
       n_succeed = c(n_succeed, f)
@@ -155,6 +185,43 @@ INITIAL_DATABASE_POPULATION = function(local = FALSE){
 #' AZASRS_DATABASE_DISCONNECT(con)
 #' @export
 AZASRS_DATABASE_DISCONNECT = function(con){ DBI::dbDisconnect(conn = con) }
+
+
+
+# Copy and rename database from development to production
+# @description Wipes current production database and replaces with development DB
+# @export
+# AZASRS_DATABASE_DROP_AND_CLONE = function(con_development, con_production){
+#
+#   x = readline(
+#     "[WARNING] - You are about to destroy the PRODUCTION database? \n This has SERIOUS consequences. \n Do you still wish to proceed? (yes_i_wish_to_proceed / n)"
+#   )
+#
+#   if(x == 'yes_i_wish_to_proceed'){
+#
+#     # Check database connections:
+#     if(con_development@info$dbname != 'asrs_development'){ return(print('Development database is not being passed correctly')) }
+#     if(con_production@info$dbname != 'asrs'){ return(print('Production database is not being passed correctly')) }
+#
+#     print("Backing up the asrs database")
+#     DBI::dbSendQuery(con_development, "CREATE DATABASE asrs_backup AS COPY OF asrs;")
+#
+#     print("Backing up the asrs_development database")
+#     DBI::dbSendQuery(con_production, "CREATE DATABASE asrs_development_backup AS COPY OF asrs_development;")
+#
+#     print("Dropping the asrs database")
+#     DBI::dbSendQuery(con_development, "DROP DATABASE asrs;")
+#
+#     print("Copying the development database into production")
+#     DBI::dbSendQuery(con_development, "CREATE DATABASE asrs AS COPY OF asrs_development;")
+#
+#     return(print("You have successfully cloned the development database into production."))
+#   }
+#
+#   return(print("Thank you for not altering the database."))
+#
+#   }
+
 
 
 #' Get value date

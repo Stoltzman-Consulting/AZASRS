@@ -4,7 +4,7 @@
 \alias{UPDATE_DATABASE}
 \title{Updates database with AZURE files}
 \usage{
-UPDATE_DATABASE(filename, local = FALSE)
+UPDATE_DATABASE(filename, development = 0, local_azure_functions = FALSE)
 }
 \description{
 To be used with individual files. Note: the first connection takes a long time to spin up the server, then should work quickly if more files are necessary.
