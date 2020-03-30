@@ -15,6 +15,19 @@ calc_previous_year_qtr = function(end_date = get_value_date(), years = 0, qtrs =
 }
 
 
+#' Calculate a future quarter date
+#'
+#' @description Calculate any quarter in the future (via # of quarters)
+#' @param start_date is a string (format yyyy-dd-mm)
+#' @param n is the number of quarters to add
+#' @export
+calc_add_qtrs <- function(start_date, n) {
+  lubridate::parse_date_time(start_date, c("ymd", "mdy", "dmy")) %>%
+    lubridate::ceiling_date("quarters", change_on_boundary = T) %m+% months(n * 3) %>%
+    lubridate::ymd() - days(1)
+}
+
+
 #' @export
 tibble_to_zoo_list = function(tibb, omit_na = TRUE){
   listify = function(x){
@@ -43,7 +56,14 @@ filled_list_of_dates = function(start_date = '1969-12-31', end_date = get_value_
 
   if(is.na(!match(substring(start_date, 5), quarter_ends)) | is.na(!match(substring(end_date, 5), quarter_ends))){
     warning(paste0('Your start_date or end_date needs to end in one of the following ', quarter_ends))
-    break
+
+    start_date = lubridate::as_date(start_date)
+    end_date = lubridate::as_date(end_date) + lubridate::days(1) # add 1 to include end_date in results
+    date_seq = seq(start_date, end_date, by = time_delta)
+    final_dates = tibble::tibble(date = date_seq) %>%
+      dplyr::mutate(date = lubridate::round_date(date, unit = 'quarters') - lubridate::days(1)) %>% #round dates to fix
+      dplyr::arrange(date) %>%
+      dplyr::rename(effective_date = date)
   }
 
   start_date = lubridate::as_date(start_date)
