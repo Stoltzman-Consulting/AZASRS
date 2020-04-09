@@ -11,7 +11,8 @@ build_grouped_irrs(
   end_date = get_value_date(con = con),
   time_delta = "quarters",
   n_qtrs = 4,
-  itd = FALSE
+  itd = FALSE,
+  cash_adjusted = FALSE
 )
 }
 \arguments{
