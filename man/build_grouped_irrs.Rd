@@ -2,35 +2,28 @@
 % Please edit documentation in R/build_grouped_irrs.R
 \name{build_grouped_irrs}
 \alias{build_grouped_irrs}
-\title{Build a tibble of rolling IRRs by any grouping}
+\title{Create rollup of IRR based off of dates}
 \usage{
-build_grouped_irrs(
-  ...,
-  con = AZASRS::AZASRS_DATABASE_CONNECTION(),
-  start_date = "2017-12-31",
-  end_date = get_value_date(con = con),
-  time_delta = "quarters",
-  n_qtrs = 4,
-  itd = FALSE,
-  cash_adjusted = FALSE
-)
+build_grouped_irrs(start_date, end_date, itd, cash_adjusted, pm_fund_info, ...)
 }
 \arguments{
-\item{...}{grouping variables (pm_fund_id, pm_fund_portfolio, etc.)}
+\item{...}{aggregation choices from from pm_fund_info (i.e. pm_fund_portfolio, pm_fund_category, pm_fund_id)}
 
-\item{start_date}{is first date}
-
-\item{end_date}{is last date}
-
-\item{time_delta}{is type of lag (quarters or years)}
-
-\item{n_qtrs}{is how far back the lookback window should be (4 = 1 year, 20 = 5 years if time_delta is quarters)}
-
-\item{itd}{whether or not you would like to have an ITD variable appended}
-}
-\value{
-Returns a tibble with grouping variables and all of their respective metrics
+\item{.data}{is from clean_nav_cf()}
 }
 \description{
-Build a tibble of rolling IRRs by any grouping
+Build IRR for any rollup and date range, including ITD and cash adjusted
+}
+\examples{
+# Example use case
+nav = get_pm_nav_daily() \%>\% dplyr::filter(nav != 0)
+cf = get_pm_cash_flow_daily() \%>\% dplyr::filter(cash_flow != 0)
+pm_fund_info = get_pm_fund_info()
+start_date = '2019-09-30'
+end_date = '2019-12-31'
+itd = FALSE
+cash_adjusted = FALSE
+final_data = my_calcs(start_date = start_date, end_date = end_date, itd = itd,
+                      cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info,
+                      pm_fund_portfolio, pm_fund_category_description)
 }
