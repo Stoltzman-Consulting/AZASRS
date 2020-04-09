@@ -1,4 +1,21 @@
 
+#' Test ... for rollup
+#'
+#' @description TRUE is NOT a rollup, FALSE is a rollup (i.e. grouped beyond fund_id)
+#' @param start_date is a string (format yyyy-dd-mm)
+#' @param years is the number of years to subract (integer)
+#' @param qtrs is the number of quarters to subract (integer)
+#' @export
+test_is_not_rollup <- function(...) {
+  # Helper function for determing whether or not data is rolled up
+  # A TRUE response means that it will not be rolled up
+  any(c("pm_fund_id", "pm_fund_description", "pm_fund_common_name") %in% c(
+    rlang::enquos(...) %>%
+      purrr::map(rlang::quo_name) %>%
+      unlist()
+  ))
+}
+
 #' Calculate previous year and quarter
 #'
 #' @description Subracts years and quarters to simplify calculations
