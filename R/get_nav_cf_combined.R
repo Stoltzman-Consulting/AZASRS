@@ -2,9 +2,7 @@ library(AZASRS)
 #library(lubridate)
 #library(tidyverse)
 
-nav = get_pm_nav_daily() %>% dplyr::filter(nav != 0)
-cf = get_pm_cash_flow_daily() %>% dplyr::filter(cash_flow != 0)
-pm_fund_info = get_pm_fund_info()
+
 
 # Internal funcs only
 test_is_not_rollup <- function(...) {
@@ -73,12 +71,66 @@ get_cf_between_dates = function(.data, start_date, end_date, itd){
 }
 
 
-merge_nav_and_cf = function(.nav_data, .cf_data){
+
+merge_nav_and_cf = function(.nav_data, .cf_data, end_date, cash_adjusted, pm_fund_info){
   # Combines nav and cash flow creating an adjusted column to combine them
   # Adds a has_reported field to use as a filter later on
-  nav_cf_combined = dplyr::union_all(.nav_data %>% dplyr::mutate(cash_flow = 0),
-                                     .cf_data %>% dplyr::mutate(nav = 0))
-}
+  .nav_data = .nav_data %>% dplyr::mutate(cash_flow = 0)
+  .cf_data = .cf_data %>% dplyr::mutate(nav = 0)
+
+  if(!cash_adjusted){
+    .nav_data = .nav_data %>%
+      dplyr::filter(has_reported)
+
+    funds_reported = .nav_data %>%
+      dplyr::select(pm_fund_id) %>%
+      dplyr::pull()
+
+    .cf_data = .cf_data %>%
+      dplyr::filter(pm_fund_id %in% funds_reported)
+
+    return(dplyr::union_all(.nav_data, .cf_data))
+
+  } else{
+    # Find out which funds haven't reported
+    funds_not_reported_data = .nav_data %>%
+      dplyr::filter(!has_reported)
+
+    # Pull only names not reported
+    funds_not_reported_names = funds_not_reported_data %>%
+      dplyr::select(pm_fund_id) %>%
+      dplyr::pull()
+
+
+    # Filter names to extract cash flows
+    # Replace all dates with end date
+    # Reverse sign to signal increase in NAV
+    # Bind rows to previous NAV to adjust
+    cf_as_nav = .cf_data %>%
+      dplyr::filter(pm_fund_id %in% funds_not_reported_names) %>%
+      dplyr::mutate(nav = -1*cash_flow) %>%
+      dplyr::select(-cash_flow) %>%
+      dplyr::mutate(effective_date = lubridate::as_date(end_date)) %>%
+      dplyr::bind_rows(funds_not_reported_data %>% dplyr::mutate(effective_date = lubridate::as_date(end_date), nav = -1*nav)) %>%
+      dplyr::group_by(pm_fund_id, effective_date) %>%
+      dplyr::summarize(nav = sum(nav)) %>%
+      dplyr::ungroup() %>%
+      dplyr::mutate(cash_flow = 0) %>%
+      dplyr::left_join(pm_fund_info, by = 'pm_fund_id')
+
+
+    # append cash adjusted nav to not reported nav
+    .nav_data = .nav_data %>% bind_rows(cf_as_nav)
+
+    print(.nav_data %>% filter(pm_fund_id == 'AveAZ') %>% select(pm_fund_id, effective_date, cash_flow, nav))
+    print(.cf_data %>% filter(pm_fund_id == 'AveAZ') %>% select(pm_fund_id, effective_date, cash_flow, nav))
+    print(dplyr::union_all(.nav_data, .cf_data) %>% filter(pm_fund_id == 'AveAZ') %>% select(pm_fund_id, effective_date, cash_flow, nav))
+
+    return(dplyr::union_all(.nav_data, .cf_data))
+    }
+
+  }
+
 
 
 filter_dates = function(.data, start_date, end_date, itd, ...){
@@ -96,6 +148,10 @@ filter_dates = function(.data, start_date, end_date, itd, ...){
   }
   return(.data)
 }
+
+
+
+
 
 
 clean_nav_cf = function(.data, pm_fund_info){
@@ -126,7 +182,7 @@ calculate_grouped_irr = function(.data, ...){
 
 ##################usage
 
-my_calcs = function(start_date, end_date, itd, pm_fund_info, ...){
+my_calcs = function(start_date, end_date, itd, cash_adjusted, pm_fund_info, ...){
 
   # itd failsafe
   if(itd){
@@ -141,7 +197,7 @@ my_calcs = function(start_date, end_date, itd, pm_fund_info, ...){
   cf1 = cf %>%
     get_cf_between_dates(start_date = start_date, end_date = end_date, itd = itd)
 
-  clean_data = merge_nav_and_cf(nav1, cf1) %>%
+  clean_data = merge_nav_and_cf(nav1, cf1, end_date = end_date, cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info) %>%
     filter_dates(start_date = start_date, end_date = end_date, itd = itd, ...) %>%
     clean_nav_cf(pm_fund_info = pm_fund_info)
 
@@ -149,9 +205,18 @@ my_calcs = function(start_date, end_date, itd, pm_fund_info, ...){
     calculate_grouped_irr(...)
   }
 
-# start_date = '2019-06-30'
-# end_date = '2019-09-30'
-# itd = FALSE
-# d = my_calcs(start_date = start_date, end_date = end_date, itd = itd, pm_fund_info = pm_fund_info,
-#          pm_fund_portfolio, pm_fund_category_description)
 
+nav = get_pm_nav_daily() %>% dplyr::filter(nav != 0)
+cf = get_pm_cash_flow_daily() %>% dplyr::filter(cash_flow != 0)
+pm_fund_info = get_pm_fund_info()
+
+start_date = '2019-09-30'
+end_date = '2019-12-31'
+itd = FALSE
+cash_adjusted = TRUE
+
+d = my_calcs(start_date = start_date, end_date = end_date, itd = itd,
+             cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info,
+         pm_fund_portfolio, pm_fund_category_description)
+
+d
