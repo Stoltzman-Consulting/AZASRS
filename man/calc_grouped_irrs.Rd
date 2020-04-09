@@ -9,7 +9,8 @@ calc_grouped_irrs(
   con = AZASRS_DATABASE_CONNECTION(),
   start_date = "2017-12-31",
   end_date = get_value_date(con = con),
-  itd = FALSE
+  itd = FALSE,
+  cash_adjusted = FALSE
 )
 }
 \arguments{
