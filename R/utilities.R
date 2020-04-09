@@ -80,3 +80,45 @@ filled_list_of_dates = function(start_date = '1969-12-31', end_date = get_value_
 #' @export
 default_benchmark_lookup = tibble::tibble(pm_fund_portfolio = c("Credit", "PE",   "RE"),
                                           benchmark_id = c("ODCE",   "R2K-ACWI", "LSTA+250"))
+
+
+#' @export
+calc_fytd_metadata = function(end_date){
+  if(stringr::str_detect(end_date, '-06-30')){
+    start_date = calc_add_qtrs(end_date, -4)
+    n_qtrs = 4
+  } else if(stringr::str_detect(end_date, '-09-30')){
+    start_date = calc_add_qtrs(end_date, -1)
+    n_qtrs = 1
+  } else if(stringr::str_detect(end_date, '-12-31')){
+    start_date = calc_add_qtrs(end_date, -2)
+    n_qtrs = 2
+  } else if(stringr::str_detect(end_date, '-03-31')){
+    start_date = calc_add_qtrs(end_date, -3)
+    n_qtrs = 3
+  } else{
+    stop("get_fytd_metadata error: your date does not match a quarter end")
+  }
+  return(list(start_date = start_date, n_qtrs = n_qtrs))
+}
+
+
+#' @export
+calc_cytd_metadata = function(end_date){
+  if(stringr::str_detect(end_date, '-12-31')){
+    start_date = calc_add_qtrs(end_date, -4)
+    n_qtrs = 4
+  } else if(stringr::str_detect(end_date, '-03-31')){
+    start_date = calc_add_qtrs(end_date, -1)
+    n_qtrs = 1
+  } else if(stringr::str_detect(end_date, '-06-30')){
+    start_date = calc_add_qtrs(end_date, -2)
+    n_qtrs = 2
+  } else if(stringr::str_detect(end_date, '-09-30')){
+    start_date = calc_add_qtrs(end_date, -3)
+    n_qtrs = 3
+  } else{
+    stop("get_fytd_metadata error: your date does not match a quarter end")
+  }
+  return(list(start_date = start_date, n_qtrs = n_qtrs))
+}
