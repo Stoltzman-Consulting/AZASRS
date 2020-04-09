@@ -2,9 +2,7 @@
 #' Test ... for rollup
 #'
 #' @description TRUE is NOT a rollup, FALSE is a rollup (i.e. grouped beyond fund_id)
-#' @param start_date is a string (format yyyy-dd-mm)
-#' @param years is the number of years to subract (integer)
-#' @param qtrs is the number of quarters to subract (integer)
+#' @param ... should be a column title from pm_fund_info (or multiple)
 #' @export
 test_is_not_rollup <- function(...) {
   # Helper function for determing whether or not data is rolled up
