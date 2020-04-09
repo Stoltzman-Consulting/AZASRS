@@ -11,9 +11,9 @@
 #' end_date = '2019-12-31'
 #' itd = FALSE
 #' cash_adjusted = FALSE
-#' final_data = my_calcs(start_date = start_date, end_date = end_date, itd = itd,
-#'                       cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info,
-#'                       pm_fund_portfolio, pm_fund_category_description)
+#' final_data = build_grouped_irrs(start_date = start_date, end_date = end_date, itd = itd,
+#'                                 cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info,
+#'                                 pm_fund_portfolio, pm_fund_category_description)
 #' @export
 build_grouped_irrs = function(start_date, end_date, itd, cash_adjusted, pm_fund_info, ...){
 
@@ -25,10 +25,10 @@ build_grouped_irrs = function(start_date, end_date, itd, cash_adjusted, pm_fund_
   nav_prep = nav %>%
     filter_nav_on_dates(start_date = start_date, end_date = end_date, itd = itd) %>%
     append_nav_has_reported(end_date = end_date) %>%
-    convert_start_date_nav_to_negative(start_date = start_date, itd = itd)
+    convert_start_date_nav_to_negative(start_date = start_date)
 
   cf_prep = cf %>%
-    get_cf_between_dates(start_date = start_date, end_date = end_date, itd = itd)
+    filter_cf_between_dates(start_date = start_date, end_date = end_date, itd = itd)
 
   clean_data = merge_nav_and_cf(nav_prep, cf_prep, end_date = end_date, cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info) %>%
     filter_dates(start_date = start_date, end_date = end_date, itd = itd, ...) %>%

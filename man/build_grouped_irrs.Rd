@@ -23,7 +23,7 @@ start_date = '2019-09-30'
 end_date = '2019-12-31'
 itd = FALSE
 cash_adjusted = FALSE
-final_data = my_calcs(start_date = start_date, end_date = end_date, itd = itd,
-                      cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info,
-                      pm_fund_portfolio, pm_fund_category_description)
+final_data = build_grouped_irrs(start_date = start_date, end_date = end_date, itd = itd,
+                                cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info,
+                                pm_fund_portfolio, pm_fund_category_description)
 }
