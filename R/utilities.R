@@ -97,6 +97,10 @@ default_benchmark_lookup = tibble::tibble(pm_fund_portfolio = c("Credit", "PE", 
                                           benchmark_id = c("ODCE",   "R2K-ACWI", "LSTA+250"))
 
 
+#' Find most recent FYTD compared to end_date
+#'
+#' @description Function returns fiscal year to date start date and number of quarters
+#' @param end_date 'yyyy-mm-dd' where start_date and n_qtrs will be calculated
 #' @export
 calc_fytd_metadata = function(end_date){
   if(stringr::str_detect(end_date, '-06-30')){
@@ -118,6 +122,10 @@ calc_fytd_metadata = function(end_date){
 }
 
 
+#' Find most recent CYTD compared to end_date
+#'
+#' @description Function returns calendar year to date start date and number of quarters
+#' @param end_date 'yyyy-mm-dd' where start_date and n_qtrs will be calculated
 #' @export
 calc_cytd_metadata = function(end_date){
   if(stringr::str_detect(end_date, '-12-31')){
