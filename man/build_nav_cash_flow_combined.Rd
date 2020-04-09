@@ -12,6 +12,7 @@ build_nav_cash_flow_combined(
   nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE),
   cash_flow_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),
   itd = FALSE,
+  cash_adjusted = FALSE,
   return_tibble = FALSE
 )
 }
