@@ -11,6 +11,9 @@ install:
   - R -e "0" --args --bootstrap-packrat
   - R -e "packrat::restore(restart = FALSE)"
 
+r_packages:
+  - covr
+
 cache:
   directories:
     - $TRAVIS_BUILD_DIR/packrat/src
@@ -18,7 +21,4 @@ cache:
   packages: true
 
 script:
-  - pytest --cov=./
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  -

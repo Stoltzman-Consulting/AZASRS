@@ -32,7 +32,7 @@ AZASRS_DATABASE_CONNECTION = function(development = 0){
     #Detect OS & Set Driver (important for Windows, Shiny/Linux, Mac)
     os <- Sys.info()[1]
     username = Sys.info()[6]
-    if(os == "Darwin"){driverName <- "ODBC Driver 17 for SQL Server"}
+    if(os == "Darwin" | os == "mac"){driverName <- "ODBC Driver 17 for SQL Server"}
     else if(os == "Windows"){driverName <- "SQL Server"}
     else if(os == "Linux" & username == "asrsadmin"){
       driverName <- "ODBC Driver 17 for SQL Server"
