@@ -20,7 +20,6 @@ AZASRS_TEST_DATA_DIRECTORY = './tests/testthat/data/'
 #' AZASRS_DATABASE_DISCONNECT(con)
 #' @export
 AZASRS_DATABASE_CONNECTION = function(development = 0){
-
     # Development will utilize a different database in order to be replicated
     if(development){
       print('[FYI] - You are utilizing the DEVELOPMENT database.')

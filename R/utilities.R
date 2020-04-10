@@ -37,9 +37,9 @@ calc_previous_year_qtr = function(end_date = get_value_date(), years = 0, qtrs =
 #' @param n is the number of quarters to add
 #' @export
 calc_add_qtrs <- function(start_date, n) {
-  lubridate::parse_date_time(start_date, c("ymd", "mdy", "dmy")) %>%
-    lubridate::ceiling_date("quarters", change_on_boundary = T) %m+% months(n * 3) %>%
-    lubridate::ymd() - days(1)
+    lubridate::`%m+%`(lubridate::parse_date_time(start_date, c("ymd", "mdy", "dmy")) %>% lubridate::ceiling_date("quarters", change_on_boundary = T),
+                      months(n * 3)) %>%
+    lubridate::ymd() - lubridate::days(1)
 }
 
 
