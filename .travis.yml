@@ -18,4 +18,4 @@ cache:
   packages: true
 
 script:
-  - Rscript run_tests.R
+  - Rscript -e 'testthat::test_dir("tests")'
