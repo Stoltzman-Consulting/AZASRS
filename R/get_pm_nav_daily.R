@@ -8,7 +8,8 @@
 get_pm_nav_daily = function(con = AZASRS_DATABASE_CONNECTION(), return_tibble = TRUE){
 
   dat = tbl_pm_fund_nav_daily(con = con) %>%
-    dplyr::left_join(tbl_view_all_pm_fund_info(con = con), by = 'pm_fund_info_id')
+    dplyr::left_join(tbl_view_all_pm_fund_info(con = con), by = 'pm_fund_info_id') %>%
+    dplyr::mutate(effective_date = as.Date(effective_date))
 
   if(return_tibble){
     return(dat %>% tibble::as_tibble())
