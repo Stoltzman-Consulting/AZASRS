@@ -21,4 +21,4 @@ cache:
   packages: true
 
 script:
-  -
+  - Rscript run_tests.R
