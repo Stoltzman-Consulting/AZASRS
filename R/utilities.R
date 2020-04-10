@@ -44,28 +44,6 @@ calc_add_qtrs <- function(start_date, n) {
 
 
 #' @export
-tibble_to_zoo_list = function(tibb, omit_na = TRUE){
-  listify = function(x){
-    ts_list = list()
-    columns = colnames(x)
-    for(i in 2:ncol(x)){
-      if(omit_na == TRUE){
-        ts_list[[columns[i]]] = x[,i] %>% na.omit()
-      }
-      else{
-        ts_list[[columns[i]]] = x[,i]
-      }
-    }
-    return(ts_list)
-  }
-  dat = tibb %>%
-    tsbox::ts_zoo() %>%
-    listify()
-  return(dat)
-}
-
-
-#' @export
 filled_list_of_dates = function(start_date = '1969-12-31', end_date = get_value_date(), time_delta = 'quarters'){
   quarter_ends = c('-03-31', '-06-30', '-09-30', '-12-31') # ensure dates land on proper NAV dates
 
