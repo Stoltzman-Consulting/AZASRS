@@ -18,4 +18,5 @@ cache:
   packages: true
 
 script:
+  - Rscript -e 'install.packages("devtools")'
   - Rscript -e 'devtools::test()'
