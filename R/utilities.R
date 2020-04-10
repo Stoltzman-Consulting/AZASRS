@@ -123,3 +123,8 @@ calc_cytd_metadata = function(end_date){
   }
   return(list(start_date = start_date, n_qtrs = n_qtrs))
 }
+
+#' @export
+tibble_to_zoo_list = function(){
+  print('hi')
+}
