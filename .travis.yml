@@ -18,4 +18,4 @@ cache:
   packages: true
 
 script:
-  - Rscript -e 'testthat::test_dir("tests")'
+  - Rscript -e 'devtools::test()'
