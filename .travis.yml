@@ -1,0 +1,24 @@
+language: r
+r:
+  - oldrel
+  - release
+  - devel
+
+apt_packages:
+  - libxml2-dev
+
+install:
+  - R -e "0" --args --bootstrap-packrat
+  - R -e "packrat::restore(restart = FALSE)"
+
+cache:
+  directories:
+    - $TRAVIS_BUILD_DIR/packrat/src
+    - $TRAVIS_BUILD_DIR/packrat/lib
+  packages: true
+
+script:
+  - pytest --cov=./
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
