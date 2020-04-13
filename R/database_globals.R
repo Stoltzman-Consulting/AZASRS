@@ -43,7 +43,7 @@ AZASRS_DATABASE_CONNECTION = function(development = 0){
       driverName =  "ODBC Driver 17 for SQL Server"
       print(driverName)
       print(Sys.getenv('SERVER'))
-      print(database)
+      print(Sys.getenv('DATABASE'))
       print(Sys.getenv('UID'))
       print(Sys.getenv('PWD'))
       print(Sys.getenv('PORT'))
