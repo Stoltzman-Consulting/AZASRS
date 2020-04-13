@@ -9,6 +9,10 @@ build_grouped_pm_cash_flow(
   end_date,
   itd,
   cash_adjusted,
+  nav_daily,
+  cf_daily,
+  bench_daily,
+  bench_relationships,
   pm_fund_info,
   ...
 )

@@ -15,32 +15,49 @@
 #'                                         cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info,
 #'                                         pm_fund_portfolio, pm_fund_category_description)
 #' @export
-build_grouped_pm_cash_flow = function(start_date, end_date, itd, cash_adjusted, pm_fund_info, ...){
+build_grouped_pm_cash_flow = function(start_date, end_date, itd, cash_adjusted, nav_daily, cf_daily, bench_daily, bench_relationships, pm_fund_info, ...){
 
   # ITD failsafe - ensure start_date is before earliest possible pm_fund_cash_flow
   if(itd){
     start_date = '2004-06-30'
   }
 
-  nav_prep = nav %>%
+  nav_prep = nav_daily %>%
     filter_nav_on_dates(start_date = start_date, end_date = end_date, itd = itd) %>%
     append_nav_has_reported(end_date = end_date) %>%
     convert_start_date_nav_to_negative(start_date = start_date)
 
-  cf_prep = cf %>%
+  cf_prep = cf_daily %>%
     filter_cf_between_dates(start_date = start_date, end_date = end_date, itd = itd)
 
-  merge_nav_and_cf(nav_prep, cf_prep, end_date = end_date, cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info) %>%
+  nav_cf = merge_nav_and_cf(nav_prep, cf_prep, end_date = end_date, cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info) %>%
     filter_dates(start_date = start_date, end_date = end_date, itd = itd, ...) %>%
     clean_nav_cf(pm_fund_info = pm_fund_info) %>%
-    dplyr::mutate(nav = dplyr::if_else(effective_date == start_date, -1*nav, nav)) %>%
-    dplyr::group_by(..., effective_date) %>%
-    dplyr::summarize(adjusted_cash_flow = sum(adjusted_cash_flow, na.rm = TRUE),
-                     cash_flow = sum(cash_flow),
-                     nav = sum(nav)) %>%
-    dplyr::mutate(contributions = dplyr::if_else(cash_flow < 0, cash_flow, 0),
-                  distributions = dplyr::if_else(cash_flow > 0, cash_flow, 0)) %>%
-    dplyr::ungroup()
+    dplyr::mutate(nav = dplyr::if_else(effective_date == start_date, -1*nav, nav))
+
+  # Join benchmark info and adjust calculations before grouping
+  nav_cf %>%
+    dplyr::left_join(bench_relationships, by = 'pm_fund_info_id') %>%
+    dplyr::left_join(bench_daily, by = c('benchmark_info_id', 'effective_date'))%>%
+    dplyr::mutate(
+      contributions = dplyr::if_else(cash_flow < 0, cash_flow, 0),
+      distributions = dplyr::if_else(cash_flow > 0, cash_flow, 0),
+      adj_cf_fv = adjusted_cash_flow * index_fv,
+      contributions_fv = dplyr::if_else(adj_cf_fv < 0, adj_cf_fv, 0),
+      distributions_fv = dplyr::if_else(adj_cf_fv > 0, adj_cf_fv, 0)) %>%
+    group_by(..., effective_date) %>%
+    summarize(
+      dva = sum(adjusted_cash_flow * index_fv),
+      contributions_fv = sum(contributions_fv),
+      distributions_fv = sum(distributions_fv),
+      contributions = sum(contributions),
+      distributions = sum(distributions),
+      adjusted_cash_flow = sum(adjusted_cash_flow),
+      adj_cf_fv = sum(adj_cf_fv),
+      nav = sum(nav),
+      cash_flow = sum(cash_flow)
+    ) %>%
+    ungroup()
 }
 
 

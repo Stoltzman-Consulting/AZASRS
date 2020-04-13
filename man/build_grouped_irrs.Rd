@@ -4,7 +4,16 @@
 \alias{build_grouped_irrs}
 \title{Create rollup of IRR based off of dates}
 \usage{
-build_grouped_irrs(start_date, end_date, itd, cash_adjusted, pm_fund_info, ...)
+build_grouped_irrs(
+  start_date,
+  end_date,
+  itd,
+  cash_adjusted,
+  nav_daily,
+  cf_daily,
+  pm_fund_info,
+  ...
+)
 }
 \arguments{
 \item{...}{aggregation choices from from pm_fund_info (i.e. pm_fund_portfolio, pm_fund_category, pm_fund_id)}
