@@ -4,8 +4,12 @@ r:
   - release
   - devel
 
-apt_packages:
-  - libxml2-dev
+before_install:
+  - sudo apt-get -y install libxml2-dev
+  - curl -O https://download.microsoft.com/download/e/4/e/e4e67866-dffd-428c-aac7-8d28ddafb39b/msodbcsql17_17.5.2.1-1_amd64.apk
+  - curl -O https://download.microsoft.com/download/e/4/e/e4e67866-dffd-428c-aac7-8d28ddafb39b/mssql-tools_17.5.2.1-1_amd64.apk
+  - sudo apk add --allow-untrusted msodbcsql17_17.5.2.1-1_amd64.apk
+  - sudo apk add --allow-untrusted mssql-tools_17.5.2.1-1_amd64.apk
 
 install:
   - R -e "0" --args --bootstrap-packrat

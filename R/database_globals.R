@@ -40,7 +40,7 @@ AZASRS_DATABASE_CONNECTION = function(development = 0){
       print("##################################")
       print("##################################")
       print("MADE IT TO LINUX")
-      driverName =  "SQL Driver"
+      driverName =  "ODBC Driver 17 for SQL Server"
       print("##################################")
       print("##################################")
     }
