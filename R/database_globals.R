@@ -36,7 +36,16 @@ AZASRS_DATABASE_CONNECTION = function(development = 0){
     else if(os == "Linux" & username == "asrsadmin"){
       driverName <- "ODBC Driver 17 for SQL Server"
       }
-    else{driverName <- "SQLServer"}
+    else{
+      print("##################################")
+      print("##################################")
+      print("MADE IT TO ELSE STATEMENT")
+      print(os)
+      print(username)
+      print("##################################")
+      print("##################################")
+      driverName <- "SQL Server"
+      }
     tryCatch({
       connection = DBI::dbConnect(odbc::odbc(),
                                  Driver   = driverName,
