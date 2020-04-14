@@ -4,7 +4,7 @@
 \alias{filter_dates}
 \title{Filter dates from NAV / CF joined}
 \usage{
-filter_dates(.data, start_date, end_date, itd, cash_adjusted, ...)
+filter_dates(.data, start_date, end_date, itd, ...)
 }
 \arguments{
 \item{.data}{is from merge_nav_and_cf()}
