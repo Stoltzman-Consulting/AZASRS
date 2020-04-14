@@ -31,7 +31,7 @@ build_grouped_pm_cash_flow = function(start_date, end_date, itd, cash_adjusted, 
     filter_cf_between_dates(start_date = start_date, end_date = end_date, itd = itd)
 
   nav_cf = merge_nav_and_cf(nav_prep, cf_prep, end_date = end_date, cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info) %>%
-    filter_dates(start_date = start_date, end_date = end_date, itd = itd, ...) %>%
+    filter_dates(start_date = start_date, end_date = end_date, itd = itd, cash_adjusted = cash_adjusted, ...) %>%
     clean_nav_cf(pm_fund_info = pm_fund_info) %>%
     dplyr::mutate(nav = dplyr::if_else(effective_date == start_date, -1*nav, nav))
 
@@ -94,7 +94,7 @@ filter_nav_on_dates = function(.data, start_date, end_date, itd){
 append_nav_has_reported <- function(.data, end_date){
   .data %>%
     dplyr::group_by(pm_fund_id) %>%
-    dplyr::mutate(has_reported = max(effective_date) == end_date) %>%
+    dplyr::mutate(has_reported = any(effective_date == end_date)) %>%
     dplyr::ungroup() %>%
     dplyr::select(has_reported, dplyr::everything())
 }
@@ -207,16 +207,24 @@ merge_nav_and_cf = function(.nav_data, .cf_data, end_date, cash_adjusted, pm_fun
 #' @param end_date is a string (format yyyy-dd-mm)
 #' @param itd is TRUE / FALSE for inception to date
 #' @param ... aggregation choices from from pm_fund_info (i.e. pm_fund_portfolio, pm_fund_category, pm_fund_id)
-filter_dates = function(.data, start_date, end_date, itd, ...){
+filter_dates = function(.data, start_date, end_date, itd, cash_adjusted, ...){
   # Filter out funds that are not active for the full start - end period.
   # Not applicable to aggregated funds, would filter out important data
   if (test_is_not_rollup(...)) {
     if (!itd) {
-      .data <- .data %>%
-        dplyr::group_by(pm_fund_id) %>%
-        dplyr::filter(min(effective_date) <= start_date) %>%
-        dplyr::filter(max(effective_date) >= end_date) %>%
-        dplyr::ungroup()
+      if(!cash_adjusted){
+        .data <- .data %>%
+          dplyr::group_by(pm_fund_id) %>%
+          dplyr::filter(min(effective_date) <= start_date) %>%
+          dplyr::filter(max(effective_date) >= end_date) %>%
+          dplyr::ungroup()
+      } else{
+        .data <- .data %>%
+          dplyr::group_by(pm_fund_id) %>%
+          dplyr::filter(min(effective_date) <= start_date) %>%
+          dplyr::filter(max(effective_date) >= calc_add_qtrs(end_date, -1)) %>%
+          dplyr::ungroup()
+      }
     }
   }
   return(.data)
