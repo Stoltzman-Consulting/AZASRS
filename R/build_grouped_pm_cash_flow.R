@@ -31,7 +31,7 @@ build_grouped_pm_cash_flow = function(start_date, end_date, itd, cash_adjusted, 
     filter_cf_between_dates(start_date = start_date, end_date = end_date, itd = itd)
 
   nav_cf = merge_nav_and_cf(nav_prep, cf_prep, end_date = end_date, cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info) %>%
-    filter_dates(start_date = start_date, end_date = end_date, itd = itd, ...) %>%
+    #filter_dates(start_date = start_date, end_date = end_date, itd = itd, ...) %>%
     clean_nav_cf(pm_fund_info = pm_fund_info) %>%
     dplyr::mutate(nav = dplyr::if_else(effective_date == start_date, -1*nav, nav))
 
