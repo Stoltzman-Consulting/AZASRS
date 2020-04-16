@@ -9,6 +9,7 @@
 *-Ex.R
 # Output files from R CMD build
 packrat/lib*/
+packrat/src/
 /*.tar.gz
 # Output files from R CMD check
 /*.Rcheck/
