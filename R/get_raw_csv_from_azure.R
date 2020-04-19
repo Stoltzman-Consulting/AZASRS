@@ -13,7 +13,7 @@ get_raw_data_from_azure = function(blob_directory = 'source-data', filename = 'p
   download_data = AzureStor::download_blob(cont, src = filename, dest = paste0(download_to_directory, filename), overwrite = TRUE)
 
   if(read_csv){
-    return(download_date %>% readr::read_csv(download_data))
+    return(download_data %>% readr::read_csv(download_data))
   }
   print('Data has been downloaded successfully!')
 }
