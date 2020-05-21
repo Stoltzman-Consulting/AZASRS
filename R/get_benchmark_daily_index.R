@@ -18,7 +18,7 @@
 #' #   fund_size_m <dbl>
 #' @export
 get_benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION(),
-                                     bench_type = 'PVT',
+                                     benchmark_type = 'PVT',
                                      all_bench_types = FALSE,
                                      return_tibble = FALSE){
 
@@ -27,7 +27,7 @@ get_benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION(),
       dplyr::distinct(benchmark_info_id)
   } else{
     pmfi_bmi = get_benchmark_fund_relationship(con) %>%
-      dplyr::filter(benchmark_type == bench_type) %>%
+      dplyr::filter(benchmark_type == benchmark_type) %>%
       dplyr::distinct(benchmark_info_id)
   }
 
