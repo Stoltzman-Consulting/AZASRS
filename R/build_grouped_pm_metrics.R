@@ -51,8 +51,11 @@ build_grouped_pm_metrics = function(con = AZASRS::AZASRS_DATABASE_CONNECTION(),
                                           ...)
 
   # Append benchmark data before calculating metrics
-  clean_data %>%
-    calculate_grouped_pm_metrics(...)
+  dat = clean_data %>%
+    calculate_grouped_pm_metrics(...) %>%
+    dplyr::ungroup()
+
+  return(dat)
 
 }
 
@@ -78,5 +81,6 @@ calculate_grouped_pm_metrics = function(.data, ...){
       cash_flow = sum(cash_flow),
       adjusted_cash_flow = sum(adjusted_cash_flow),
       contributions = sum(contributions),
-      distributions = sum(distributions))
+      distributions = sum(distributions)) %>%
+    dplyr::select(..., pme, irr, tvpi, bench_irr, dva, nav, cash_flow, contributions, distributions)
 }
