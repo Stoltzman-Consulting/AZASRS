@@ -15,21 +15,45 @@
 #'                                 cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info,
 #'                                 pm_fund_portfolio, pm_fund_category_description)
 #' @export
-build_grouped_pm_metrics = function(start_date, end_date, itd, cash_adjusted, nav_daily, cf_daily, bench_daily = bench_daily, bench_relationships = bench_relationships, pm_fund_info, ...){
+build_grouped_pm_metrics = function(con = AZASRS::AZASRS_DATABASE_CONNECTION(),
+                                    start_date,
+                                    end_date,
+                                    itd,
+                                    cash_adjusted,
+                                    benchmark_type = 'PVT',
+                                    nav_daily = get_pm_nav_daily(con = con),
+                                    cf_daily = get_pm_cash_flow_daily(con = con),
+                                    benchmark_daily_index = get_benchmark_daily_index(con = con,
+                                                                                      all_benchmark_types = TRUE,
+                                                                                      return_tibble = TRUE),
+                                    benchmark_daily_index_fv = build_benchmark_fv_index_factor(con = con,
+                                                                                               end_date = end_date,
+                                                                                               benchmark_daily_index = benchmark_daily_index),
+                                    benchmark_relationships = get_benchmark_fund_relationship(con = con,
+                                                                                              benchmark_type = benchmark_type,
+                                                                                              all_benchmark_types = FALSE,
+                                                                                              return_tibble = TRUE),
+                                    pm_fund_info = get_pm_fund_info(con = con),
+                                    ...){
 
-  clean_data = build_grouped_pm_cash_flow(start_date = start_date,
-                                          end_date = end_date,
-                                          itd = itd,
-                                          cash_adjusted = cash_adjusted,
-                                          nav_daily = nav_daily,
-                                          cf_daily = cf_daily,
-                                          bench_daily = bench_daily,
-                                          bench_relationships = bench_relationships,
-                                          pm_fund_info = pm_fund_info,
+  clean_data = build_grouped_pm_cash_flow(con = local(con),
+                                          start_date = local(start_date),
+                                          end_date = local(end_date),
+                                          itd = local(itd),
+                                          benchmark_type = local(benchmark_type),
+                                          cash_adjusted = local(cash_adjusted),
+                                          nav_daily = local(nav_daily),
+                                          cf_daily = local(cf_daily),
+                                          benchmark_daily_index = local(benchmark_daily_index),
+                                          benchmark_daily_index_fv = local(benchmark_daily_index_fv),
+                                          benchmark_relationships = local(benchmark_relationships),
+                                          pm_fund_info = local(pm_fund_info),
                                           ...)
+
   # Append benchmark data before calculating metrics
   clean_data %>%
     calculate_grouped_pm_metrics(...)
+
 }
 
 
@@ -49,7 +73,7 @@ calculate_grouped_pm_metrics = function(.data, ...){
       alpha = log(1 + irr_fv),
       bench_irr = -1 + exp(log(1 + irr) - alpha),
       dva = sum(dva),
-      nav = last(nav),
+      nav = dplyr::last(nav),
       # nav = sum(nav),
       cash_flow = sum(cash_flow),
       adjusted_cash_flow = sum(adjusted_cash_flow),

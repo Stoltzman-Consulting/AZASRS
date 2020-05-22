@@ -4,12 +4,23 @@
 #' @param con is the db connection, default of AZASRS_DATABASE_CONNECTION()
 #' @return Returns a table of relationships of ALL types, not filtered
 #' @export
-get_benchmark_fund_relationship = function(con = AZASRS_DATABASE_CONNECTION(), bench_type = 'PVT', return_tibble = FALSE){
+get_benchmark_fund_relationship = function(con = AZASRS_DATABASE_CONNECTION(),
+                                           benchmark_type = 'PVT',
+                                           all_benchmark_types = FALSE,
+                                           return_tibble = FALSE){
 
+  # get ALL benchmark types
   dat = tbl_pm_fund_info_benchmark_info(con) %>%
     dplyr::left_join(tbl_benchmark_type(con), by = 'benchmark_type_id') %>%
-    dplyr::select(pm_fund_info_id, benchmark_info_id, benchmark_type) %>%
-    dplyr::filter(benchmark_type == bench_type)
+    dplyr::select(pm_fund_info_id, benchmark_info_id, benchmark_type)
+
+
+  # Filter by type selected
+  if(!all_benchmark_types){
+    dat = dat %>%
+      dplyr::filter(benchmark_type == local(benchmark_type))
+  }
+
 
   if(return_tibble){
     return(dat %>% tibble::as_tibble())
