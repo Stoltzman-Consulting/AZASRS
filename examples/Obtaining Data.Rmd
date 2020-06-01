@@ -50,3 +50,55 @@ get_benchmark_daily_index(con, return_tibble = FALSE) %>%
 ```
 
 
+### Calculate grouped IRR's  
+
+All settings are adjustable  
+
+
+```{r}
+nav = get_pm_nav_daily() %>% dplyr::filter(nav != 0)
+cf = get_pm_cash_flow_daily() %>% dplyr::filter(cash_flow != 0)
+pm_fund_info = get_pm_fund_info()
+start_date = '2019-09-30'
+end_date = '2019-12-31'
+itd = FALSE
+cash_adjusted = FALSE
+```
+
+
+#### Pulling portfolio level data
+```{r}
+final_data = build_grouped_irrs(start_date = start_date, end_date = end_date, itd = itd,
+                                cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info,                                 pm_fund_portfolio)
+final_data %>%
+  head()
+```
+
+
+#### Pulling portfolio + category data
+```{r}
+final_data = build_grouped_irrs(start_date = start_date, end_date = end_date, itd = itd,
+                                cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info,                                 pm_fund_portfolio, pm_fund_category_description)
+
+final_data %>%
+  head()
+```
+
+
+#### Pulling portfolio + category + fund data
+```{r}
+final_data = build_grouped_irrs(start_date = start_date, end_date = end_date, itd = itd,
+                                cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info,                                 pm_fund_portfolio, pm_fund_category_description, pm_fund_common_name)
+
+final_data %>%
+  head()
+```
+
+
+#### Aggregation options can be seen from the pm_fund_info table:
+```{r}
+pmfi = get_pm_fund_info()
+
+colnames(pmfi)
+```
+

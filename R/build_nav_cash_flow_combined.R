@@ -8,7 +8,36 @@ build_nav_cash_flow_combined = function(...,
                                         nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE),
                                         cash_flow_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),
                                         itd = FALSE,
+                                        cash_adjusted = FALSE,
                                         return_tibble = FALSE){
+
+  # Determine need to adjust NAV
+  tmp_valdate = get_value_date(con)
+  if(cash_adjusted){
+    # Funds that have an end_date NAV
+    end_date_nav = nav_daily %>%
+      filter(effective_date == end_date)
+
+    # Funds with a valdate but not an end_date NAV
+    no_end_date_nav = nav_daily %>%
+      filter(effective_date == tmp_valdate) %>%
+      select(pm_fund_id) %>%
+      anti_join(end_date_nav, by = 'pm_fund_id')
+
+    sum_cash_flow_after_valdate = no_end_date_nav %>%
+      left_join(cash_flow_daily %>% filter(effective_date >= tmp_valdate), by = 'pm_fund_id') %>%
+      group_by(pm_fund_id) %>%
+      summarize(sum_cash_flow = sum(-1*cash_flow, na.rm = TRUE))
+
+    # Replacing nav_daily
+    nav_daily = sum_cash_flow_after_valdate %>%
+      left_join(nav_daily %>% filter(effective_date == tmp_valdate), by = 'pm_fund_id') %>%
+      mutate(nav = nav + sum_cash_flow,
+             effective_date = end_date) %>%
+      select(-sum_cash_flow) %>%
+      union_all(nav_daily %>% filter(nav != 0))
+
+  }
 
   if(itd){
     # ITD only at value date

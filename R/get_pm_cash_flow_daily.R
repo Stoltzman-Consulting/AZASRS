@@ -25,7 +25,9 @@ get_pm_cash_flow_daily = function(con = AZASRS_DATABASE_CONNECTION(), return_tib
     dplyr::left_join(tbl_view_all_pm_fund_info(con = con), by = 'pm_fund_info_id')
 
   if(return_tibble){
-    return(dat %>% tibble::as_tibble())
+    return(dat %>%
+             tibble::as_tibble() %>%
+             dplyr::mutate(effective_date = lubridate::as_date(effective_date)))
   } else{
     return(dat)
     }

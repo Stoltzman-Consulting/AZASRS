@@ -36,7 +36,8 @@ get_benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION(),
     dplyr::left_join(tbl_benchmark_info(con) %>% dplyr::select(benchmark_info_id, benchmark_id), by = 'benchmark_info_id')
 
   if(return_tibble){
-    return(dat %>% tibble::as_tibble())
+    return(dat %>% tibble::as_tibble()  %>%
+             dplyr::mutate(effective_date = lubridate::as_date(effective_date)))
   } else{
     return(dat)
   }

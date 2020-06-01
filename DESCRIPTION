@@ -2,7 +2,7 @@ Package: AZASRS
 Type: Package
 Title: ASRS Database R API
 Version: 0.1.0
-Author: Scott Stoltzman
+Authors@R: person("Scott", "Stoltzman", email = "scott@stoltzmanconsulting.com", role = c("aut", "cre"))
 Description: Retrieves data from the database and performs operations.
 License: To be used exclusively by Arizona State Retirement Systems Employees
 Encoding: UTF-8
@@ -42,7 +42,7 @@ Imports:
     odbc,
     RODBC,
     AzureStor
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 Suggests: 
     knitr,
     rmarkdown,

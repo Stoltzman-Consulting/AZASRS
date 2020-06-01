@@ -20,7 +20,6 @@ AZASRS_TEST_DATA_DIRECTORY = './tests/testthat/data/'
 #' AZASRS_DATABASE_DISCONNECT(con)
 #' @export
 AZASRS_DATABASE_CONNECTION = function(development = 0){
-
     # Development will utilize a different database in order to be replicated
     if(development){
       print('[FYI] - You are utilizing the DEVELOPMENT database.')
@@ -31,9 +30,29 @@ AZASRS_DATABASE_CONNECTION = function(development = 0){
 
     #Detect OS & Set Driver (important for Windows, Shiny/Linux, Mac)
     os <- Sys.info()[1]
-    if(os == "Darwin"){driverName <- "ODBC Driver 17 for SQL Server"}
-    else if(os == "Windows"){driverName <- "SQL Server"}
-    else{driverName <- "SQLServer"}
+    username = Sys.info()[6]
+    if(os == "Darwin" | os == "mac"){driverName <- "ODBC Driver 17 for SQL Server"}
+    else if(os == "Windows"){driverName <- "ODBC Driver 17 for SQL Server"}
+    else if(os == "Linux" & username == "asrsadmin"){
+      driverName <- "ODBC Driver 17 for SQL Server"
+    }
+    else if(os == "Linux" & username == "travis"){
+      print("##################################")
+      print("##################################")
+      print("MADE IT TO LINUX")
+      driverName =  "ODBC Driver 17 for SQL Server"
+      print(driverName)
+      print(Sys.getenv('SERVER'))
+      print(Sys.getenv('DATABASE'))
+      print(Sys.getenv('UID'))
+      print(Sys.getenv('PWD'))
+      print(Sys.getenv('PORT'))
+      print("##################################")
+      print("##################################")
+    }
+    else{
+      driverName <- "SQLServer"
+      }
     tryCatch({
       connection = DBI::dbConnect(odbc::odbc(),
                                  Driver   = driverName,
