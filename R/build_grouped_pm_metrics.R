@@ -24,6 +24,7 @@ build_grouped_pm_metrics = function(con = AZASRS::AZASRS_DATABASE_CONNECTION(),
                                     nav_daily = get_pm_nav_daily(con = con),
                                     cf_daily = get_pm_cash_flow_daily(con = con),
                                     benchmark_daily_index = get_benchmark_daily_index(con = con,
+                                                                                      benchmark_type = benchmark_type,
                                                                                       all_benchmark_types = TRUE,
                                                                                       return_tibble = TRUE),
                                     benchmark_daily_index_fv = build_benchmark_fv_index_factor(con = con,
@@ -36,19 +37,21 @@ build_grouped_pm_metrics = function(con = AZASRS::AZASRS_DATABASE_CONNECTION(),
                                     pm_fund_info = get_pm_fund_info(con = con),
                                     ...){
 
-  clean_data = build_grouped_pm_cash_flow(con = local(con),
-                                          start_date = local(start_date),
-                                          end_date = local(end_date),
-                                          itd = local(itd),
-                                          benchmark_type = local(benchmark_type),
-                                          cash_adjusted = local(cash_adjusted),
-                                          nav_daily = local(nav_daily),
-                                          cf_daily = local(cf_daily),
-                                          benchmark_daily_index = local(benchmark_daily_index),
-                                          benchmark_daily_index_fv = local(benchmark_daily_index_fv),
-                                          benchmark_relationships = local(benchmark_relationships),
-                                          pm_fund_info = local(pm_fund_info),
+  clean_data = build_grouped_pm_cash_flow(con = con,
+                                          start_date = start_date,
+                                          end_date = end_date,
+                                          itd = itd,
+                                          cash_adjusted = cash_adjusted,
+                                          benchmark_type = benchmark_type,
+                                          nav_daily = nav_daily,
+                                          cf_daily = cf_daily,
+                                          benchmark_daily_index = benchmark_daily_index,
+                                          benchmark_daily_index_fv = benchmark_daily_index_fv,
+                                          benchmark_relationships = benchmark_relationships,
+                                          pm_fund_info = pm_fund_info,
                                           ...)
+
+
 
   # Append benchmark data before calculating metrics
   dat = clean_data %>%

@@ -203,8 +203,10 @@ merge_nav_and_cf = function(.nav_data, .cf_data, end_date, cash_adjusted, pm_fun
   } else{
     # Find out which funds haven't reported
     # Important to know so that we can use ONLY these cash flows for an adjusted NAV
-    funds_not_reported_names = .nav_data %>%
-      dplyr::filter(!has_reported) %>%
+    funds_not_reported_data = .nav_data %>%
+      dplyr::filter(!has_reported)
+
+    funds_not_reported_names = funds_not_reported_data %>%
       dplyr::select(pm_fund_id) %>%
       dplyr::pull()
 
@@ -226,7 +228,7 @@ merge_nav_and_cf = function(.nav_data, .cf_data, end_date, cash_adjusted, pm_fun
 
 
     # append cash adjusted nav to not reported nav
-    .nav_data = .nav_data %>% bind_rows(cf_as_nav)
+    .nav_data = .nav_data %>% dplyr::bind_rows(cf_as_nav)
     return(dplyr::bind_rows(.nav_data, .cf_data))
   }
 

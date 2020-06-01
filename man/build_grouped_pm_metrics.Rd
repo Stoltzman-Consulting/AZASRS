@@ -13,8 +13,8 @@ build_grouped_pm_metrics(
   benchmark_type = "PVT",
   nav_daily = get_pm_nav_daily(con = con),
   cf_daily = get_pm_cash_flow_daily(con = con),
-  benchmark_daily_index = get_benchmark_daily_index(con = con, all_benchmark_types =
-    TRUE, return_tibble = TRUE),
+  benchmark_daily_index = get_benchmark_daily_index(con = con, benchmark_type =
+    benchmark_type, all_benchmark_types = TRUE, return_tibble = TRUE),
   benchmark_daily_index_fv = build_benchmark_fv_index_factor(con = con, end_date =
     end_date, benchmark_daily_index = benchmark_daily_index),
   benchmark_relationships = get_benchmark_fund_relationship(con = con, benchmark_type =
