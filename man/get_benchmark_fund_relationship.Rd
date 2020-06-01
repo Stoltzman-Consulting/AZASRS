@@ -6,7 +6,10 @@
 \usage{
 get_benchmark_fund_relationship(
   con = AZASRS_DATABASE_CONNECTION(),
-  bench_type = "PVT",
+
+  benchmark_type = "PVT",
+  all_benchmark_types = FALSE,
+
   return_tibble = FALSE
 )
 }

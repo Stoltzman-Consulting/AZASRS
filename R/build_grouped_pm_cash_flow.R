@@ -15,38 +15,70 @@
 #'                                         cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info,
 #'                                         pm_fund_portfolio, pm_fund_category_description)
 #' @export
-build_grouped_pm_cash_flow = function(start_date, end_date, itd, cash_adjusted, nav_daily, cf_daily, bench_daily, bench_relationships, pm_fund_info, ...){
+build_grouped_pm_cash_flow = function(con = AZASRS::AZASRS_DATABASE_CONNECTION(),
+                                      start_date,
+                                      end_date,
+                                      itd,
+                                      cash_adjusted,
+                                      benchmark_type = 'PVT',
+                                      nav_daily = get_pm_nav_daily(con = con),
+                                      cf_daily = get_pm_cash_flow_daily(con = con),
+                                      benchmark_daily_index = get_benchmark_daily_index(con = con,
+                                                                              all_benchmark_types = TRUE,
+                                                                              return_tibble = TRUE),
+                                      benchmark_daily_index_fv = build_benchmark_fv_index_factor(con = con,
+                                                                                                 start_date = start_date,
+                                                                                                 end_date = end_date,
+                                                                                                 benchmark_daily_index = benchmark_daily_index),
+                                      benchmark_relationships = get_benchmark_fund_relationship(con = con,
+                                                                                                benchmark_type = benchmark_type,
+                                                                                                all_benchmark_types = FALSE,
+                                                                                                return_tibble = TRUE),
+                                      pm_fund_info = get_pm_fund_info(con = con),
+                                      ...){
 
   # ITD failsafe - ensure start_date is before earliest possible pm_fund_cash_flow
   if(itd){
     start_date = '2004-06-30'
   }
 
+  # Filter NAV to find only end date nav IF ITD, or find NAV at both start and end IF not itd
+  # This is required because a NAV on the start date will act as a contribution for IRR calculations
+  # Adds a "has_reported" column to ensure fund has reported at the end_date
+  # If there is a starting NAV, converts it to negative to act as a "cash flow"
   nav_prep = nav_daily %>%
     filter_nav_on_dates(start_date = start_date, end_date = end_date, itd = itd) %>%
     append_nav_has_reported(end_date = end_date) %>%
     convert_start_date_nav_to_negative(start_date = start_date)
 
+  # Filter cash flow to find all  cash flows up until end IF itd, or find cash flows between/including start and end dates
   cf_prep = cf_daily %>%
     filter_cf_between_dates(start_date = start_date, end_date = end_date, itd = itd)
 
+  # Combine NAV and cash flow, in order to use NAV as the starting "contribution" if necessary
+  # cash_adjusted will act to add in cash flows for funds that have not reported at the end date
+  # Merge will duplicate data for cash flow and NAV, clean_nav_cf groups, summarizes to removes duplicates
+  # Making first nav negative does not affect "cash flow" at this point, this would affect contributions / distributions
   nav_cf = merge_nav_and_cf(nav_prep, cf_prep, end_date = end_date, cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info) %>%
-    #filter_dates(start_date = start_date, end_date = end_date, itd = itd, ...) %>%
     clean_nav_cf(pm_fund_info = pm_fund_info) %>%
     dplyr::mutate(nav = dplyr::if_else(effective_date == start_date, -1*nav, nav))
 
   # Join benchmark info and adjust calculations before grouping
-  nav_cf %>%
-    dplyr::left_join(bench_relationships, by = 'pm_fund_info_id') %>%
-    dplyr::left_join(bench_daily, by = c('benchmark_info_id', 'effective_date'))%>%
+  dat_joined = nav_cf %>%
+    dplyr::left_join(benchmark_relationships, by = 'pm_fund_info_id') %>%
+    dplyr::left_join(benchmark_daily_index_fv, by = c('benchmark_info_id', 'effective_date'))
+
+  dat_mutated = dat_joined %>%
     dplyr::mutate(
       contributions = dplyr::if_else(cash_flow < 0, cash_flow, 0),
       distributions = dplyr::if_else(cash_flow > 0, cash_flow, 0),
       adj_cf_fv = adjusted_cash_flow * index_fv,
       contributions_fv = dplyr::if_else(adj_cf_fv < 0, adj_cf_fv, 0),
-      distributions_fv = dplyr::if_else(adj_cf_fv > 0, adj_cf_fv, 0)) %>%
-    group_by(..., effective_date) %>%
-    summarize(
+      distributions_fv = dplyr::if_else(adj_cf_fv > 0, adj_cf_fv, 0))
+
+  final_dat = dat_mutated %>%
+    dplyr::group_by(..., effective_date) %>%
+    dplyr::summarize(
       dva = sum(adjusted_cash_flow * index_fv),
       contributions_fv = sum(contributions_fv),
       distributions_fv = sum(distributions_fv),
@@ -57,7 +89,9 @@ build_grouped_pm_cash_flow = function(start_date, end_date, itd, cash_adjusted, 
       nav = sum(nav),
       cash_flow = sum(cash_flow)
     ) %>%
-    ungroup()
+    dplyr::ungroup()
+
+  return(final_dat)
 }
 
 
@@ -146,11 +180,13 @@ filter_cf_between_dates = function(.data, start_date, end_date, itd){
 #' @param pm_fund_info from get_pm_fund_info()
 merge_nav_and_cf = function(.nav_data, .cf_data, end_date, cash_adjusted, pm_fund_info){
 
-  # Add a has_reported field to use as a filter later on
+  # Add a nav and cash flow column to each in order to simplify merging after bind_rows
+  # Effectively removes the need to deal with NA
   .nav_data = .nav_data %>% dplyr::mutate(cash_flow = 0)
   .cf_data = .cf_data %>% dplyr::mutate(nav = 0)
 
   # Not cash adjusted means to ONLY use funds that have NAV at end_date
+  # Finds nav that has reported then filters out cash flow data for only those funds
   if(!cash_adjusted){
     .nav_data = .nav_data %>%
       dplyr::filter(has_reported)
@@ -162,14 +198,14 @@ merge_nav_and_cf = function(.nav_data, .cf_data, end_date, cash_adjusted, pm_fun
     .cf_data = .cf_data %>%
       dplyr::filter(pm_fund_id %in% funds_reported)
 
-    return(dplyr::union_all(.nav_data, .cf_data))
+    return(dplyr::bind_rows(.nav_data, .cf_data))
 
   } else{
     # Find out which funds haven't reported
+    # Important to know so that we can use ONLY these cash flows for an adjusted NAV
     funds_not_reported_data = .nav_data %>%
       dplyr::filter(!has_reported)
 
-    # Pull only names not reported
     funds_not_reported_names = funds_not_reported_data %>%
       dplyr::select(pm_fund_id) %>%
       dplyr::pull()
@@ -192,8 +228,8 @@ merge_nav_and_cf = function(.nav_data, .cf_data, end_date, cash_adjusted, pm_fun
 
 
     # append cash adjusted nav to not reported nav
-    .nav_data = .nav_data %>% bind_rows(cf_as_nav)
-    return(dplyr::union_all(.nav_data, .cf_data))
+    .nav_data = .nav_data %>% dplyr::bind_rows(cf_as_nav)
+    return(dplyr::bind_rows(.nav_data, .cf_data))
   }
 
 }
