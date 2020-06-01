@@ -19,10 +19,10 @@
 #' @export
 get_benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION(),
                                      benchmark_type = 'PVT',
-                                     all_bench_types = FALSE,
+                                     all_benchmark_types = FALSE,
                                      return_tibble = FALSE){
 
-  if(all_bench_types){
+  if(all_benchmark_types){
     pmfi_bmi = get_benchmark_fund_relationship(con) %>%
       dplyr::distinct(benchmark_info_id)
   } else{

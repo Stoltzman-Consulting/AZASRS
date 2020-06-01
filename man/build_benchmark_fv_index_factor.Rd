@@ -5,24 +5,22 @@
 \title{Build a tibble of benchmark index future value factor}
 \usage{
 build_benchmark_fv_index_factor(
-  ...,
   con = AZASRS_DATABASE_CONNECTION(),
   start_date = "2004-09-30",
-  value_date = get_value_date(),
-  bench_type = "PVT",
-  benchmark_daily = get_benchmark_daily_index(con = con, bench_type = bench_type,
-    return_tibble = FALSE),
-  return_tibble = FALSE
+  end_date = get_value_date(con = con),
+  benchmark_daily_index = get_benchmark_daily_index(con = con, benchmark_type = "PVT",
+  return_tibble = FALSE)
 )
 }
 \arguments{
+
+\item{end_date}{is the last quarter end, use for custom time ranges}
+
+\item{benchmark_daily_index}{is data from get_benchmark_daily_index() and can be previously loaded and filtered}
+
 \item{...}{grouping variables (pm_fund_id, pm_fund_portfolio, etc.)}
 
-\item{value_date}{is the last quarter end, use for custom time ranges}
-
 \item{bench_type}{is string that represents one of the types (PVT, etc.)}
-
-\item{benchmark_daily}{is data from get_benchmark_daily_index() and can be previously loaded and filtered}
 }
 \value{
 Returns a tibble with grouping variables and all of their respective metrics
