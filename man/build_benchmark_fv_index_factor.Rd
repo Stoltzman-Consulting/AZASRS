@@ -9,10 +9,11 @@ build_benchmark_fv_index_factor(
   start_date = "2004-09-30",
   end_date = get_value_date(con = con),
   benchmark_daily_index = get_benchmark_daily_index(con = con, benchmark_type = "PVT",
-    return_tibble = FALSE)
+  return_tibble = FALSE)
 )
 }
 \arguments{
+
 \item{end_date}{is the last quarter end, use for custom time ranges}
 
 \item{benchmark_daily_index}{is data from get_benchmark_daily_index() and can be previously loaded and filtered}
