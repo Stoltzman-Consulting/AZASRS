@@ -7,9 +7,7 @@
 get_benchmark_daily_index(
   con = AZASRS_DATABASE_CONNECTION(),
   benchmark_type = "PVT",
-
-  all_benchmark_types = FALSE,
-
+  all_bench_types = FALSE,
   return_tibble = FALSE
 )
 }

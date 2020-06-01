@@ -5,21 +5,15 @@
 \title{Create rollup of IRR based off of dates}
 \usage{
 build_grouped_pm_metrics(
-  con = AZASRS::AZASRS_DATABASE_CONNECTION(),
   start_date,
   end_date,
   itd,
   cash_adjusted,
-  benchmark_type = "PVT",
-  nav_daily = get_pm_nav_daily(con = con),
-  cf_daily = get_pm_cash_flow_daily(con = con),
-  benchmark_daily_index = get_benchmark_daily_index(con = con, benchmark_type =
-    benchmark_type, all_benchmark_types = TRUE, return_tibble = TRUE),
-  benchmark_daily_index_fv = build_benchmark_fv_index_factor(con = con, end_date =
-    end_date, benchmark_daily_index = benchmark_daily_index),
-  benchmark_relationships = get_benchmark_fund_relationship(con = con, benchmark_type =
-    benchmark_type, all_benchmark_types = FALSE, return_tibble = TRUE),
-  pm_fund_info = get_pm_fund_info(con = con),
+  nav_daily,
+  cf_daily,
+  bench_daily = bench_daily,
+  bench_relationships = bench_relationships,
+  pm_fund_info,
   ...
 )
 }

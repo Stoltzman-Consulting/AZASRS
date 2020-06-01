@@ -7,16 +7,15 @@
 build_benchmark_fv_index_factor(
   con = AZASRS_DATABASE_CONNECTION(),
   start_date = "2004-09-30",
-  end_date = get_value_date(con = con),
-  benchmark_daily_index = get_benchmark_daily_index(con = con, benchmark_type = "PVT",
-  return_tibble = FALSE)
+  value_date = get_value_date(con = con),
+  benchmark_daily = get_benchmark_daily_index(con = con, all_bench_types = TRUE,
+    return_tibble = FALSE)
 )
 }
 \arguments{
+\item{value_date}{is the last quarter end, use for custom time ranges}
 
-\item{end_date}{is the last quarter end, use for custom time ranges}
-
-\item{benchmark_daily_index}{is data from get_benchmark_daily_index() and can be previously loaded and filtered}
+\item{benchmark_daily}{is data from get_benchmark_daily_index() and can be previously loaded and filtered}
 
 \item{...}{grouping variables (pm_fund_id, pm_fund_portfolio, etc.)}
 
