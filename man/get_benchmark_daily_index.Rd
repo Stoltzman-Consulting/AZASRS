@@ -6,7 +6,7 @@
 \usage{
 get_benchmark_daily_index(
   con = AZASRS_DATABASE_CONNECTION(),
-  bench_type = "PVT",
+  benchmark_type = "PVT",
   all_bench_types = FALSE,
   return_tibble = FALSE
 )
