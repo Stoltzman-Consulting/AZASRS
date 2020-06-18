@@ -1,41 +1,42 @@
-#' Build a tibble of rolling IRRs by any grouping
+#' Create rollup of IRR based off of dates
 #'
-#' @param ... grouping variables (pm_fund_id, pm_fund_portfolio, etc.)
-#' @param start_date is first date
-#' @param end_date is last date
-#' @param time_delta is type of lag (quarters or years)
-#' @param n_qtrs is how far back the lookback window should be (4 = 1 year, 20 = 5 years if time_delta is quarters)
-#' @param itd whether or not you would like to have an ITD variable appended
-#' @return Returns a tibble with grouping variables and all of their respective metrics
+#' @description Build IRR for any rollup and date range, including ITD and cash adjusted
+#' @param .data is from clean_nav_cf()
+#' @param ... aggregation choices from from pm_fund_info (i.e. pm_fund_portfolio, pm_fund_category, pm_fund_id)
+#' @examples # Example use case
+#' nav = get_pm_nav_daily() %>% dplyr::filter(nav != 0)
+#' cf = get_pm_cash_flow_daily() %>% dplyr::filter(cash_flow != 0)
+#' pm_fund_info = get_pm_fund_info()
+#' start_date = '2019-09-30'
+#' end_date = '2019-12-31'
+#' itd = FALSE
+#' cash_adjusted = FALSE
+#' final_data = build_grouped_irrs(start_date = start_date, end_date = end_date, itd = itd,
+#'                                 cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info,
+#'                                 pm_fund_portfolio, pm_fund_category_description)
 #' @export
-build_grouped_irrs = function(...,
-                              con = AZASRS::AZASRS_DATABASE_CONNECTION(),
-                              start_date = '2017-12-31',
-                              end_date = get_value_date(con = con),
-                              time_delta = 'quarters',
-                              n_qtrs = 4,
-                              itd = FALSE){
+build_grouped_irrs = function(start_date, end_date, itd, cash_adjusted, nav_daily, cf_daily, pm_fund_info, ...){
 
-  exprs = dplyr::enquos(...)
+  clean_data = build_grouped_pm_cash_flow(start_date = start_date,
+                                          end_date = end_date,
+                                          itd = itd,
+                                          cash_adjusted = cash_adjusted,
+                                          nav_daily = nav_daily,
+                                          cf_daily = cf_daily,
+                                          pm_fund_info = pm_fund_info,
+                                          ...)
+  clean_data %>%
+    calculate_grouped_irr(...)
+}
 
-  itd_end_date = end_date
 
-  my_dates = filled_list_of_dates(start_date = start_date, end_date = end_date, time_delta = time_delta) %>%
-    dplyr::mutate(start_date = dplyr::lag(date, n_qtrs), con = list(con)) %>% # number of quarters, 4 = 1yr
-    dplyr::rename(end_date = date) %>%
-    tidyr::drop_na(start_date)
-
-  if(itd){
-    my_dates = my_dates %>%
-      dplyr::mutate(end_date = itd_end_date)
-  }
-
-  dat = my_dates %>%
-    dplyr::mutate(irr = purrr::pmap(.l = list(list(exprs), con = con, start_date = start_date, end_date = end_date),
-                                    .f = calc_grouped_irrs)) %>%
-    dplyr::select(start_date, end_date, irr) %>%
-    tidyr::unnest(cols = c(irr))
-
-  return(dat)
-
+#' Calculate the rollup IRR
+#'
+#' @description Calculates the IRR from a list of "cash flow" from clean_nav_cf()
+#' @param .data is from clean_nav_cf()
+#' @param ... aggregation choices from from pm_fund_info (i.e. pm_fund_portfolio, pm_fund_category, pm_fund_id)
+calculate_grouped_irr = function(.data, ...){
+  .data %>%
+    dplyr::group_by(...) %>%
+    dplyr::summarize(irr = calc_irr(adjusted_cash_flow, effective_date))
 }

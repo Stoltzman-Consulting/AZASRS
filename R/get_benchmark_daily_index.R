@@ -18,7 +18,7 @@
 #' #   fund_size_m <dbl>
 #' @export
 get_benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION(),
-                                     bench_type = 'PVT',
+                                     benchmark_type = 'PVT',
                                      all_bench_types = FALSE,
                                      return_tibble = FALSE){
 
@@ -27,7 +27,7 @@ get_benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION(),
       dplyr::distinct(benchmark_info_id)
   } else{
     pmfi_bmi = get_benchmark_fund_relationship(con) %>%
-      dplyr::filter(benchmark_type == bench_type) %>%
+      dplyr::filter(benchmark_type == benchmark_type) %>%
       dplyr::distinct(benchmark_info_id)
   }
 
@@ -36,7 +36,8 @@ get_benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION(),
     dplyr::left_join(tbl_benchmark_info(con) %>% dplyr::select(benchmark_info_id, benchmark_id), by = 'benchmark_info_id')
 
   if(return_tibble){
-    return(dat %>% tibble::as_tibble())
+    return(dat %>% tibble::as_tibble()  %>%
+             dplyr::mutate(effective_date = lubridate::as_date(effective_date)))
   } else{
     return(dat)
   }
