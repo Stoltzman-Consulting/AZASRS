@@ -1,14 +1,28 @@
 # Database globals return proper data structures
 
-test_that("Database connection", {
+test_that("Database connection returns proper connection type", {
   conn = AZASRS_DATABASE_CONNECTION()
   expect_equal(conn@info$dbms.name, "Microsoft SQL Server")
   AZASRS_DATABASE_DISCONNECT(conn)
 })
 
-test_that("Database disconnect", {
+test_that("Database connection name for both production and development", {
+  # Default case returns production
   conn = AZASRS_DATABASE_CONNECTION()
-  expect_equal(conn@info$dbms.name, "Microsoft SQL Server")
+  expect_equal(conn@info$dbname, Sys.getenv('DATABASE'))
+
+  # development = 0 returns production
+  conn = AZASRS_DATABASE_CONNECTION(development = 0)
+  expect_equal(conn@info$dbname, Sys.getenv('DATABASE'))
+
+  # development = 1 returns production
+  conn = AZASRS_DATABASE_CONNECTION(development = 1)
+  expect_equal(conn@info$dbname, Sys.getenv('DATABASE_DEVELOPMENT'))
+
+})
+
+test_that("Database disconnect returns TRUE", {
+  conn = AZASRS_DATABASE_CONNECTION()
   dis_con = AZASRS_DATABASE_DISCONNECT(conn)
   expect_true(dis_con)
 })
