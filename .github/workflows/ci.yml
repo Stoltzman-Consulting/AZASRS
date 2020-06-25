@@ -24,6 +24,13 @@ jobs:
 
       - uses: r-lib/actions/setup-pandoc@master
 
+      - name: Install macOS system dependencies
+        if: matrix.config.os == 'macOS-latest' && needs.R-CMD-check-bioc.outputs.rversion == 'devel'
+        run: |
+          ## Enable installing XML & xml2 from source if needed
+          brew install libxml2
+          echo "::set-env name=XML_CONFIG::/usr/local/opt/libxml2/bin/xml2-config"
+
       - name: Query dependencies
         run: |
           install.packages('remotes')
