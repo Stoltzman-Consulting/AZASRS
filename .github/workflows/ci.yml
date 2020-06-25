@@ -3,10 +3,12 @@ on:
     branches:
       - development
       - master
+      - add_github_actions_support
   pull_request:
     branches:
       - development
       - master
+      - add_github_actions_support
 
 name: test-coverage
 
