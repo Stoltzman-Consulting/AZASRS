@@ -384,8 +384,3 @@ tbl_ssbt_composite_info_benchmark_info <- function(con = AZASRS_DATABASE_CONNECT
 tbl_view_all_pm_fund_info <- function(con = AZASRS_DATABASE_CONNECTION()) {
   dplyr::tbl(con, "all_pm_fund_info")
 }
-
-#' @export
-tbl_view_all_account_info <- function(con = AZASRS_DATABASE_CONNECTION()) {
-  dplyr::tbl(con, "all_account_info")
-}
