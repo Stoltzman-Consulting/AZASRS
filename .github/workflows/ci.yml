@@ -1,19 +1,11 @@
 on:
   push:
-    branches:
-      - development
-      - master
-      - add_github_actions_support
-  pull_request:
-    branches:
-      - development
-      - master
-      - add_github_actions_support
+    branches: add_github_actions_support
 
-name: test-coverage
+name: pkgdown
 
 jobs:
-  test-coverage:
+  pkgdown:
     runs-on: macOS-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -32,12 +24,6 @@ jobs:
 
       - uses: r-lib/actions/setup-pandoc@master
 
-      - name: Install macOS system dependencies
-        run: |
-          ## Enable installing XML & xml2 from source if needed
-          brew install libxml2
-          echo "::set-env name=XML_CONFIG::/usr/local/opt/libxml2/bin/xml2-config"
-
       - name: Query dependencies
         run: |
           install.packages('remotes')
@@ -54,13 +40,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          install.packages(c("remotes", "testthat"))
-          devtools::install_github("AZASRS/asrsMethods/asrsPalettes")
-          devtools::install_github("AZASRS/asrsMethods/asrsMethods")
+          install.packages("remotes")
           remotes::install_deps(dependencies = TRUE)
-          remotes::install_cran("covr")
+          remotes::install_dev("pkgdown")
         shell: Rscript {0}
 
-      - name: Test coverage
-        run: testthat::test_dir('tests')
+      - name: Install package
+        run: R CMD INSTALL .
+
+      - name: Deploy package
+        run: pkgdown::deploy_to_branch(new_process = FALSE)
         shell: Rscript {0}
