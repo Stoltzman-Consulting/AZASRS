@@ -182,6 +182,8 @@ INITIAL_DATABASE_POPULATION <- function(development = 0, local_azure_functions =
 
 #' Disconnect from database
 #' @description Disconnect from database if using AZASRS_DATABASE_CONNECTION
+#' @param con object from AZASRS_DATABASE_CONNECTION()
+#' @return boolean for DBI disconnected or not
 #' @examples
 #' con <- AZASRS_DATABASE_CONNECTION()
 #' data <- tbl_pm_fund_nav_daily(con) %>%
