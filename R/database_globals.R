@@ -179,7 +179,6 @@ INITIAL_DATABASE_POPULATION <- function(development = 0, local_azure_functions =
 }
 
 
-
 #' Disconnect from database
 #' @description Disconnect from database if using AZASRS_DATABASE_CONNECTION
 #' @param con object from AZASRS_DATABASE_CONNECTION()
@@ -196,46 +195,11 @@ AZASRS_DATABASE_DISCONNECT <- function(con) {
 }
 
 
-
-# Copy and rename database from development to production
-# @description Wipes current production database and replaces with development DB
-# @export
-# AZASRS_DATABASE_DROP_AND_CLONE = function(con_development, con_production){
-#
-#   x = readline(
-#     "[WARNING] - You are about to destroy the PRODUCTION database? \n This has SERIOUS consequences. \n Do you still wish to proceed? (yes_i_wish_to_proceed / n)"
-#   )
-#
-#   if(x == 'yes_i_wish_to_proceed'){
-#
-#     # Check database connections:
-#     if(con_development@info$dbname != 'asrs_development'){ return(print('Development database is not being passed correctly')) }
-#     if(con_production@info$dbname != 'asrs'){ return(print('Production database is not being passed correctly')) }
-#
-#     print("Backing up the asrs database")
-#     DBI::dbSendQuery(con_development, "CREATE DATABASE asrs_backup AS COPY OF asrs;")
-#
-#     print("Backing up the asrs_development database")
-#     DBI::dbSendQuery(con_production, "CREATE DATABASE asrs_development_backup AS COPY OF asrs_development;")
-#
-#     print("Dropping the asrs database")
-#     DBI::dbSendQuery(con_development, "DROP DATABASE asrs;")
-#
-#     print("Copying the development database into production")
-#     DBI::dbSendQuery(con_development, "CREATE DATABASE asrs AS COPY OF asrs_development;")
-#
-#     return(print("You have successfully cloned the development database into production."))
-#   }
-#
-#   return(print("Thank you for not altering the database."))
-#
-#   }
-
-
-
 #' Get value date
 #'
 #' @description Finds the value date based off of the constants table from most recent database population
+#' @param con object from AZASRS_DATABASE_CONNECTION()
+#' @return string of YYYY-mm-dd of value date as set by ASRS
 #' @export
 get_value_date <- function(con = AZASRS_DATABASE_CONNECTION()) {
   dat <- tbl_constants(con) %>% tibble::as_tibble()
@@ -247,6 +211,8 @@ get_value_date <- function(con = AZASRS_DATABASE_CONNECTION()) {
 #' Get next quarter date
 #'
 #' @description Finds the next quarter date based off of constants table from most recent database population
+#' @param con object from AZASRS_DATABASE_CONNECTION()
+#' @return string of YYYY-mm-dd of value date as set by ASRS + 1 qtr
 #' @export
 get_next_quarter <- function(con = AZASRS_DATABASE_CONNECTION()) {
   dat <- tbl_constants(con) %>% tibble::as_tibble()
