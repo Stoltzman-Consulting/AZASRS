@@ -52,14 +52,13 @@ test_that("PM Fund Info columns have not changed", {
   expect_equal(colnames_tbl_pm_fund_info, expected_colnames_tbl_pm_fund_info)
 })
 
-test_that("tbl_* return proper values / types"){
+test_that("tbl_* return proper values / types", {
   conn = AZASRS_DATABASE_CONNECTION()
 
   check_names = function(con, tbl_function, columns_expected){
     tmp = tbl_function(con)
     expect_equal(class(tmp)[1], "tbl_Microsoft SQL Server")
-    cat('c("');cat(colnames(tmp), sep = '", "');cat('")')
-    expect_equal(colnames(tmp), columns_expected)
+    expect_equal(colnames(tibble::tibble(tmp)), columns_expected)
   }
 
   check_names(con = conn, tbl_account_asset_class, c("account_asset_class_id", "account_asset_class"))
@@ -94,5 +93,4 @@ test_that("tbl_* return proper values / types"){
   check_names(con = conn, tbl_ssbt_composite_info_account_info, c("ssbt_composite_info_id", "account_info_id"))
   check_names(con = conn, tbl_ssbt_composite_info_benchmark_info, c("ssbt_composite_info_id", "benchmark_info_id", "benchmark_type_id"))
   check_names(con = conn, tbl_view_all_pm_fund_info, c("pm_fund_info_id", "pm_fund_id", "pm_fund_description", "pm_fund_common_name", "vintage", "commit", "unfunded", "legacy", "specialist", "invest_end", "term_end", "extension", "ext_time", "ext_used", "fee_cat", "consultant", "adv_board", "obsvr", "fund_size_m", "closed", "pm_fund_category", "pm_fund_category_description", "pm_fund_portfolio", "pm_fund_sponsor", "pm_fund_city", "pm_fund_sector"))
-
-}
+})
