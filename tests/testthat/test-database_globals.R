@@ -1,15 +1,15 @@
 # Database globals return proper data structures
 
 test_that("Database connection", {
-  con = AZASRS_DATABASE_CONNECTION()
-  expect_equal(con@info$dbms.name, "Microsoft SQL Server")
-  AZASRS_DATABASE_DISCONNECT(con)
+  conn = AZASRS_DATABASE_CONNECTION()
+  expect_equal(conn@info$dbms.name, "Microsoft SQL Server")
+  AZASRS_DATABASE_DISCONNECT(conn)
 })
 
 test_that("Database disconnect", {
-  con = AZASRS_DATABASE_CONNECTION()
-  expect_equal(con@info$dbms.name, "Microsoft SQL Server")
-  dis_con = AZASRS_DATABASE_DISCONNECT(con)
+  conn = AZASRS_DATABASE_CONNECTION()
+  expect_equal(conn@info$dbms.name, "Microsoft SQL Server")
+  dis_con = AZASRS_DATABASE_DISCONNECT(conn)
   expect_true(dis_con)
 })
 
