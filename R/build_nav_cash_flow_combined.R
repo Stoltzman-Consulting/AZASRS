@@ -1,15 +1,15 @@
 #' Get and combine cash flows and nav according to irr.z calc
 #'
 #' @export
-build_nav_cash_flow_combined = function(...,
-                                        con = AZASRS_DATABASE_CONNECTION(),
+build_nav_cash_flow_combined = function(con = AZASRS_DATABASE_CONNECTION(),
                                         start_date = '2019-03-31',
                                         end_date = get_value_date(con = con),
                                         nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE),
                                         cash_flow_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),
                                         itd = FALSE,
                                         cash_adjusted = FALSE,
-                                        return_tibble = FALSE){
+                                        return_tibble = FALSE,
+                                        ...){
 
   # Determine need to adjust NAV
   tmp_valdate = get_value_date(con)
