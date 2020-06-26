@@ -94,7 +94,7 @@ jobs:
           run: sudo apt install libcurl4-openssl-dev
 
       - name: "[Stage] Install"
-        run: Rscript -e "remotes::install_github('AZASRS/AZASRS')"
+          run: Rscript -e "remotes::install_github('AZASRS/AZASRS')"
 
       - name: "[Stage] After Success"
-        run: Rscript -e "testthat::test_dir('tests')"
+          run: Rscript -e "testthat::test_dir('tests')"
