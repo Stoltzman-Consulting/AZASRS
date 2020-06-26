@@ -1,8 +1,5 @@
 name: pkgdown
 
-on:
-  push: [push]
-
 jobs:
 
   env:
