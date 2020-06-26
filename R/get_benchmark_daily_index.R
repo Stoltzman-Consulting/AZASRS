@@ -7,7 +7,7 @@
 #' @param return_tibble is a boolean that determines whether or not a tibble is returned instead
 #' @return Returns a tibble or database object.
 #' @examples
-#' get_benchmark_daily_index(return_tibble=TRUE)
+#' get_benchmark_daily_index(return_tibble = TRUE)
 #' # A tibble: 76,693 x 4
 #' # benchmark_info_id effective_date index_value benchmark_id
 #' # <int>                <date>               <dbl>           <chr>
@@ -16,29 +16,27 @@
 #' #  53                 2004-01-04            1.00          LSTA+250
 #' # ... with 76,690 more rows
 #' @export
-get_benchmark_daily_index = function(con = AZASRS_DATABASE_CONNECTION(),
-                                     benchmark_type = 'PVT',
-                                     all_bench_types = FALSE,
-                                     return_tibble = FALSE){
-
-  if(all_bench_types){
-    pmfi_bmi = get_benchmark_fund_relationship(con) %>%
+get_benchmark_daily_index <- function(con = AZASRS_DATABASE_CONNECTION(),
+                                      benchmark_type = "PVT",
+                                      all_bench_types = FALSE,
+                                      return_tibble = FALSE) {
+  if (all_bench_types) {
+    pmfi_bmi <- get_benchmark_fund_relationship(con) %>%
       dplyr::distinct(benchmark_info_id)
-  } else{
-    pmfi_bmi = get_benchmark_fund_relationship(con) %>%
+  } else {
+    pmfi_bmi <- get_benchmark_fund_relationship(con) %>%
       dplyr::filter(benchmark_type == benchmark_type) %>%
       dplyr::distinct(benchmark_info_id)
   }
 
-  dat = pmfi_bmi %>%
-    dplyr::left_join(tbl_benchmark_daily_index(con), by = 'benchmark_info_id') %>%
-    dplyr::left_join(tbl_benchmark_info(con) %>% dplyr::select(benchmark_info_id, benchmark_id), by = 'benchmark_info_id')
+  dat <- pmfi_bmi %>%
+    dplyr::left_join(tbl_benchmark_daily_index(con), by = "benchmark_info_id") %>%
+    dplyr::left_join(tbl_benchmark_info(con) %>% dplyr::select(benchmark_info_id, benchmark_id), by = "benchmark_info_id")
 
-  if(return_tibble){
-    return(dat %>% tibble::as_tibble()  %>%
-             dplyr::mutate(effective_date = lubridate::as_date(effective_date)))
-  } else{
+  if (return_tibble) {
+    return(dat %>% tibble::as_tibble() %>%
+      dplyr::mutate(effective_date = lubridate::as_date(effective_date)))
+  } else {
     return(dat)
   }
-
 }

@@ -6,7 +6,7 @@
 #' @param return_tibble is a boolean that determines whether or not a tibble is returned instead
 #' @return Returns a tibble or database object
 #' @examples
-#' get_benchmark_fund_relationship(return_tibble=TRUE)
+#' get_benchmark_fund_relationship(return_tibble = TRUE)
 #' # A tibble: 282 x 3
 #' # pm_fund_info_id benchmark_info_id benchmark_type
 #' # <int>                <int>               <chr>
@@ -15,17 +15,15 @@
 #' #  3                    53                 PVT
 #' # ... with 279 more rows
 #' @export
-get_benchmark_fund_relationship = function(con = AZASRS_DATABASE_CONNECTION(), bench_type = 'PVT', return_tibble = FALSE){
-
-  dat = tbl_pm_fund_info_benchmark_info(con) %>%
-    dplyr::left_join(tbl_benchmark_type(con), by = 'benchmark_type_id') %>%
+get_benchmark_fund_relationship <- function(con = AZASRS_DATABASE_CONNECTION(), bench_type = "PVT", return_tibble = FALSE) {
+  dat <- tbl_pm_fund_info_benchmark_info(con) %>%
+    dplyr::left_join(tbl_benchmark_type(con), by = "benchmark_type_id") %>%
     dplyr::select(pm_fund_info_id, benchmark_info_id, benchmark_type) %>%
     dplyr::filter(benchmark_type == bench_type)
 
-  if(return_tibble){
+  if (return_tibble) {
     return(dat %>% tibble::as_tibble())
-  } else{
+  } else {
     return(dat)
   }
-
 }

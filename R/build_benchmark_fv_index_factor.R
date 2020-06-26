@@ -6,22 +6,26 @@
 #' @param value_date is the last quarter end, use for custom time ranges
 #' @return Returns a tibble with grouping variables and all of their respective metrics
 #' @export
-build_benchmark_fv_index_factor = function(con = AZASRS_DATABASE_CONNECTION(),
-                                           start_date = '2004-09-30',
-                                           value_date = get_value_date(con = con),
-                                           benchmark_daily = get_benchmark_daily_index(con = con,
-                                                                                       all_bench_types = TRUE,
-                                                                                       return_tibble = FALSE)){
+build_benchmark_fv_index_factor <- function(con = AZASRS_DATABASE_CONNECTION(),
+                                            start_date = "2004-09-30",
+                                            value_date = get_value_date(con = con),
+                                            benchmark_daily = get_benchmark_daily_index(
+                                              con = con,
+                                              all_bench_types = TRUE,
+                                              return_tibble = FALSE
+                                            )) {
 
   # Filter data and require tibble to allow for distinct + keep_all
-  tmp = benchmark_daily %>%
-    dplyr::filter(effective_date >= start_date,
-                  effective_date <= value_date) %>%
+  tmp <- benchmark_daily %>%
+    dplyr::filter(
+      effective_date >= start_date,
+      effective_date <= value_date
+    ) %>%
     dplyr::as_tibble() %>%
     dplyr::distinct(benchmark_info_id, effective_date, .keep_all = TRUE)
 
   # Create a "future value" based off of index
-  bench_daily_filtered = tmp %>%
+  bench_daily_filtered <- tmp %>%
     dplyr::group_by(benchmark_info_id) %>%
     dplyr::arrange(effective_date) %>%
     dplyr::mutate(index_fv = dplyr::last(index_value) / index_value) %>%
@@ -29,5 +33,4 @@ build_benchmark_fv_index_factor = function(con = AZASRS_DATABASE_CONNECTION(),
     dplyr::arrange(benchmark_info_id, effective_date)
 
   return(bench_daily_filtered)
-
 }

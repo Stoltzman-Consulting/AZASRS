@@ -1,62 +1,63 @@
 # Database globals return proper data structures
 
 test_that("Database connection returns proper connection type", {
-  conn = AZASRS_DATABASE_CONNECTION()
+  conn <- AZASRS_DATABASE_CONNECTION()
   expect_equal(conn@info$dbms.name, "Microsoft SQL Server")
   AZASRS_DATABASE_DISCONNECT(conn)
 })
 
 test_that("Database connection name for both production and development", {
   # Default case returns production
-  conn = AZASRS_DATABASE_CONNECTION()
-  expect_equal(conn@info$dbname, Sys.getenv('DATABASE'))
+  conn <- AZASRS_DATABASE_CONNECTION()
+  expect_equal(conn@info$dbname, Sys.getenv("DATABASE"))
 
   # development = 0 returns production
-  conn = AZASRS_DATABASE_CONNECTION(development = 0)
-  expect_equal(conn@info$dbname, Sys.getenv('DATABASE'))
+  conn <- AZASRS_DATABASE_CONNECTION(development = 0)
+  expect_equal(conn@info$dbname, Sys.getenv("DATABASE"))
 
   # development = 1 returns production
-  conn = AZASRS_DATABASE_CONNECTION(development = 1)
-  expect_equal(conn@info$dbname, Sys.getenv('DATABASE_DEVELOPMENT'))
-
+  conn <- AZASRS_DATABASE_CONNECTION(development = 1)
+  expect_equal(conn@info$dbname, Sys.getenv("DATABASE_DEVELOPMENT"))
 })
 
 test_that("Database disconnect returns TRUE", {
-  conn = AZASRS_DATABASE_CONNECTION()
-  dis_con = AZASRS_DATABASE_DISCONNECT(conn)
+  conn <- AZASRS_DATABASE_CONNECTION()
+  dis_con <- AZASRS_DATABASE_DISCONNECT(conn)
   expect_true(dis_con)
 })
 
 test_that("Proper value date (valdate)", {
-  valdate = get_value_date()
+  valdate <- get_value_date()
   expect_equal(valdate, "2019-12-31")
 })
 
 test_that("Next quarter is one after valdate", {
-  valdate = get_value_date()
-  next_quarter = get_next_quarter()
-  next_qtr_calculated = as.character(calc_add_qtrs(valdate, 1))
+  valdate <- get_value_date()
+  next_quarter <- get_next_quarter()
+  next_qtr_calculated <- as.character(calc_add_qtrs(valdate, 1))
   expect_equal(next_quarter, "2020-03-31")
   expect_equal(next_quarter, next_qtr_calculated)
 })
 
 test_that("PM Fund Info columns have not changed", {
-  tbl_pm_fund_info = tbl_pm_fund_info() %>% tibble::as_tibble()
-  colnames_tbl_pm_fund_info = colnames(tbl_pm_fund_info)
-  expected_colnames_tbl_pm_fund_info = c("pm_fund_info_id", "pm_fund_id", "pm_fund_description", "pm_fund_common_name",
+  tbl_pm_fund_info <- tbl_pm_fund_info() %>% tibble::as_tibble()
+  colnames_tbl_pm_fund_info <- colnames(tbl_pm_fund_info)
+  expected_colnames_tbl_pm_fund_info <- c(
+    "pm_fund_info_id", "pm_fund_id", "pm_fund_description", "pm_fund_common_name",
     "pm_fund_portfolio_id", "pm_fund_category_id", "pm_fund_category_description_id",
     "pm_fund_sponsor_id", "pm_fund_city_id", "pm_fund_sector_id",
     "vintage", "commit", "unfunded", "legacy", "specialist", "invest_end",
     "term_end", "extension", "ext_time", "ext_used", "fee_cat", "consultant",
-    "adv_board", "obsvr", "fund_size_m", "closed")
+    "adv_board", "obsvr", "fund_size_m", "closed"
+  )
   expect_equal(colnames_tbl_pm_fund_info, expected_colnames_tbl_pm_fund_info)
 })
 
 test_that("tbl_* return proper values / types", {
-  conn = AZASRS_DATABASE_CONNECTION()
+  conn <- AZASRS_DATABASE_CONNECTION()
 
-  check_names = function(con, tbl_function, columns_expected){
-    tmp = tbl_function(con)
+  check_names <- function(con, tbl_function, columns_expected) {
+    tmp <- tbl_function(con)
     expect_equal(class(tmp)[1], "tbl_Microsoft SQL Server")
     expect_equal(colnames(tibble::tibble(tmp)), columns_expected)
   }
