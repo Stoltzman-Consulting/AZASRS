@@ -2,9 +2,13 @@ on:
   push:
     branches:
       - master
+      - development
+      - add_github_actions_support
   pull_request:
     branches:
       - master
+      - development
+      - add_github_actions_support
 
 name: R-CMD-check
 
