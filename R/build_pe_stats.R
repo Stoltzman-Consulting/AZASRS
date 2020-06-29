@@ -1,3 +1,12 @@
+#' @description
+#' @param con is a database connection object from AZASRS::AZASRS_DATABASE_CONNECTION()
+#' @param cash_flow_daily is the object of get_pm_cash_flow_daily()
+#' @param nav_daily is the object of get_pm_nav_daily()
+#' @param pmfi is the object of get_pm_fund_info()
+#' @param start_date is the start date of analysis
+#' @param end_date is the cutoff date of analysis, the object of get_value_date()
+#' @param itd is a boolean that determines if itd (inception to date) is included
+#' @return
 #' @export
 build_pe_stats <- function(con = AZASRS_DATABASE_CONNECTION(),
                            cash_flow_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),

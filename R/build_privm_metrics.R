@@ -1,11 +1,14 @@
 #' Build a tibble of major private market metrics including: IRR, DPI, TVPI, PME -- Assumes benchmark type is PVT
 #'
 #' @param ... grouping variables (pm_fund_id, pm_fund_portfolio, etc.)
-#' @param nav_daily is data from get_pm_nav_daily() and can be previously loaded and filtered
-#' @param cf_daily is data from get_pm_cash_flow_daily() and can be previously loaded and filtered
-#' @param start_date is the earliest date to be used for calculations, use for custom time ranges
-#' @param pcap_date is the last date to be used for PCAP, use for custom time ranges
-#' @param value_date is the last quarter end, use for custom time ranges
+#' @param con is a database connection object from AZASRS::AZASRS_DATABASE_CONNECTION()
+#' @param nav_daily is the object of get_pm_nav_daily()
+#' @param cf_daily is the object of get_pm_cash_flow_daily()
+#' @param benchmark_daily is the object of build_benchmark_fv_index_factor()
+#' @param pmfi is the object of get_pm_fund_info()
+#' @param start_date is the start date of analysis
+#' @param pcap_date is the cutoff date of analysis
+#' @param value_date is the object of get_value_date()
 #' @return Returns a tibble with grouping variables and all of their respective metrics
 #' @examples
 #' build_privm_metrics(pm_fund_portfolio, pm_fund_id)
