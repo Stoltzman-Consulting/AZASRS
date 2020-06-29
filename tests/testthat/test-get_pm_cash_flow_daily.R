@@ -12,5 +12,7 @@ test_that("get_pm_cash_flow_daily() returns matching tibbles", {
     "pm_fund_city", "pm_fund_sector"
   )
   expect_equal(colnames(cf), expected_names)
+  expect_equal(as.character(lapply(cf, class)), c("integer", "Date", "numeric", "numeric", "numeric", "character", "character", "character","integer", "integer", "integer", "character", "character", "Date", "Date", "numeric", "numeric", "numeric", "character", "character", "logical", "logical", "numeric", "character", "character", "character","character","character","character","character" ))
+
   expect_true(dplyr::count(cf) %>% dplyr::pull(n) > 11159)
 })
