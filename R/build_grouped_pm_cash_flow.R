@@ -3,6 +3,16 @@
 #' @description Combine cash flow and NAV data to create a "cash flow" for private market calculations
 #' @param .data is from clean_nav_cf()
 #' @param ... aggregation choices from from pm_fund_info (i.e. pm_fund_portfolio, pm_fund_category, pm_fund_id)
+#' @param start_date is the start date of analysis
+#' @param end_date is the cutoff date of analysis
+#' @param itd is a boolean that determines whether itd (incpetion to date) is included
+#' @param cash_adjusted is a boolean that determines if cash is adjusted
+#' @param nav_daily is the object of get_pm_nav_daily()
+#' @param cf_daily is the object of get_pm_cash_flow_daily()
+#' @param bench_daily is the object of get_benchmark_daily_index()
+#' @param bench_relationships is the object of get_benchmark_fund_relationship()
+#' @param pm_fund_info is the object of get_pm_fund_info()
+#' @return
 #' @examples
 #' # Example use case
 #' nav <- get_pm_nav_daily() %>% dplyr::filter(nav != 0)
