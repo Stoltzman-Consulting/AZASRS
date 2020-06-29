@@ -1,11 +1,13 @@
-#' Build a tibble of benchmark index future value factor
-#'
-#' @param ... grouping variables (pm_fund_id, pm_fund_portfolio, etc.)
+#' @description Build a tibble of benchmark index future value factor
+#' @param con is a database connection object from AZASRS::AZASRS_DATABASE_CONNECTION()
+#' @param start_date is the start date of analysis
+#' @param value_date is the object of get_value_date()
 #' @param benchmark_daily is data from get_benchmark_daily_index() and can be previously loaded and filtered
-#' @param bench_type is string that represents one of the types (PVT, etc.)
-#' @param value_date is the last quarter end, use for custom time ranges
+#' @param all_bench_types is a boolean that determines whether all bench type are included
+#' @param return_tibble is a boolean that determines whether or not a tibble is returned instead
 #' @return Returns a tibble with grouping variables and all of their respective metrics
 #' @export
+
 build_benchmark_fv_index_factor <- function(con = AZASRS_DATABASE_CONNECTION(),
                                             start_date = "2004-09-30",
                                             value_date = get_value_date(con = con),

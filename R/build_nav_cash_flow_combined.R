@@ -1,5 +1,14 @@
-#' Get and combine cash flows and nav according to irr.z calc
-#'
+#' @description Get and combine cash flows and nav according to irr.z calc
+#' @param ... grouping variables (pm_fund_id, pm_fund_portfolio, etc.)
+#' @param con is a database connection object from AZASRS::AZASRS_DATABASE_CONNECTION()
+#' @param start_date is the start date of analysis
+#' @param end_date is the cutoff date of analysis
+#' @param nav_daily is the object of get_pm_nav_daily()
+#' @param cash_flow_daily is the object of get_pm_cash_flow_daily()
+#' @param itd is a boolean that determines whether itd (inception to date) is included
+#' @param cash_adjusted is a boolean that determines whether cash is adjusted
+#' @param return_tibble is a boolean that determines whether or not a tibble is returned instead
+#' @return Returns a tibble or database with nav and cash flow values
 #' @export
 build_nav_cash_flow_combined <- function(...,
                                          con = AZASRS_DATABASE_CONNECTION(),

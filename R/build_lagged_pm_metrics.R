@@ -1,3 +1,15 @@
+#' @description
+#' @param ... aggregation choices from from pm_fund_info (i.e. pm_fund_portfolio, pm_fund_category, pm_fund_id)
+#' @param con is a database connection object from AZASRS::AZASRS_DATABASE_CONNECTION()
+#' @param start_date is the start date of analysis
+#' @param end_date is the cutoff date of analysis, the object of get_value_date()
+#' @param time_delta is the change in time where the default is "quarters"
+#' @param n_qtrs determines the number of quarters, where the default is 4
+#' @param itd is a boolean that determines if itd (inception to date) is included
+#' @param return_calcs is a boolean that determines if calculations are returned
+#' @return
+
+
 #' @export
 build_lagged_pm_metrics <- function(...,
                                     con = AZASRS_DATABASE_CONNECTION(),
