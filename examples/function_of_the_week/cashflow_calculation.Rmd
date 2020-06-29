@@ -95,4 +95,21 @@ range_portfolio_cf = cf %>%
 range_portfolio_cf
 ```
 
-# grouped by quarter, choose arbitrary amount
+
+# Choose arbitrary amount
+
+- Cash flows greater than 1 million $
+
+```{r}
+between_amounts_portfolio_cf <- cf %>%
+  filter(cf != 0, cash_flow > 1000000) %>%
+  group_by(pm_fund_portfolio, pm_fund_category_description) %>%
+  ungroup()
+
+between_amounts_portfolio_cf
+```
+
+
+
+
+
