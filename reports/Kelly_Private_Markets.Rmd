@@ -18,6 +18,7 @@ value_date <- "2019-03-31"
 fund_info <- get_pm_fund_info()
 cash_flow <- get_pm_cash_flow_daily()
 nav_daily <- get_pm_nav_daily()
+nav_cash_flow_combined <- build_nav_cash_flow_combined(pm_fund_description, pm_fund_portfolio, return_tibble=TRUE)
 ```
 
 
@@ -62,7 +63,17 @@ pe_nav <- get_pm_nav_daily()%>%
 pe_dpi <- get_pm_cash_flow_daily()%>%
   filter(pm_fund_portfolio=="PE", effective_date <= value_date)%>%
   group_by(pm_fund_description)%>%
+  summarize("DPI" = calc_dpi(distributions, contributions)) #this works?
+
+
+
+#trying to use build_nav_cash_flow_combined:
+pe_dpi <- build_nav_cash_flow_combined(pm_fund_description, pm_fund_portfolio, return_tibble = TRUE)%>%
+  filter(pm_fund_portfolio=="PE", effective_date <= value_date)%>%
+  group_by(pm_fund_description)%>%
   summarize("DPI" = calc_dpi(distributions, contributions))
+
+
 
 ```
 
@@ -77,15 +88,16 @@ Real_estate_info1 <- get_pm_fund_info()%>%
   summarize("Vintage Year" = min(vintage), "Committed" = sum(commit))
 
 
-Real_estate_info2 <- get_pm_cash_flow_daily()%>%
+Real_estate_cashflow <- get_pm_cash_flow_daily()%>%
   filter(pm_fund_portfolio=="RE", effective_date <= value_date)%>%
   group_by(pm_fund_description)%>%
   summarize("Called through 06/28/2019" = sum(contributions), "Distributed through 06/28/2019" = sum(distributions), "Unfunded as of 03/31/2019" = sum(unfunded))
 
 
-Real_estate <- merge(Real_estate_info1, Real_estate_info2, by="pm_fund_description")
+Real_estate <- Real_estate_info1%>%
+  left_join(Real_estate_cashflow, by="pm_fund_description")
 
-knitr::kable(Real_estate, digits=2)
+knitr::kable(Real_estate)
 
 
 RE_nav <- get_pm_nav_daily()%>%
@@ -112,15 +124,16 @@ Credit_info1 <- get_pm_fund_info()%>%
   summarize("Vintage Year" = min(vintage), "Committed" = sum(commit))
 
 
-Credit_info2 <- get_pm_cash_flow_daily()%>%
+Credit_cashflow <- get_pm_cash_flow_daily()%>%
   filter(pm_fund_portfolio=="Credit", effective_date <= value_date)%>%
   group_by(pm_fund_description)%>%
   summarize("Called through 06/28/2019" = sum(contributions), "Distributed through 06/28/2019" = sum(distributions), "Unfunded as of 03/31/2019" = sum(unfunded))
 
 
-Credit <- merge(Credit_info1, Credit_info2, by="pm_fund_description")
+Credit <-  Credit_info1%>%
+  left_join(Credit_cashflow, by="pm_fund_description")
 
-knitr::kable(Credit, digits=2)
+knitr::kable(Credit)
 
 
 Credit_nav <- get_pm_nav_daily()%>%
