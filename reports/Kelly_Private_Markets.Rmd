@@ -1,0 +1,139 @@
+---
+title: "Arizona State Retirement System  \n Private Equity Portfolio  \n Information compiled through 06/28/2019"
+
+output: pdf_document
+---
+
+```{r, warning = FALSE, message = FALSE}
+library(AZASRS)
+library(tidyverse)
+```
+
+
+```{r}
+value_date <- "2019-03-31"
+```
+
+```{r}
+fund_info <- get_pm_fund_info()
+cash_flow <- get_pm_cash_flow_daily()
+nav_daily <- get_pm_nav_daily()
+```
+
+
+# Private Equity
+
+```{r}
+#first table
+Private_equity_nav <- get_pm_nav_daily()%>%
+  filter(pm_fund_portfolio == "PE", effective_date == value_date)%>%
+  summarize("Beginning NAV" = sum(nav))
+
+
+```
+
+
+
+```{r}
+#private equity long tables
+Private_equity_info1 <- get_pm_fund_info()%>%
+  filter(pm_fund_portfolio=="PE")%>%
+  group_by(pm_fund_description)%>%
+  summarize("Vintage Year" = min(vintage), "Committed" = sum(commit))
+
+
+Private_equity_info2 <- get_pm_cash_flow_daily()%>%
+  filter(pm_fund_portfolio=="PE", effective_date <= value_date)%>%
+  group_by(pm_fund_description)%>%
+  summarize("Called through 06/28/2019" = sum(contributions), "Distributed through 06/28/2019" = sum(distributions), "Unfunded as of 03/31/2019" = sum(unfunded))
+
+
+Private_equity <- merge(Private_equity_info1, Private_equity_info2, by="pm_fund_description")
+
+knitr::kable(Private_equity, digits=2)
+
+
+pe_nav <- get_pm_nav_daily()%>%
+  filter(pm_fund_portfolio=="PE", effective_date == value_date)%>%
+  group_by(pm_fund_description)%>%
+  summarize(nav = nav)
+
+pe_dpi <- get_pm_cash_flow_daily()%>%
+  filter(pm_fund_portfolio=="PE", effective_date <= value_date)%>%
+  group_by(pm_fund_description)%>%
+  summarize("DPI" = calc_dpi(distributions, contributions))
+
+```
+
+
+# Real Estate
+
+```{r}
+#real estate long tables
+Real_estate_info1 <- get_pm_fund_info()%>%
+  filter(pm_fund_portfolio=="RE")%>%
+  group_by(pm_fund_description)%>%
+  summarize("Vintage Year" = min(vintage), "Committed" = sum(commit))
+
+
+Real_estate_info2 <- get_pm_cash_flow_daily()%>%
+  filter(pm_fund_portfolio=="RE", effective_date <= value_date)%>%
+  group_by(pm_fund_description)%>%
+  summarize("Called through 06/28/2019" = sum(contributions), "Distributed through 06/28/2019" = sum(distributions), "Unfunded as of 03/31/2019" = sum(unfunded))
+
+
+Real_estate <- merge(Real_estate_info1, Real_estate_info2, by="pm_fund_description")
+
+knitr::kable(Real_estate, digits=2)
+
+
+RE_nav <- get_pm_nav_daily()%>%
+  filter(pm_fund_portfolio=="RE", effective_date == value_date)%>%
+  group_by(pm_fund_description)%>%
+  summarize(nav = nav)
+
+
+RE_dpi <- get_pm_cash_flow_daily()%>%
+  filter(pm_fund_portfolio=="RE", effective_date <= value_date)%>%
+  group_by(pm_fund_description)%>%
+  summarize("DPI" = calc_dpi(distributions, contributions))
+```
+
+
+
+# Private Credit
+
+```{r}
+#private credit long tables
+Credit_info1 <- get_pm_fund_info()%>%
+  filter(pm_fund_portfolio=="Credit")%>%
+  group_by(pm_fund_description)%>%
+  summarize("Vintage Year" = min(vintage), "Committed" = sum(commit))
+
+
+Credit_info2 <- get_pm_cash_flow_daily()%>%
+  filter(pm_fund_portfolio=="Credit", effective_date <= value_date)%>%
+  group_by(pm_fund_description)%>%
+  summarize("Called through 06/28/2019" = sum(contributions), "Distributed through 06/28/2019" = sum(distributions), "Unfunded as of 03/31/2019" = sum(unfunded))
+
+
+Credit <- merge(Credit_info1, Credit_info2, by="pm_fund_description")
+
+knitr::kable(Credit, digits=2)
+
+
+Credit_nav <- get_pm_nav_daily()%>%
+  filter(pm_fund_portfolio=="Credit", effective_date == value_date)%>%
+  group_by(pm_fund_description)%>%
+  summarize(nav = nav)
+
+Credit_dpi <- get_pm_cash_flow_daily()%>%
+  filter(pm_fund_portfolio=="Credit", effective_date <= value_date)%>%
+  group_by(pm_fund_description)%>%
+  summarize("DPI" = calc_dpi(distributions, contributions))
+```
+
+
+
+
+
