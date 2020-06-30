@@ -39,18 +39,19 @@ Private_equity_nav <- get_pm_nav_daily()%>%
 Private_equity_info1 <- get_pm_fund_info()%>%
   filter(pm_fund_portfolio=="PE")%>%
   group_by(pm_fund_description)%>%
-  summarize("Vintage Year" = min(vintage), "Committed" = sum(commit))
+  summarize("Vintage Year" = min(vintage), "Committed" = round(sum(commit)/1e6))
 
 
-Private_equity_info2 <- get_pm_cash_flow_daily()%>%
+Private_equity_cashflow <- get_pm_cash_flow_daily()%>%
   filter(pm_fund_portfolio=="PE", effective_date <= value_date)%>%
   group_by(pm_fund_description)%>%
-  summarize("Called through 06/28/2019" = sum(contributions), "Distributed through 06/28/2019" = sum(distributions), "Unfunded as of 03/31/2019" = sum(unfunded))
+  summarize("Called through 06/28/2019" = abs(round(sum(contributions)/1e6)), "Distributed through 06/28/2019" = round(sum(distributions)/1e6), "Unfunded as of 03/31/2019" = round(sum(unfunded)/1e6))
 
 
-Private_equity <- merge(Private_equity_info1, Private_equity_info2, by="pm_fund_description")
+Private_equity <- Private_equity_info1%>%
+  left_join(Private_equity_cashflow, by="pm_fund_description")
 
-knitr::kable(Private_equity, digits=2)
+knitr::kable(Private_equity)
 
 
 pe_nav <- get_pm_nav_daily()%>%
