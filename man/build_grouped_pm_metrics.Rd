@@ -27,9 +27,9 @@ build_grouped_pm_metrics(
 
 \item{end_date}{is the cutoff date of analysis}
 
-\item{itd}{is a boolean that determines whether itd (incpetion to date) is included}
+\item{itd}{is a boolean that determines whether itd (incpetion to date) is included, overrides start_date}
 
-\item{cash_adjusted}{is a boolean that determines if cash is adjusted}
+\item{cash_adjusted}{is a boolean that determines if NAV is cash adjusted}
 
 \item{nav_daily}{is the object of get_pm_nav_daily()}
 
@@ -40,27 +40,7 @@ build_grouped_pm_metrics(
 \item{bench_relationships}{is the object of get_benchmark_fund_relationship()}
 
 \item{pm_fund_info}{is the object of get_pm_fund_info()}
-
-\item{.data}{is from clean_nav_cf()}
-}
-\value{
-
 }
 \description{
 Build IRR for any rollup and date range, including ITD and cash adjusted
-}
-\examples{
-# Example use case
-nav <- get_pm_nav_daily() \%>\% dplyr::filter(nav != 0)
-cf <- get_pm_cash_flow_daily() \%>\% dplyr::filter(cash_flow != 0)
-pm_fund_info <- get_pm_fund_info()
-start_date <- "2019-06-30"
-end_date <- "2019-09-30"
-itd <- FALSE
-cash_adjusted <- FALSE
-final_data <- build_grouped_irrs(
-  start_date = start_date, end_date = end_date, itd = itd,
-  cash_adjusted = cash_adjusted, pm_fund_info = pm_fund_info,
-  pm_fund_portfolio, pm_fund_category_description
-)
 }
