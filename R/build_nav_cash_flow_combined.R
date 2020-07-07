@@ -12,41 +12,41 @@
 #' @export
 build_nav_cash_flow_combined <- function(...,
                                          con = AZASRS_DATABASE_CONNECTION(),
-                                         start_date = "2019-03-31",
+                                         start_date = "2019-06-30",
                                          end_date = get_value_date(con = con),
-                                         nav_daily = get_pm_nav_daily(con = con, return_tibble = FALSE),
-                                         cash_flow_daily = get_pm_cash_flow_daily(con = con, return_tibble = FALSE),
+                                         nav_daily = get_pm_nav_daily(con = con, return_tibble = TRUE),
+                                         cash_flow_daily = get_pm_cash_flow_daily(con = con, return_tibble = TRUE),
                                          itd = FALSE,
                                          cash_adjusted = FALSE,
-                                         return_tibble = FALSE) {
+                                         return_tibble = TRUE) {
 
   # Determine need to adjust NAV
   tmp_valdate <- get_value_date(con)
   if (cash_adjusted) {
     # Funds that have an end_date NAV
     end_date_nav <- nav_daily %>%
-      filter(effective_date == end_date)
+      dplyr::filter(effective_date == end_date)
 
     # Funds with a valdate but not an end_date NAV
     no_end_date_nav <- nav_daily %>%
-      filter(effective_date == tmp_valdate) %>%
-      select(pm_fund_id) %>%
-      anti_join(end_date_nav, by = "pm_fund_id")
+      dplyr::filter(effective_date == tmp_valdate) %>%
+      dplyr::select(pm_fund_id) %>%
+      dplyr::anti_join(end_date_nav, by = "pm_fund_id")
 
     sum_cash_flow_after_valdate <- no_end_date_nav %>%
-      left_join(cash_flow_daily %>% filter(effective_date >= tmp_valdate), by = "pm_fund_id") %>%
-      group_by(pm_fund_id) %>%
-      summarize(sum_cash_flow = sum(-1 * cash_flow, na.rm = TRUE))
+      dplyr::left_join(cash_flow_daily %>% dplyr::filter(effective_date >= tmp_valdate), by = "pm_fund_id") %>%
+      dplyr::group_by(pm_fund_id) %>%
+      dplyr::summarize(sum_cash_flow = sum(-1 * cash_flow, na.rm = TRUE))
 
     # Replacing nav_daily
     nav_daily <- sum_cash_flow_after_valdate %>%
-      left_join(nav_daily %>% filter(effective_date == tmp_valdate), by = "pm_fund_id") %>%
-      mutate(
+      dplyr::left_join(nav_daily %>% dplyr::filter(effective_date == tmp_valdate), by = "pm_fund_id") %>%
+      dplyr::mutate(
         nav = nav + sum_cash_flow,
         effective_date = end_date
       ) %>%
-      select(-sum_cash_flow) %>%
-      union_all(nav_daily %>% filter(nav != 0))
+      dplyr::select(-sum_cash_flow) %>%
+      dplyr::bind_rows(nav_daily %>% filter(nav != 0))
   }
 
   if (itd) {
@@ -76,7 +76,7 @@ build_nav_cash_flow_combined <- function(...,
     cf <- cf %>%
       dplyr::mutate(nav = 0)
 
-    nav_cf_combo <- dplyr::union_all(nav, cf)
+    nav_cf_combo <- dplyr::bind_rows(nav, cf)
   } else {
 
     # Remove funds who either start in the middle of the date range or do not reach the end

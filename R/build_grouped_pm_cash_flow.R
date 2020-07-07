@@ -28,12 +28,27 @@
 #'   pm_fund_portfolio, pm_fund_category_description
 #' )
 #' @export
-build_grouped_pm_cash_flow <- function(start_date, end_date, itd, cash_adjusted, nav_daily, cf_daily, bench_daily, bench_relationships, pm_fund_info, ...) {
+build_grouped_pm_cash_flow <- function(...,
+                                       con = AZASRS_DATABASE_CONNECTION(),
+                                       start_date = '2019-06-30',
+                                       end_date = get_value_date(con = con),
+                                       itd = FALSE,
+                                       cash_adjusted = FALSE,
+                                       nav_daily = get_pm_nav_daily(con = con),
+                                       cf_daily = get_pm_cash_flow_daily(con = con),
+                                       bench_daily = get_benchmark_daily_index(con = con, benchmark_type = 'PVT', return_tibble = TRUE),
+                                       bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = 'PVT', return_tibble = TRUE),
+                                       pm_fund_info = get_pm_fund_info(con = con)) {
 
   # ITD failsafe - ensure start_date is before earliest possible pm_fund_cash_flow
   if (itd) {
     start_date <- "2004-06-30"
   }
+
+  bench_daily = build_benchmark_fv_index_factor(con = con,
+                                                start_date = start_date,
+                                                value_date = end_date,
+                                                benchmark_daily = bench_daily)
 
   nav_prep <- nav_daily %>%
     filter_nav_on_dates(start_date = start_date, end_date = end_date, itd = itd) %>%
@@ -59,8 +74,8 @@ build_grouped_pm_cash_flow <- function(start_date, end_date, itd, cash_adjusted,
       contributions_fv = dplyr::if_else(adj_cf_fv < 0, adj_cf_fv, 0),
       distributions_fv = dplyr::if_else(adj_cf_fv > 0, adj_cf_fv, 0)
     ) %>%
-    group_by(..., effective_date) %>%
-    summarize(
+    dplyr::group_by(..., effective_date) %>%
+    dplyr::summarize(
       dva = sum(adjusted_cash_flow * index_fv),
       contributions_fv = sum(contributions_fv),
       distributions_fv = sum(distributions_fv),
@@ -71,7 +86,7 @@ build_grouped_pm_cash_flow <- function(start_date, end_date, itd, cash_adjusted,
       nav = sum(nav),
       cash_flow = sum(cash_flow)
     ) %>%
-    ungroup()
+    dplyr::ungroup()
 }
 
 
@@ -180,7 +195,7 @@ merge_nav_and_cf <- function(.nav_data, .cf_data, end_date, cash_adjusted, pm_fu
     .cf_data <- .cf_data %>%
       dplyr::filter(pm_fund_id %in% funds_reported)
 
-    return(dplyr::union_all(.nav_data, .cf_data))
+    return(dplyr::bind_rows(.nav_data, .cf_data))
   } else {
     # Find out which funds haven't reported
     funds_not_reported_data <- .nav_data %>%
@@ -210,7 +225,7 @@ merge_nav_and_cf <- function(.nav_data, .cf_data, end_date, cash_adjusted, pm_fu
 
     # append cash adjusted nav to not reported nav
     .nav_data <- .nav_data %>% bind_rows(cf_as_nav)
-    return(dplyr::union_all(.nav_data, .cf_data))
+    return(dplyr::bind_rows(.nav_data, .cf_data))
   }
 }
 
