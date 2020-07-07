@@ -55,8 +55,17 @@ build_grouped_pm_metrics <- function(...,
 
 
   # Append benchmark data before calculating metrics
-  clean_data %>%
-    calculate_grouped_pm_metrics(...)
+  dat = clean_data %>%
+    calculate_grouped_pm_metrics(...) %>%
+    dplyr::mutate(itd = itd)
+
+  # If not ITD, then certain metrics do not apply
+  if(!itd){
+    dat = dat %>%
+      dplyr::mutate(pme = NA, tvpi = NA, dva = NA)
+  }
+
+  return(dat)
 }
 
 
@@ -70,6 +79,8 @@ calculate_grouped_pm_metrics <- function(.data, ...) {
     dplyr::group_by(...) %>%
     dplyr::arrange(effective_date) %>%
     dplyr::summarize(
+      start_date = min(effective_date, na.rm = TRUE),
+      end_date = max(effective_date, na.rm = TRUE),
       pme = -sum(distributions_fv) / sum(contributions_fv),
       irr = calc_irr(adjusted_cash_flow, effective_date),
       irr_fv = calc_irr(cash_flow = adj_cf_fv, dates = effective_date),
@@ -85,6 +96,6 @@ calculate_grouped_pm_metrics <- function(.data, ...) {
       distributions = sum(distributions)
     ) %>%
     dplyr::select(
-      pme, irr, tvpi, bench_irr, dva, nav, cash_flow, contributions, distributions
+      ..., pme, irr, tvpi, bench_irr, dva, nav, cash_flow, contributions, distributions, start_date, end_date
     )
 }
