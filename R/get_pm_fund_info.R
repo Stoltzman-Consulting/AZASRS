@@ -13,10 +13,10 @@
 #' # 1      Hgh19     AP Mezzanine Pa…      HPS Mezz 2019         2019    6.00e8  3.95e8     A    " "
 #' # 2      HghBr     AP Mezzanine Pa…      HPS Mezz 2            2013    2.00e8  1.30e7     A    " "
 #' # 3      HghBr3    AP Mezzanine Pa…      HPS Mezz 3            2016    5.00e8  9.85e7     A    " "
-# … with 279 more rows, and 17 more variables: invest_end <date>, term_end <date>, extension <dbl>,
-#   ext_time <dbl>, ext_used <dbl>, fee_cat <chr>, consultant <chr>, adv_board <lgl>, obsvr <lgl>,
-#   fund_size_m <dbl>, closed <chr>, pm_fund_category <chr>, pm_fund_category_description <chr>,
-#   pm_fund_portfolio <chr>, pm_fund_sponsor <chr>, pm_fund_city <chr>, pm_fund_sector <chr>
+#' # … with 279 more rows, and 17 more variables: invest_end <date>, term_end <date>, extension <dbl>,
+#' #   ext_time <dbl>, ext_used <dbl>, fee_cat <chr>, consultant <chr>, adv_board <lgl>, obsvr <lgl>,
+#' #   fund_size_m <dbl>, closed <chr>, pm_fund_category <chr>, pm_fund_category_description <chr>,
+#' #   pm_fund_portfolio <chr>, pm_fund_sponsor <chr>, pm_fund_city <chr>, pm_fund_sector <chr>
 #' @export
 get_pm_fund_info <- function(con = AZASRS_DATABASE_CONNECTION(), add_benchmark = FALSE, return_tibble = TRUE) {
   dat <- tbl_view_all_pm_fund_info(con = con)
