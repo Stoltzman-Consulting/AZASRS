@@ -12,6 +12,6 @@ test_that("get_pm_nav_daily() matches test data", {
   )
 
   expect_equal(colnames(pm_nav_daily), expected_names)
-  expect_equal(as.character(lapply(pm_nav_daily, class)), c("integer" , "Date","numeric","character" ,"character", "character", "integer" , "integer","integer" , "character" ,"character" ,"Date",  "Date",  "numeric","numeric","numeric", "character" ,"character", "logical","logical", "numeric","character" ,"character" ,"character", "character", "character" ,"character","character"))
+  expect_equal(as.character(lapply(pm_nav_daily, class)), c("integer", "Date", "numeric", "character", "character", "character", "integer", "integer", "integer", "character", "character", "Date", "Date", "numeric", "numeric", "numeric", "character", "character", "logical", "logical", "numeric", "character", "character", "character", "character", "character", "character", "character"))
   expect_true(dplyr::count(pm_nav_daily) %>% dplyr::pull(n) > 6963)
 })

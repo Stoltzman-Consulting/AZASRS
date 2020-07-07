@@ -12,6 +12,6 @@ test_that("get_pm_fund_info() returns matching tibble", {
   )
 
   expect_equal(colnames(pm_fund_info), expected_columns)
-  expect_equal(as.character(lapply(pm_fund_info, class)), c("integer", "character","character","character" ,"integer","integer" ,"integer","character","character","Date", "Date" ,"numeric","numeric", "numeric" , "character","character","logical" ,"logical", "numeric" ,"character", "character", "character" ,"character", "character", "character" ,"character"))
+  expect_equal(as.character(lapply(pm_fund_info, class)), c("integer", "character", "character", "character", "integer", "integer", "integer", "character", "character", "Date", "Date", "numeric", "numeric", "numeric", "character", "character", "logical", "logical", "numeric", "character", "character", "character", "character", "character", "character", "character"))
   expect_true(dplyr::count(pm_fund_info) %>% dplyr::pull(n) > 277)
 })
