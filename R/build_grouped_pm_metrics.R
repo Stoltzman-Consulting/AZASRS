@@ -41,7 +41,8 @@ build_grouped_pm_metrics <- function(...,
   # Append benchmark data before calculating metrics
   dat = clean_data %>%
     calculate_grouped_pm_metrics(...) %>%
-    dplyr::mutate(itd = itd)
+    dplyr::mutate(itd = itd) %>%
+    calc_time_delta(start_date, end_date)
 
   # If not ITD, then certain metrics do not apply
   if(!itd){

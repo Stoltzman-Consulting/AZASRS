@@ -10,7 +10,7 @@ library(AZASRS)
 ```
 
 
-# Calculate Metrics
+# Calculate Private Market Metrics
 
 The first entry for the `build_grouped_pm_metrics` function is `...` - this is where you can insert the breakdown you'd like.
 
@@ -19,30 +19,23 @@ For example, to simply see by fund, you could use `build_grouped_pm_metrics(pm_f
 For inception to date, simply use `itd = TRUE`
 ```{r}
 # ITD category metrics
-con = AZASRS_DATABASE_CONNECTION()
-df = build_grouped_pm_metrics(pm_fund_portfolio, pm_fund_category_description,
-                              con = con,
+df = build_grouped_pm_metrics(pm_fund_portfolio, pm_fund_category_description, 
                               itd = TRUE)
 df
 ```
 
 
-For any date range other than ITD, simply enter a start and end date.
+For any date range other than ITD, simply enter a start and end date. Note that certain metrics will be `NA`. This will be true for any metrics that require `itd=TRUE` 
 
 ```{r}
 # Last quarter's portfolio metrics
-value_date = get_value_date(con)
+value_date = get_value_date()
 start_date = calc_add_qtrs(value_date, -1)
 
 df = build_grouped_pm_metrics(pm_fund_portfolio,
-                              con = con,
                               start_date = start_date,
                               end_date = value_date)
 df
 ```
 
-
-```{r}
-
-```
 
