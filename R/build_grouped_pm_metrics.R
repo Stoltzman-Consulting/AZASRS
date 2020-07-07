@@ -46,7 +46,7 @@ build_grouped_pm_metrics <- function(...,
   # If not ITD, then certain metrics do not apply
   if (!itd) {
     dat <- dat %>%
-      dplyr::mutate(pme = NA, tvpi = NA, dva = NA)
+      dplyr::mutate(pme = NA, tvpi = NA, dpi = NA, dva = NA)
   }
 
   return(dat)
@@ -69,6 +69,7 @@ calculate_grouped_pm_metrics <- function(.data, ...) {
       irr = calc_irr(adjusted_cash_flow, effective_date),
       irr_fv = calc_irr(cash_flow = adj_cf_fv, dates = effective_date),
       tvpi = calc_tvpi(distributions = distributions, contributions = contributions, nav = nav),
+      dpi = calc_dpi(distributions = distributions, contributions = contributions),
       alpha = log(1 + irr_fv),
       bench_irr = -1 + exp(log(1 + irr) - alpha),
       dva = sum(dva),
@@ -77,9 +78,10 @@ calculate_grouped_pm_metrics <- function(.data, ...) {
       cash_flow = sum(cash_flow),
       adjusted_cash_flow = sum(adjusted_cash_flow),
       contributions = sum(contributions),
-      distributions = sum(distributions)
+      distributions = sum(distributions),
+      excess = irr - bench_irr
     ) %>%
     dplyr::select(
-      ..., pme, irr, tvpi, bench_irr, dva, nav, cash_flow, contributions, distributions, start_date, end_date
+      ..., pme, irr, tvpi, dpi, bench_irr, dva, nav, cash_flow, contributions, distributions, excess, start_date, end_date
     )
 }
