@@ -83,5 +83,8 @@ calculate_grouped_pm_metrics <- function(.data, ...) {
       adjusted_cash_flow = sum(adjusted_cash_flow),
       contributions = sum(contributions),
       distributions = sum(distributions)
+    ) %>%
+    dplyr::select(
+      pme, irr, tvpi, bench_irr, dva, nav, cash_flow, contributions, distributions
     )
 }
