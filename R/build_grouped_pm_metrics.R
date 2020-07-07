@@ -14,39 +14,38 @@
 #' @export
 build_grouped_pm_metrics <- function(...,
                                      con = AZASRS_DATABASE_CONNECTION(),
-                                     start_date = '2016-12-31',
+                                     start_date = "2016-12-31",
                                      end_date = get_value_date(con = con),
                                      itd = FALSE,
                                      cash_adjusted = FALSE,
                                      nav_daily = get_pm_nav_daily(con = con),
                                      cf_daily = get_pm_cash_flow_daily(con = con),
-                                     bench_daily = get_benchmark_daily_index(con = con, benchmark_type = 'PVT', return_tibble = TRUE),
-                                     bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = 'PVT', return_tibble = TRUE),
+                                     bench_daily = get_benchmark_daily_index(con = con, benchmark_type = "PVT", return_tibble = TRUE),
+                                     bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = "PVT", return_tibble = TRUE),
                                      pm_fund_info = get_pm_fund_info(con = con)) {
-
   clean_data <- build_grouped_pm_cash_flow(...,
-                                          start_date = start_date,
-                                          end_date = end_date,
-                                          itd = itd,
-                                          cash_adjusted = cash_adjusted,
-                                          nav_daily = nav_daily,
-                                          cf_daily = cf_daily,
-                                          bench_daily = bench_daily,
-                                          bench_relationships = bench_relationships,
-                                          pm_fund_info = pm_fund_info
-                                          )
+    start_date = start_date,
+    end_date = end_date,
+    itd = itd,
+    cash_adjusted = cash_adjusted,
+    nav_daily = nav_daily,
+    cf_daily = cf_daily,
+    bench_daily = bench_daily,
+    bench_relationships = bench_relationships,
+    pm_fund_info = pm_fund_info
+  )
 
 
 
   # Append benchmark data before calculating metrics
-  dat = clean_data %>%
+  dat <- clean_data %>%
     calculate_grouped_pm_metrics(...) %>%
     dplyr::mutate(itd = itd) %>%
     calc_time_delta(start_date, end_date)
 
   # If not ITD, then certain metrics do not apply
-  if(!itd){
-    dat = dat %>%
+  if (!itd) {
+    dat <- dat %>%
       dplyr::mutate(pme = NA, tvpi = NA, dva = NA)
   }
 

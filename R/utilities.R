@@ -139,20 +139,21 @@ tibble_to_zoo_list <- function() {
 #' @description Quarters, Years, etc. need to be counted
 #' @param start_date is the first date
 #' @param end_date is the end date
-calc_time_delta = function(.data, start_date, end_date){
+calc_time_delta <- function(.data, start_date, end_date) {
   # First calculate number of days
   .data %>%
-    dplyr::mutate(period = round(as.integer(difftime(end_date, start_date, units="days")) / 365, 2),
-                  period = dplyr::case_when(
-                    period == 0.00 ~ '0 Years',
-                    period == 0.25 ~ '1 Quarter',
-                    period == 0.50 ~ '6 Months',
-                    period == 1.00 ~ '1 Year',
-                    period == 3.00 ~ '3 Years',
-                    period == 5.00 ~ '5 Years',
-                    period == 7.00 ~ '7 Years',
-                    period == 10.00 ~ '10 Years',
-                    TRUE ~ paste(as.character(round(period, 2)), ' Years')
-                  ))
+    dplyr::mutate(
+      period = round(as.integer(difftime(end_date, start_date, units = "days")) / 365, 2),
+      period = dplyr::case_when(
+        period == 0.00 ~ "0 Years",
+        period == 0.25 ~ "1 Quarter",
+        period == 0.50 ~ "6 Months",
+        period == 1.00 ~ "1 Year",
+        period == 3.00 ~ "3 Years",
+        period == 5.00 ~ "5 Years",
+        period == 7.00 ~ "7 Years",
+        period == 10.00 ~ "10 Years",
+        TRUE ~ paste(as.character(round(period, 2)), " Years")
+      )
+    )
 }
-

@@ -15,14 +15,14 @@
 #' @export
 build_grouped_pm_cash_flow <- function(...,
                                        con = AZASRS_DATABASE_CONNECTION(),
-                                       start_date = '2019-06-30',
+                                       start_date = "2019-06-30",
                                        end_date = get_value_date(con = con),
                                        itd = FALSE,
                                        cash_adjusted = FALSE,
                                        nav_daily = get_pm_nav_daily(con = con),
                                        cf_daily = get_pm_cash_flow_daily(con = con),
-                                       bench_daily = get_benchmark_daily_index(con = con, benchmark_type = 'PVT', return_tibble = TRUE),
-                                       bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = 'PVT', return_tibble = TRUE),
+                                       bench_daily = get_benchmark_daily_index(con = con, benchmark_type = "PVT", return_tibble = TRUE),
+                                       bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = "PVT", return_tibble = TRUE),
                                        pm_fund_info = get_pm_fund_info(con = con)) {
 
   # Test to see whether or not data needs to be rolled up
@@ -33,13 +33,15 @@ build_grouped_pm_cash_flow <- function(...,
     start_date <- "2004-06-30"
   }
 
-  nav_daily = nav_daily %>% dplyr::filter(nav != 0)
-  cf_daily = cf_daily %>% dplyr::filter(cash_flow != 0)
+  nav_daily <- nav_daily %>% dplyr::filter(nav != 0)
+  cf_daily <- cf_daily %>% dplyr::filter(cash_flow != 0)
 
-  bench_daily = build_benchmark_fv_index_factor(con = con,
-                                                start_date = start_date,
-                                                value_date = end_date,
-                                                benchmark_daily = bench_daily)
+  bench_daily <- build_benchmark_fv_index_factor(
+    con = con,
+    start_date = start_date,
+    value_date = end_date,
+    benchmark_daily = bench_daily
+  )
 
   nav_prep <- nav_daily %>%
     filter_nav_on_dates(start_date = start_date, end_date = end_date, itd = itd) %>%
@@ -67,11 +69,11 @@ build_grouped_pm_cash_flow <- function(...,
   }
 
   # Join benchmark info and adjust calculations before grouping
-  joined_data = nav_cf %>%
+  joined_data <- nav_cf %>%
     dplyr::left_join(bench_relationships, by = "pm_fund_info_id") %>%
     dplyr::left_join(bench_daily, by = c("benchmark_info_id", "effective_date"))
 
-  calculated_data = joined_data %>%
+  calculated_data <- joined_data %>%
     dplyr::mutate(
       contributions = dplyr::if_else(cash_flow < 0, cash_flow, 0),
       distributions = dplyr::if_else(cash_flow > 0, cash_flow, 0),
