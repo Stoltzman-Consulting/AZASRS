@@ -40,10 +40,16 @@ build_grouped_pm_cash_flow <- function(...,
                                        bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = 'PVT', return_tibble = TRUE),
                                        pm_fund_info = get_pm_fund_info(con = con)) {
 
+  # Test to see whether or not data needs to be rolled up
+  IS_NOT_AGGREGATED <- test_for_no_aggregation(...)
+
   # ITD failsafe - ensure start_date is before earliest possible pm_fund_cash_flow
   if (itd) {
     start_date <- "2004-06-30"
   }
+
+  nav_daily = nav_daily %>% dplyr::filter(nav != 0)
+  cf_daily = cf_daily %>% dplyr::filter(cash_flow != 0)
 
   bench_daily = build_benchmark_fv_index_factor(con = con,
                                                 start_date = start_date,
@@ -63,10 +69,24 @@ build_grouped_pm_cash_flow <- function(...,
     clean_nav_cf(pm_fund_info = pm_fund_info) %>%
     dplyr::mutate(nav = dplyr::if_else(effective_date == start_date, -1 * nav, nav))
 
+  # Filter out funds that are not active for the full start - end period.
+  # Not applicable to aggregated funds, would filter out important data
+  if (IS_NOT_AGGREGATED) {
+    if (!itd) {
+      nav_cf <- nav_cf %>%
+        dplyr::group_by(pm_fund_info_id) %>%
+        dplyr::filter(min(effective_date) <= start_date) %>%
+        dplyr::filter(max(effective_date) >= end_date) %>%
+        dplyr::ungroup()
+    }
+  }
+
   # Join benchmark info and adjust calculations before grouping
-  nav_cf %>%
+  joined_data = nav_cf %>%
     dplyr::left_join(bench_relationships, by = "pm_fund_info_id") %>%
-    dplyr::left_join(bench_daily, by = c("benchmark_info_id", "effective_date")) %>%
+    dplyr::left_join(bench_daily, by = c("benchmark_info_id", "effective_date"))
+
+  calculated_data = joined_data %>%
     dplyr::mutate(
       contributions = dplyr::if_else(cash_flow < 0, cash_flow, 0),
       distributions = dplyr::if_else(cash_flow > 0, cash_flow, 0),
@@ -76,13 +96,13 @@ build_grouped_pm_cash_flow <- function(...,
     ) %>%
     dplyr::group_by(..., effective_date) %>%
     dplyr::summarize(
+      adj_cf_fv = sum(adj_cf_fv),
       dva = sum(adjusted_cash_flow * index_fv),
       contributions_fv = sum(contributions_fv),
       distributions_fv = sum(distributions_fv),
       contributions = sum(contributions),
       distributions = sum(distributions),
       adjusted_cash_flow = sum(adjusted_cash_flow),
-      adj_cf_fv = sum(adj_cf_fv),
       nav = sum(nav),
       cash_flow = sum(cash_flow)
     ) %>%
@@ -272,4 +292,18 @@ clean_nav_cf <- function(.data, pm_fund_info) {
     ) %>%
     dplyr::ungroup() %>%
     dplyr::left_join(pm_fund_info, by = "pm_fund_id")
+}
+
+
+
+#' Tests to see if (...) is aggregating or not
+#'
+#' @description Aggregation will change how funds are filtered, returns TRUE if not aggregated
+#' @param ... is from filter_dates()
+test_for_no_aggregation <- function(...) {
+  any(c("pm_fund_id", "pm_fund_description", "pm_fund_common_name") %in% c(
+    rlang::enquos(...) %>%
+      purrr::map(rlang::quo_name) %>%
+      unlist()
+  ))
 }

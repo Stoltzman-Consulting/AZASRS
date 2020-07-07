@@ -68,6 +68,7 @@ build_grouped_pm_metrics <- function(...,
 calculate_grouped_pm_metrics <- function(.data, ...) {
   .data %>%
     dplyr::group_by(...) %>%
+    dplyr::arrange(effective_date) %>%
     dplyr::summarize(
       pme = -sum(distributions_fv) / sum(contributions_fv),
       irr = calc_irr(adjusted_cash_flow, effective_date),
