@@ -66,7 +66,7 @@ build_all_grouped_pm_metrics_all_dates = function(){
   sponsor = calc_all(pm_fund_portfolio, pm_fund_sponsor)
   sponsor_fund = calc_all(pm_fund_portfolio, pm_fund_sponsor, pm_fund_common_name, pm_fund_description, pm_fund_id)
 
-  all_data = bind_rows(fund, portfolio, category, category_fund, sponosor, sponsor_fund)
+  all_data = bind_rows(fund, portfolio, category, category_fund, sponsor, sponsor_fund)
 
   return(all_data)
 
