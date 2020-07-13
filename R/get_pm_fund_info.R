@@ -27,7 +27,7 @@ get_pm_fund_info <- function(con = AZASRS_DATABASE_CONNECTION(), add_benchmark =
     dat <- dat %>%
       tibble::as_tibble()
 
-    benchmark_fund_relationship <- get_benchmark_fund_relationship(con = con, return_tibble = TRUE) %>%
+    benchmark_fund_relationship <- get_benchmark_fund_relationship(con = con, get_all_benchmark_types = TRUE,  return_tibble = TRUE) %>%
       tibble::as_tibble() %>%
       tidyr::pivot_wider(names_from = benchmark_type, values_from = benchmark_info_id)
 

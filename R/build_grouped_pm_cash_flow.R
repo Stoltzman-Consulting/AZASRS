@@ -26,7 +26,7 @@ build_grouped_pm_cash_flow <- function(...,
                                        pm_fund_info = get_pm_fund_info(con = con)) {
 
   # Test to see whether or not data needs to be rolled up
-  IS_NOT_AGGREGATED <- test_for_no_aggregation(...)
+  IS_NOT_AGGREGATED <- test_is_not_rollup(...)
 
   # ITD failsafe - ensure start_date is before earliest possible pm_fund_cash_flow
   if (itd) {
@@ -35,13 +35,6 @@ build_grouped_pm_cash_flow <- function(...,
 
   nav_daily <- nav_daily %>% dplyr::filter(nav != 0)
   cf_daily <- cf_daily %>% dplyr::filter(cash_flow != 0)
-
-  bench_daily <- build_benchmark_fv_index_factor(
-    con = con,
-    start_date = start_date,
-    value_date = end_date,
-    benchmark_daily = bench_daily
-  )
 
   nav_prep <- nav_daily %>%
     filter_nav_on_dates(start_date = start_date, end_date = end_date, itd = itd) %>%
@@ -279,18 +272,4 @@ clean_nav_cf <- function(.data, pm_fund_info) {
     ) %>%
     dplyr::ungroup() %>%
     dplyr::left_join(pm_fund_info, by = "pm_fund_id")
-}
-
-
-
-#' Tests to see if (...) is aggregating or not
-#'
-#' @description Aggregation will change how funds are filtered, returns TRUE if not aggregated
-#' @param ... is from filter_dates()
-test_for_no_aggregation <- function(...) {
-  any(c("pm_fund_id", "pm_fund_description", "pm_fund_common_name") %in% c(
-    rlang::enquos(...) %>%
-      purrr::map(rlang::quo_name) %>%
-      unlist()
-  ))
 }
