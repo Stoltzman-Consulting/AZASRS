@@ -70,14 +70,11 @@ build_all_grouped_pm_metrics_all_dates = function(){
   print("Starting calculations for sponsor level data")
   sponsor = calc_all(pm_fund_portfolio, pm_fund_sponsor)
 
-  print("Starting calculations for fund level data")
+
   fund = calc_all(pm_fund_portfolio, pm_fund_category_description, pm_fund_sponsor, pm_fund_common_name, pm_fund_description, pm_fund_id)
 
   print("Combining all data.")
   all_data = dplyr::bind_rows(fund, portfolio, category, sponsor)
-
-  end_time <- Sys.time()
-  print(paste("Finished. Processing time:", as.character(round((end_time - start_time)/60, 0)), "minutes."))
 
   return(all_data)
 
