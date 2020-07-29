@@ -8,7 +8,8 @@
 #' @param cash_adjusted is a boolean that determines if NAV is cash adjusted
 #' @param nav_daily is the object of get_pm_nav_daily()
 #' @param cf_daily is the object of get_pm_cash_flow_daily()
-#' @param bench_daily is the object of get_benchmark_daily_index()
+#' @param bench_daily_index is the object of get_benchmark_daily_index()
+#' @param bench_daily is the object of build_benchmark_fv_index_factor() and the previous parameter simply allows for faster data pulls
 #' @param bench_relationships is the object of get_benchmark_fund_relationship()
 #' @param pm_fund_info is the object of get_pm_fund_info()
 #' @export
@@ -20,7 +21,8 @@ build_grouped_pm_metrics <- function(...,
                                      cash_adjusted = FALSE,
                                      nav_daily = get_pm_nav_daily(con = con),
                                      cf_daily = get_pm_cash_flow_daily(con = con),
-                                     bench_daily = get_benchmark_daily_index(con = con, benchmark_type = "PVT", return_tibble = TRUE),
+                                     bench_daily_index = get_benchmark_daily_index(con = con, benchmark_type = "PVT", return_tibble = TRUE),
+                                     bench_daily = build_benchmark_fv_index_factor(con = con, value_date = end_date, benchmark_daily = bench_daily_index),
                                      bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = "PVT", return_tibble = TRUE),
                                      pm_fund_info = get_pm_fund_info(con = con)) {
   clean_data <- build_grouped_pm_cash_flow(...,
