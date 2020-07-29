@@ -13,7 +13,7 @@ build_grouped_pm_metrics(
   cash_adjusted = FALSE,
   nav_daily = get_pm_nav_daily(con = con),
   cf_daily = get_pm_cash_flow_daily(con = con),
-  bench_daily = get_benchmark_daily_index(con = con, benchmark_type = "PVT",
+  bench_daily_index = get_benchmark_daily_index(con = con, benchmark_type = "PVT",
     return_tibble = TRUE),
   bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = "PVT",
     return_tibble = TRUE),
@@ -35,7 +35,7 @@ build_grouped_pm_metrics(
 
 \item{cf_daily}{is the object of get_pm_cash_flow_daily()}
 
-\item{bench_daily}{is the object of get_benchmark_daily_index()}
+\item{bench_daily_index}{is the object of get_benchmark_daily_index()}
 
 \item{bench_relationships}{is the object of get_benchmark_fund_relationship()}
 
