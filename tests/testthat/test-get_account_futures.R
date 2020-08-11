@@ -1,5 +1,5 @@
 test_that("get_account_futures returns expected results", {
-  dat <- get_account_futures(con = AZASRS::AZASRS_DATABASE_CONNECTION(development = 1))
+  dat <- get_account_futures()
   expected_names <- c(
     "account_info_id", "period_end_date", "maturity_date", "security_name_full",
     "security_name", "base_current_notional_value", "base_margin_variation", "account_id")
