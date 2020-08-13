@@ -51,7 +51,7 @@ build_grouped_pm_cash_flow <- function(...,
       dplyr::pull())))
 
   funds_reported <- tibble::tibble(pm_fund_id = unique(nav_daily %>%
-                                                         dplyr::filter(effective_date > end_date) %>%
+                                                         dplyr::filter(effective_date == end_date) %>%
                                                          dplyr::select(pm_fund_id) %>%
                                                          dplyr::pull()))
 
@@ -61,21 +61,21 @@ build_grouped_pm_cash_flow <- function(...,
 
   # Cash adjusted should simply create a NAV at the end_date that is previous NAV + cash flows
   if(cash_adjusted){
-    nav_daily = nav_daily %>%
+    nav_daily_ = nav_daily %>%
       dplyr::inner_join(funds_not_reported, by = 'pm_fund_id')
-    cf_daily = cf_daily %>%
+    cf_daily_ = cf_daily %>%
       dplyr::inner_join(funds_not_reported, by = 'pm_fund_id')
 
-    cf_addition_to_nav = cf_daily %>%
+    cf_addition_to_nav = cf_daily_ %>%
       dplyr::filter(effective_date >= start_date,
                     effective_date <= end_date) %>%
       dplyr::group_by(pm_fund_id) %>%
       dplyr::summarize(nav = sum(cash_flow)) %>%
       dplyr::ungroup()
 
-    first_nav = nav_daily %>%
-      dplyr::filter(effective_date == start_date) %>%
+    first_nav = nav_daily_ %>%
       dplyr::group_by(pm_fund_id) %>%
+      dplyr::filter(effective_date == max(effective_date)) %>%
       dplyr::summarize(nav = sum(nav)) %>%
       dplyr::ungroup()
 
@@ -87,13 +87,12 @@ build_grouped_pm_cash_flow <- function(...,
       dplyr::mutate(effective_date = lubridate::as_date(end_date)) %>%
       dplyr::left_join(pm_fund_info, by = 'pm_fund_id')
 
-    nav_daily = nav_daily %>%
+    nav_daily_ = nav_daily_ %>%
       dplyr::bind_rows(last_nav)
-  } else{
+
     nav_daily = nav_daily %>%
-      dplyr::inner_join(funds_reported, by = 'pm_fund_id')
-    cf_daily = cf_daily %>%
-      dplyr::inner_join(funds_reported, by = 'pm_fund_id')
+      dplyr::anti_join(funds_not_reported, by = 'pm_fund_id') %>%
+      dplyr::bind_rows(nav_daily_)
   }
 
 
