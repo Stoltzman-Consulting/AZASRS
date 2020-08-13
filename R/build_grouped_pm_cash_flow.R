@@ -61,9 +61,12 @@ build_grouped_pm_cash_flow <- function(...,
 
   # Cash adjusted should simply create a NAV at the end_date that is previous NAV + cash flows
   if(cash_adjusted){
+    nav_daily = nav_daily %>%
+      dplyr::inner_join(funds_not_reported, by = 'pm_fund_id')
+    cf_daily = cf_daily %>%
+      dplyr::inner_join(funds_not_reported, by = 'pm_fund_id')
 
     cf_addition_to_nav = cf_daily %>%
-      dplyr::inner_join(funds_not_reported) %>%
       dplyr::filter(effective_date >= start_date,
                     effective_date <= end_date) %>%
       dplyr::group_by(pm_fund_id) %>%
@@ -71,7 +74,6 @@ build_grouped_pm_cash_flow <- function(...,
       dplyr::ungroup()
 
     first_nav = nav_daily %>%
-      dplyr::inner_join(funds_not_reported) %>%
       dplyr::filter(effective_date == start_date) %>%
       dplyr::group_by(pm_fund_id) %>%
       dplyr::summarize(nav = sum(nav)) %>%
@@ -87,6 +89,11 @@ build_grouped_pm_cash_flow <- function(...,
 
     nav_daily = nav_daily %>%
       dplyr::bind_rows(last_nav)
+  } else{
+    nav_daily = nav_daily %>%
+      dplyr::inner_join(funds_reported, by = 'pm_fund_id')
+    cf_daily = cf_daily %>%
+      dplyr::inner_join(funds_reported, by = 'pm_fund_id')
   }
 
 
