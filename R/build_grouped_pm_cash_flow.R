@@ -51,7 +51,7 @@ build_grouped_pm_cash_flow <- function(...,
       dplyr::pull())))
 
   funds_reported <- tibble::tibble(pm_fund_id = unique(nav_daily %>%
-                                                         dplyr::filter(effective_date > end_date) %>%
+                                                         dplyr::filter(effective_date == end_date) %>%
                                                          dplyr::select(pm_fund_id) %>%
                                                          dplyr::pull()))
 
