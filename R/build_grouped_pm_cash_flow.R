@@ -74,8 +74,8 @@ build_grouped_pm_cash_flow <- function(...,
       dplyr::ungroup()
 
     first_nav = nav_daily %>%
-      dplyr::filter(effective_date == start_date) %>%
       dplyr::group_by(pm_fund_id) %>%
+      dplyr::filter(effective_date == max(effective_date)) %>%
       dplyr::summarize(nav = sum(nav)) %>%
       dplyr::ungroup()
 
