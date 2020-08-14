@@ -91,7 +91,7 @@ build_grouped_pm_cash_flow <- function(...,
       dplyr::bind_rows(last_nav)
 
     nav_daily = nav_daily %>%
-      dplyr::anti_join(funds_not_reported, by = 'pm_fund_id') %>%
+      #dplyr::anti_join(funds_not_reported, by = 'pm_fund_id') %>%
       dplyr::bind_rows(nav_daily_)
   }
 
