@@ -70,7 +70,7 @@ build_grouped_pm_cash_flow <- function(...,
       dplyr::filter(effective_date >= start_date,
                     effective_date <= end_date) %>%
       dplyr::group_by(pm_fund_id) %>%
-      dplyr::summarize(nav = sum(cash_flow)) %>%
+      dplyr::summarize(nav = sum(-1 * cash_flow)) %>% #negative allows it to count toward NAV
       dplyr::ungroup()
 
     first_nav = nav_daily_ %>%
