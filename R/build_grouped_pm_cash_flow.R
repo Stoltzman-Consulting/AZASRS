@@ -70,7 +70,7 @@ build_grouped_pm_cash_flow <- function(...,
     first_nav = nav_daily_ %>%
       dplyr::group_by(pm_fund_id) %>%
       dplyr::filter(effective_date == calc_add_qtrs(end_date, -1)) %>%
-      dplyr::summarize(nav = sum(nav)) %>%
+      dplyr::summarize(nav = dplyr::last(nav, order_by = effective_date)) %>%
       dplyr::ungroup()
 
     cf_addition_to_nav = cf_daily_ %>%
