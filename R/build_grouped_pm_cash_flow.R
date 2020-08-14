@@ -67,17 +67,16 @@ build_grouped_pm_cash_flow <- function(...,
     cf_daily_ = cf_daily %>%
       dplyr::inner_join(funds_not_reported, by = 'pm_fund_id')
 
-    cf_addition_to_nav = cf_daily_ %>%
-      dplyr::filter(effective_date >= start_date,
-                    effective_date <= end_date) %>%
-      dplyr::group_by(pm_fund_id) %>%
-      dplyr::summarize(nav = sum(-1 * cash_flow)) %>% #negative allows it to count toward NAV
-      dplyr::ungroup()
-
     first_nav = nav_daily_ %>%
       dplyr::group_by(pm_fund_id) %>%
       dplyr::filter(effective_date == max(effective_date)) %>%
       dplyr::summarize(nav = sum(nav)) %>%
+      dplyr::ungroup()
+
+    cf_addition_to_nav = cf_daily_ %>%
+      dplyr::filter(effective_date >= calc_add_qtrs(end_date, -1)) %>%
+      dplyr::group_by(pm_fund_id) %>%
+      dplyr::summarize(nav = sum(-1 * cash_flow)) %>% #negative allows it to count toward NAV
       dplyr::ungroup()
 
     last_nav = first_nav %>%
