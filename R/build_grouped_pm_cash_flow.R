@@ -12,6 +12,7 @@
 #' @param bench_daily is the object of get_benchmark_daily_index()
 #' @param bench_relationships is the object of get_benchmark_fund_relationship()
 #' @param pm_fund_info is the object of get_pm_fund_info()
+#' @param cash_adjusted_all overrides cash_adjusted and combines cash_adjusted + reported
 #' @export
 build_grouped_pm_cash_flow <- function(...,
                                        con = AZASRS_DATABASE_CONNECTION(),
@@ -23,7 +24,8 @@ build_grouped_pm_cash_flow <- function(...,
                                        cf_daily = get_pm_cash_flow_daily(con = con),
                                        bench_daily = get_benchmark_daily_index(con = con, benchmark_type = "PVT", return_tibble = TRUE),
                                        bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = "PVT", return_tibble = TRUE),
-                                       pm_fund_info = get_pm_fund_info(con = con)) {
+                                       pm_fund_info = get_pm_fund_info(con = con),
+                                       cash_adjusted_all = FALSE) {
 
 
   # Immediately filter out 0 to ensure "not reported" works as intended
@@ -62,10 +64,17 @@ build_grouped_pm_cash_flow <- function(...,
   # Cash adjusted should simply create a NAV at the end_date that is previous NAV + cash flows
   if(cash_adjusted){
 
-    nav_daily_ = nav_daily %>%
-      dplyr::inner_join(funds_not_reported, by = 'pm_fund_id')
-    cf_daily_ = cf_daily %>%
-      dplyr::inner_join(funds_not_reported, by = 'pm_fund_id')
+    if(cash_adjusted_all){
+      nav_daily_ = nav_daily %>%
+        dplyr::inner_join(funds_active, by = 'pm_fund_id')
+      cf_daily_ = cf_daily %>%
+        dplyr::inner_join(funds_active, by = 'pm_fund_id')
+    } else{
+      nav_daily_ = nav_daily %>%
+        dplyr::inner_join(funds_not_reported, by = 'pm_fund_id')
+      cf_daily_ = cf_daily %>%
+        dplyr::inner_join(funds_not_reported, by = 'pm_fund_id')
+    }
 
     first_nav = nav_daily_ %>%
       dplyr::group_by(pm_fund_id) %>%
