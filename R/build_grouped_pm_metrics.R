@@ -40,7 +40,7 @@ build_grouped_pm_metrics <- function(...,
     bench_daily = bench_daily,
     bench_relationships = bench_relationships,
     pm_fund_info = pm_fund_info,
-    cash_adjusted_all
+    cash_adjusted_all = cash_adjusted_all
   )
 
 
