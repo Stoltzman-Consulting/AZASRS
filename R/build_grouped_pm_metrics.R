@@ -11,6 +11,7 @@
 #' @param bench_daily is the object of get_benchmark_daily_index()
 #' @param bench_relationships is the object of get_benchmark_fund_relationship()
 #' @param pm_fund_info is the object of get_pm_fund_info()
+#' @param cash_adjusted_all overrides cash_adjusted and combines cash_adjusted + reported
 #' @export
 build_grouped_pm_metrics <- function(...,
                                      con = AZASRS_DATABASE_CONNECTION(),
@@ -23,7 +24,8 @@ build_grouped_pm_metrics <- function(...,
                                      cf_daily = get_pm_cash_flow_daily(con = con),
                                      bench_daily = get_benchmark_daily_index(con = con, benchmark_type = benchmark_type, return_tibble = TRUE),
                                      bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = benchmark_type, return_tibble = TRUE),
-                                     pm_fund_info = get_pm_fund_info(con = con)) {
+                                     pm_fund_info = get_pm_fund_info(con = con),
+                                     cash_adjusted_all = FALSE) {
 
   nav_daily = nav_daily %>% dplyr::filter(nav != 0)
   cf_daily = cf_daily %>% dplyr::filter(cash_flow != 0)
@@ -37,7 +39,8 @@ build_grouped_pm_metrics <- function(...,
     cf_daily = cf_daily,
     bench_daily = bench_daily,
     bench_relationships = bench_relationships,
-    pm_fund_info = pm_fund_info
+    pm_fund_info = pm_fund_info,
+    cash_adjusted_all
   )
 
 
