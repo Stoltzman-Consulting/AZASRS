@@ -72,20 +72,20 @@ calc_grouped_pm_metrics <- function(.data, ...) {
     dplyr::summarize(
       start_date = min(effective_date, na.rm = TRUE),
       end_date = max(effective_date, na.rm = TRUE),
-      pme = -sum(distributions_fv) / sum(contributions_fv),
+      pme = -sum(distributions_fv, na.rm = TRUE) / sum(contributions_fv, na.rm = TRUE),
       irr = calc_irr(adjusted_cash_flow, effective_date),
       irr_fv = calc_irr(cash_flow = adj_cf_fv, dates = effective_date),
       tvpi = calc_tvpi(distributions = distributions, contributions = contributions, nav = nav),
       dpi = calc_dpi(distributions = distributions, contributions = contributions),
       alpha = log(1 + irr_fv),
       bench_irr = -1 + exp(log(1 + irr) - alpha),
-      dva = sum(dva),
+      dva = sum(dva, na.rm = TRUE),
       nav = dplyr::last(nav),
       # nav = sum(nav),
-      cash_flow = sum(cash_flow),
-      adjusted_cash_flow = sum(adjusted_cash_flow),
-      contributions = sum(contributions),
-      distributions = sum(distributions),
+      cash_flow = sum(cash_flow, na.rm = TRUE),
+      adjusted_cash_flow = sum(adjusted_cash_flow, na.rm = TRUE),
+      contributions = sum(contributions, na.rm = TRUE),
+      distributions = sum(distributions, na.rm = TRUE),
       excess = irr - bench_irr
     ) %>%
     dplyr::select(
