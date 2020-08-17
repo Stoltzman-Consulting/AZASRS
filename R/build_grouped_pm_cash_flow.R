@@ -44,7 +44,7 @@ build_grouped_pm_cash_flow <- function(...,
   # Determine active funds and those that have / have not reported
   funds_active <- tibble::tibble(pm_fund_id = unique(c(
     nav_daily %>%
-      dplyr::filter(effective_date >= end_date) %>%
+      dplyr::filter(effective_date >= calc_add_qtrs(end_date, -1)) %>%
       dplyr::select(pm_fund_id) %>%
       dplyr::pull(),
     cf_daily %>%
