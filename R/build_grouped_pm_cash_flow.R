@@ -48,7 +48,7 @@ build_grouped_pm_cash_flow <- function(...,
       dplyr::select(pm_fund_id) %>%
       dplyr::pull(),
     cf_daily %>%
-      dplyr::filter(effective_date >= calc_add_qtrs(end_date, -1)) %>%
+      dplyr::filter(effective_date > calc_add_qtrs(end_date, -1)) %>%
       dplyr::select(pm_fund_id) %>%
       dplyr::pull())))
 
@@ -83,7 +83,7 @@ build_grouped_pm_cash_flow <- function(...,
       dplyr::ungroup()
 
     cf_addition_to_nav = cf_daily_ %>%
-      dplyr::filter(effective_date >= calc_add_qtrs(end_date, -1)) %>%
+      dplyr::filter(effective_date > calc_add_qtrs(end_date, -1)) %>%
       dplyr::group_by(pm_fund_id) %>%
       dplyr::summarize(nav = sum(-1 * cash_flow)) %>% #negative allows it to count toward NAV
       dplyr::ungroup()
@@ -117,7 +117,7 @@ build_grouped_pm_cash_flow <- function(...,
 
   cf_prep <- cf_daily %>%
     dplyr::filter(
-      effective_date >= start_date,
+      effective_date > start_date,
       effective_date <= end_date
     ) %>%
     dplyr::mutate(nav = 0)
@@ -281,7 +281,7 @@ filter_cf_between_dates <- function(.data, start_date, end_date, itd) {
   } else {
     .data %>%
       dplyr::filter(
-        effective_date >= start_date,
+        effective_date > start_date,
         effective_date <= end_date
       )
   }
