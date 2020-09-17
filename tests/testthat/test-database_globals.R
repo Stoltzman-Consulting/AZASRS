@@ -129,11 +129,7 @@ test_that("Check account_portfolio",{check_database_tbl_matches(tbl_account_port
 
 
 
-test_that("Check account_sponsor",{check_database_tbl_matches(tbl_account_sponsor,
-                                                                expected_names = c("account_sponsor_id",
-                                                                                   "account_sponsor"),
-                                                                types = c("integer", "character"),
-                                                                greater_than_rows = 1)})
+
 
 
 test_that("Check account_sub_portfolio",{check_database_tbl_matches(tbl_account_sub_portfolio ,
