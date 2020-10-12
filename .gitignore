@@ -32,3 +32,4 @@ rsconnect/
 inst/doc
 *.csv
 *.pdf
+.DS_Store
