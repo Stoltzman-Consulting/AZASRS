@@ -9,14 +9,14 @@
 #'   as_tibble()
 #' AZASRS_DATABASE_DISCONNECT(con)
 #' @export
-GLOBAL_DATA_PRIVATE_MARKETS <- function(pm_con = AZASRS_DATABASE_CONNECTION()) {
+GLOBAL_DATA_PRIVATE_MARKETS <- function(con = AZASRS_DATABASE_CONNECTION()) {
 
-  pm_value_date = get_value_date(con = pm_con)
-  pm_fund_info = get_pm_fund_info(con = pm_con, add_benchmark = TRUE, return_tibble = TRUE)
-  pm_cash_flow_daily = get_pm_cash_flow_daily(con = pm_con, return_tibble = TRUE)
-  pm_nav_daily = get_pm_nav_daily(con = pm_con, return_tibble = TRUE)
-  pm_benchmark_relationships = get_benchmark_fund_relationship(con = pm_con, get_all_benchmark_types = TRUE, return_tibble = TRUE)
-  pm_benchmark_index = get_benchmark_daily_index(con = pm_con, all_bench_types = TRUE, return_tibble = TRUE)
+  pm_value_date = get_value_date(con = con)
+  pm_fund_info = get_pm_fund_info(con = con, add_benchmark = TRUE, return_tibble = TRUE)
+  pm_cash_flow_daily = get_pm_cash_flow_daily(con = con, return_tibble = TRUE)
+  pm_nav_daily = get_pm_nav_daily(con = con, return_tibble = TRUE)
+  pm_benchmark_relationships = get_benchmark_fund_relationship(con = con, get_all_benchmark_types = TRUE, return_tibble = TRUE)
+  pm_benchmark_index = get_benchmark_daily_index(con = con, all_bench_types = TRUE, return_tibble = TRUE)
 
   possible_end_dates = pm_nav_daily %>%
     dplyr::distinct(effective_date) %>%
@@ -36,7 +36,7 @@ GLOBAL_DATA_PRIVATE_MARKETS <- function(pm_con = AZASRS_DATABASE_CONNECTION()) {
   pm_date_ranges = do.call("c", purrr::map(possible_end_dates, .f = calculate_start_dates))
 
   all_data = list(
-    pm_con = pm_con,
+    con = con,
     pm_fund_info = pm_fund_info,
     pm_cash_flow_daily = pm_cash_flow_daily,
     pm_nav_daily = pm_nav_daily,
