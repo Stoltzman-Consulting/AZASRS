@@ -132,7 +132,7 @@ update_all_private_market_calculations = function(parallel = FALSE){
         calc_time_delta()
       ret = dplyr::bind_rows(data, data_itd, data_cash_adj, data_itd_cash_adj) %>%
         dplyr::mutate(period = as.character(period),
-               period = if_else(
+               period = dplyr::if_else(
                  itd == TRUE,
                  'ITD',
                  period))
