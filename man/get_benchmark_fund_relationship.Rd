@@ -16,6 +16,8 @@ get_benchmark_fund_relationship(
 
 \item{bench_type}{is the type of benchmark. The default is 'PVT' which is private.}
 
+\item{get_all_benchmark_types}{is a boolean that determines whether or not all bench types are returned}
+
 \item{return_tibble}{is a boolean that determines whether or not a tibble is returned instead}
 }
 \value{

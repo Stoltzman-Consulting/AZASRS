@@ -1,15 +1,11 @@
-#' Disconnect from database
-#' @description Disconnect from database if using AZASRS_DATABASE_CONNECTION
+#' LOAD global data for private markets (all data from db)
+#' @description Create an object in the environment containing all underlying data for PM calcs
 #' @param con object from AZASRS_DATABASE_CONNECTION()
-#' @return boolean for DBI disconnected or not
-#' @examples
-#' con <- AZASRS_DATABASE_CONNECTION()
-#' data <- tbl_pm_fund_nav_daily(con) %>%
-#'   left_join(tbl_pm_fund_info(con), by = "pm_fund_id") %>%
-#'   as_tibble()
-#' AZASRS_DATABASE_DISCONNECT(con)
+#' @return list of ALL PM data
 #' @export
-GLOBAL_DATA_PRIVATE_MARKETS <- function(con = AZASRS_DATABASE_CONNECTION()) {
+LOAD_GLOBAL_DATA_PRIVATE_MARKETS <- function(con = AZASRS_DATABASE_CONNECTION()) {
+
+  print("[LOADING GLOBAL PM DATA]: Connecting to the database and pulling ALL PRIVATE MARKETS DATA (~30 Seconds)")
 
   pm_value_date = get_value_date(con = con)
   pm_fund_info = get_pm_fund_info(con = con, add_benchmark = TRUE, return_tibble = TRUE)
@@ -45,6 +41,12 @@ GLOBAL_DATA_PRIVATE_MARKETS <- function(con = AZASRS_DATABASE_CONNECTION()) {
     pm_date_ranges = pm_date_ranges
   )
 
-  return(all_data)
+  print("[DONE LOADING] - you may reference ALL PM DATA via GLOBAL_DATA_PRIVATE_MARKETS instantly.")
 
+  return(all_data)
 }
+
+# LOAD ALL DATA into .rda file when library loads
+GLOBAL_DATA_PRIVATE_MARKETS = LOAD_GLOBAL_DATA_PRIVATE_MARKETS()
+save(GLOBAL_DATA_PRIVATE_MARKETS, file="data/GLOBAL_DATA_PRIVATE_MARKETS.rda")
+

@@ -32,3 +32,4 @@ rsconnect/
 inst/doc
 *.csv
 *.pdf
+GLOBAL_DATA_PRIVATE_MARKETS.rda
