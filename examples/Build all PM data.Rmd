@@ -1,0 +1,18 @@
+---
+title: "Private Markets Metrics Example"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(AZASRS)
+
+# Brings in ALL RELEVANT private markets data
+DATA_ALL_PM = LOAD_GLOBAL_DATA_PRIVATE_MARKETS()
+```
+
+```{r}
+
+```
+

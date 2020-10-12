@@ -41,7 +41,8 @@ Imports:
     zoo,
     odbc,
     RODBC,
-    AzureStor
+    AzureStor,
+    furrr
 RoxygenNote: 7.1.0
 Suggests: 
     knitr,

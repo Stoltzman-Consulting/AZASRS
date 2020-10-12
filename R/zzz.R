@@ -33,6 +33,7 @@ LOAD_GLOBAL_DATA_PRIVATE_MARKETS <- function(con = AZASRS_DATABASE_CONNECTION())
 
   all_data = list(
     con = con,
+    pm_value_date = pm_value_date,
     pm_fund_info = pm_fund_info,
     pm_cash_flow_daily = pm_cash_flow_daily,
     pm_nav_daily = pm_nav_daily,
