@@ -33,3 +33,5 @@ inst/doc
 *.csv
 *.pdf
 .DS_Store
+.DS_Store
+GLOBAL_DATA_PRIVATE_MARKETS.rda
