@@ -154,6 +154,7 @@ calc_time_delta <- function(.data, start_date, end_date) {
         period > 4.98 & period < 5.02 ~ "5 Years",
         period > 6.98 & period < 7.02 ~ "7 Years",
         period > 9.98 & period < 10.02 ~ "10 Years",
+        start_date < lubridate::as_date('1980-01-01') ~ "ITD",
         TRUE ~ paste(as.character(round(period, 2)), " Years")
       )
     )

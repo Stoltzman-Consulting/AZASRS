@@ -42,7 +42,5 @@ LOAD_GLOBAL_DATA_PRIVATE_MARKETS <- function(con = AZASRS_DATABASE_CONNECTION())
     pm_date_ranges = pm_date_ranges
   )
 
-  print("[DONE LOADING] - you may reference ALL PM DATA via GLOBAL_DATA_PRIVATE_MARKETS instantly.")
-
   return(all_data)
 }
