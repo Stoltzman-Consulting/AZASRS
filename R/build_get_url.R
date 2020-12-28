@@ -7,8 +7,8 @@
 #' @export
 
 build_get_url = function(data_request){
-  exists(BASE_URL)
-  exists(DATA_RETRIEVAL_TOKEN)
+  exists(AZASRS_BASE_URL)
+  exists(AZASRS_DATA_RETRIEVAL_TOKEN)
 
-  return(paste0(BASE_URL, data_request, "/", DATA_RETRIEVAL_TOKEN))
+  return(paste0(AZASRS_BASE_URL, data_request, "/", AZASRS_DATA_RETRIEVAL_TOKEN))
 }

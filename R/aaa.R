@@ -1,4 +1,4 @@
-BASE_URL <- "https://asrsapp34987vfdjsh423h.herokuapp.com/data/retrieve/"
+BASE_URL <- Sys.getenv("AZASRS_BASE_URL")
 
-DATA_RETRIEVAL_TOKEN <- "LKEJRE324k3j2l4kjvajl32j4lj2kj23l4j"
+DATA_RETRIEVAL_TOKEN <- Sys.getenv("AZASRS_DATA_RETRIEVAL_TOKEN")
 
