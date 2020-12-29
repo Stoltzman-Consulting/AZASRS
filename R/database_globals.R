@@ -204,17 +204,17 @@ AZASRS_DATABASE_DISCONNECT <- function(con) {
 }
 
 
-#' Get value date
-#'
-#' @description Finds the value date based off of the constants table from most recent database population
-#' @param con object from AZASRS_DATABASE_CONNECTION()
-#' @return string of YYYY-mm-dd of value date as set by ASRS
-#' @export
-get_value_date <- function(con = AZASRS_DATABASE_CONNECTION()) {
-  dat <- tbl_constants(con) %>% tibble::as_tibble()
-  dat <- dat$value_date
-  return(dat)
-}
+#Get value date
+#
+#@description Finds the value date based off of the constants table from most recent database population
+#@param con object from AZASRS_DATABASE_CONNECTION()
+#@return string of YYYY-mm-dd of value date as set by ASRS
+#@export
+# get_value_date <- function(con = AZASRS_DATABASE_CONNECTION()) {
+#   dat <- tbl_constants(con) %>% tibble::as_tibble()
+#   dat <- dat$value_date
+#   return(dat)
+# }
 
 
 #' Get next quarter date
