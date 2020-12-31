@@ -12,7 +12,22 @@ get_benchmark_daily_index_raw <- function() {
   return(dat)
 }
 
-
+#' Get all benchmark_daily_index
+#'
+#' @description Gets benchmark index data by day and only allows one bench_type (i.e. SAA). Joins data from pm_fund_info, benchmark_info and filters by benchmark type. Caution: returns A LOT of data, filter for better performance.
+#' @param benchmark_type is the type of benchmark where default is 'PVT' which is private
+#' @param all_bench_types is a boolean that determines whether or not all bench types are returned
+#' @return Returns a tibble or database object.
+#' @examples
+#' get_benchmark_daily_index(return_tibble = TRUE)
+#' # A tibble: 76,693 x 4
+#' # benchmark_info_id effective_date index_value benchmark_id
+#' # <int>                <date>               <dbl>           <chr>
+#' #  53                 2004-01-02            1             LSTA+250
+#' #  53                 2004-01-03            1.00          LSTA+250
+#' #  53                 2004-01-04            1.00          LSTA+250
+#' # ... with 76,690 more rows
+#' @export
 get_benchmark_daily_index <- function(benchmark_type = "PVT", all_bench_types = FALSE) {
 
   if (all_bench_types) {
