@@ -1,4 +1,4 @@
-#' Get all benchmark_daily_index
+#' Get all benchmark_daily_index RAW
 #'
 #' @description Gets benchmark index data by day
 #' @return Returns a tibble or data.frame object.
@@ -13,10 +13,26 @@ get_benchmark_daily_index_raw <- function() {
 }
 
 
-#add filter
-get_benchmark_daily_index <- function() {
+get_benchmark_daily_index <- function(benchmark_type = "PVT", all_bench_types = FALSE) {
 
-  dat <- get_benchmark_daily_index_raw()
+  if (all_bench_types) {
+    pmfi_bmi <- get_benchmark_fund_relationship(con, get_all_benchmark_types = all_bench_types) %>%
+      dplyr::distinct(benchmark_info_id)
+  } else {
+    pmfi_bmi <- get_benchmark_fund_relationship(con) %>%
+      dplyr::filter(benchmark_type == benchmark_type) %>%
+      dplyr::distinct(benchmark_info_id)
+  }
 
-  return(dat)
+  dat <- pmfi_bmi %>%
+    dplyr::left_join(get_benchmark_daily_index_raw(), by = "benchmark_info_id") %>%
+    dplyr::left_join(get_benchmark_info() %>% dplyr::select(benchmark_info_id, benchmark_id), by = "benchmark_info_id")
+
+  if (return_tibble) {
+    return(dat %>% tibble::as_tibble() %>%
+             dplyr::mutate(effective_date = lubridate::as_date(effective_date)))
+  } else {
+    return(dat)
+  }
 }
+
