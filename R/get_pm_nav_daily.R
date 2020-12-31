@@ -16,9 +16,20 @@
 #' #   pm_fund_category_description <chr>, pm_fund_portfolio <chr>, pm_fund_sponsor <chr>, pm_fund_city <chr>,
 #' #   pm_fund_sector <chr>
 #' @export
-get_pm_nav_daily <- function() {
+get_pm_nav_daily_raw <- function() {
   dat <- get_url_data("pm_fund_nav_quarterly")
 
   return(dat)
 
 }
+
+
+get_pm_nav_daily <- function() {
+
+  dat <- get_pm_nav_daily_raw()
+
+  return(dat)
+
+}
+
+

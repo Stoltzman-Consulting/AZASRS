@@ -16,7 +16,7 @@
 #' #   fund_size_m <dbl>, closed <chr>, pm_fund_category <chr>, pm_fund_category_description <chr>,
 #' #   pm_fund_portfolio <chr>, pm_fund_sponsor <chr>, pm_fund_city <chr>, pm_fund_sector <chr>
 #' @export
-get_pm_cash_flow_daily <- function() {
+get_pm_cash_flow_daily_raw <- function() {
 
   dat <- get_url_data("pm_fund_cash_flow_daily")
 

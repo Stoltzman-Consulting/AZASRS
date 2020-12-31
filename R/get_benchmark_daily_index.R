@@ -5,9 +5,18 @@
 #' @examples
 #' get_benchmark_daily_index(return_tibble = TRUE)
 #' @export
-get_benchmark_daily_index <- function() {
+get_benchmark_daily_index_raw <- function() {
 
   dat <- get_url_data("benchmark_daily_index")
+
+  return(dat)
+}
+
+
+#add filter
+get_benchmark_daily_index <- function() {
+
+  dat <- get_benchmark_daily_index_raw()
 
   return(dat)
 }

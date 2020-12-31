@@ -16,19 +16,24 @@
 #' #  3                    53                 PVT
 #' # ... with 279 more rows
 #' @export
-get_benchmark_fund_relationship <- function(con = AZASRS_DATABASE_CONNECTION(), bench_type = "PVT", get_all_benchmark_types = FALSE, return_tibble = FALSE) {
-  dat <- tbl_pm_fund_info_benchmark_info(con) %>%
-    dplyr::left_join(tbl_benchmark_type(con), by = "benchmark_type_id") %>%
+
+get_benchmark_fund_relationship_raw <- function(){
+  dat <- get_url_data("pm_fund_info")
+
+  return(dat)
+}
+
+
+
+get_benchmark_fund_relationship <- function(bench_type = "PVT", get_all_benchmark_types = FALSE) {
+  dat <- get_benchmark_fund_relationship_raw() %>%
+    dplyr::left_join(get_benchmark_info(), by = "benchmark_type_id") %>%
     dplyr::select(pm_fund_info_id, benchmark_info_id, benchmark_type)
 
   if(!get_all_benchmark_types){
     dat = dat %>% dplyr::filter(benchmark_type == bench_type)
   }
-
-
-  if (return_tibble) {
-    return(dat %>% tibble::as_tibble())
-  } else {
     return(dat)
-  }
 }
+
+
