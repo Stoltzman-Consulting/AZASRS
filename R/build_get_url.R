@@ -8,14 +8,9 @@
 
 build_get_url = function(data_request){
 
-  AZASRS_BASE_URL <- Sys.getenv("AZASRS_BASE_URL")
-  AZASRS_DATA_RETRIEVAL_TOKEN <- Sys.getenv("AZASRS_DATA_RETRIEVAL_TOKEN")
+  stopifnot("AZASRS_BASE_URL does not exist, check .Renviron file" = !identical(Sys.getenv("AZASRS_BASE_URL"), ''))
+  stopifnot("AZASRS_DATA_RETRIEVAL_TOKEN does not exist, check .Renviron file" = !identical(Sys.getenv("AZASRS_DATA_RETRIEVAL_TOKEN"), ''))
 
-  if(exists("AZASRS_BASE_URL") && exists("AZASRS_DATA_RETRIEVAL_TOKEN")) {
-    return(paste0(Sys.getenv("AZASRS_BASE_URL"), data_request, "/", Sys.getenv("AZASRS_DATA_RETRIEVAL_TOKEN")))
-  } else {
-    print("Make sure token and URL are in .Renviron file")
-  }
-
+  return(paste0(Sys.getenv("AZASRS_BASE_URL"), data_request, "/", Sys.getenv("AZASRS_DATA_RETRIEVAL_TOKEN")))
 
 }
