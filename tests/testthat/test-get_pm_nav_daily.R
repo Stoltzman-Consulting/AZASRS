@@ -1,5 +1,17 @@
 context("test-get_pm_nav_daily")
 
+###testing raw data
+test_that("get_pm_nav_daily_raw() matches test data", {
+  pm_nav_daily <- get_pm_nav_daily_raw()
+  expected_names <- c("pm_fund_id","effective_date", "nav")
+
+  expect_equal(colnames(pm_nav_daily), expected_names)
+  expect_equal(as.character(lapply(pm_nav_daily, class)), c("character", "Date", "numeric"  ))
+  expect_true(dplyr::count(pm_nav_daily) %>% dplyr::pull(n) > 1)
+})
+
+
+
 test_that("get_pm_nav_daily() matches test data", {
   pm_nav_daily <- get_pm_nav_daily()
   expected_names <- c(

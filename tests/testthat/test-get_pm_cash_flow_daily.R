@@ -1,5 +1,19 @@
 context("test-get_pm_cash_flow_daily")
 
+##testing raw dataset
+test_that("get_pm_cash_flow_daily_raw() returns matching tibbles", {
+  cf <- get_pm_cash_flow_daily_raw()
+  expected_names <- c(
+    "pm_fund_id", "effective_date", "cash_flow"
+  )
+  expect_equal(colnames(cf), expected_names)
+  expect_equal(as.character(lapply(cf, class)), c("character", "Date", "numeric"))
+
+  expect_true(dplyr::count(cf) %>% dplyr::pull(n) > 1)
+})
+
+
+
 test_that("get_pm_cash_flow_daily() returns matching tibbles", {
   cf <- get_pm_cash_flow_daily()
   expected_names <- c(
