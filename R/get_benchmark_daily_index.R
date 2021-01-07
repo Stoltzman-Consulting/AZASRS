@@ -15,8 +15,10 @@ get_benchmark_daily_index_raw <- function() {
 #' Get all benchmark_daily_index
 #'
 #' @description Gets benchmark index data by day and only allows one bench_type (i.e. SAA). Joins data from pm_fund_info, benchmark_info and filters by benchmark type. Caution: returns A LOT of data, filter for better performance.
+#' @param con default TRUE
 #' @param benchmark_type is the type of benchmark where default is 'PVT' which is private
 #' @param all_bench_types is a boolean that determines whether or not all bench types are returned
+#' @param return_tibble default FALSE, is a boolean that determines whether or not a tibble is returned instead
 #' @return Returns a tibble or database object.
 #' @examples
 #' get_benchmark_daily_index(return_tibble = TRUE)
