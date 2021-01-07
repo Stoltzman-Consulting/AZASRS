@@ -18,7 +18,7 @@
 #' @export
 ###ADD THIS ONE###
 get_benchmark_fund_relationship_raw <- function(){
-  dat <- get_url_data("pm_fund_info")
+  dat <- get_url_data("pm_fund_info_benchmark_info")
 
   return(dat)
 }
