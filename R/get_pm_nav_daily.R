@@ -27,6 +27,8 @@ get_pm_nav_daily_raw <- function() {
 #' Get all pm_nav_daily
 #'
 #' @description Gets pm_nav_daily table from database
+#' @param con default TRUE
+#' @param return_tibble default TRUE, is a boolean that determines whether or not a tibble is returned instead
 #' @return Returns a tibble or database object
 #' @examples
 #' get_pm_nav_daily()
@@ -43,9 +45,10 @@ get_pm_nav_daily_raw <- function() {
 #' #   pm_fund_category_description <chr>, pm_fund_portfolio <chr>, pm_fund_sponsor <chr>, pm_fund_city <chr>,
 #' #   pm_fund_sector <chr>
 #' @export
-get_pm_nav_daily <- function() {
+get_pm_nav_daily <- function(con = TRUE, return_tibble = TRUE) {
 
-  dat <- get_pm_nav_daily_raw()
+  dat <- get_pm_nav_daily_raw()%>%
+    dplyr::left_join(get_pm_fund_info(), by = "pm_fund_id")
 
   return(dat)
 
