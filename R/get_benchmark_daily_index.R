@@ -3,7 +3,7 @@
 #' @description Gets benchmark index data by day
 #' @return Returns a tibble or data.frame object.
 #' @examples
-#' get_benchmark_daily_index(return_tibble = TRUE)
+#' get_benchmark_daily_index()
 #' @export
 get_benchmark_daily_index_raw <- function() {
 
@@ -28,7 +28,8 @@ get_benchmark_daily_index_raw <- function() {
 #' #  53                 2004-01-04            1.00          LSTA+250
 #' # ... with 76,690 more rows
 #' @export
-get_benchmark_daily_index <- function(benchmark_type = "PVT", all_bench_types = FALSE) {
+get_benchmark_daily_index <- function(con = TRUE, benchmark_type = "PVT", all_bench_types = FALSE,
+                                      return_tibble = FALSE) {
 
   if (all_bench_types) {
     pmfi_bmi <- get_benchmark_fund_relationship(con, get_all_benchmark_types = all_bench_types) %>%
@@ -40,14 +41,10 @@ get_benchmark_daily_index <- function(benchmark_type = "PVT", all_bench_types = 
   }
 
   dat <- pmfi_bmi %>%
-    dplyr::left_join(get_benchmark_daily_index_raw(), by = "benchmark_info_id") %>%
-    dplyr::left_join(get_benchmark_info() %>% dplyr::select(benchmark_info_id, benchmark_id), by = "benchmark_info_id")
+    dplyr::left_join(get_benchmark_info() %>% dplyr::select(benchmark_info_id, benchmark_id), by = "benchmark_info_id") %>%
+    dplyr::left_join(get_benchmark_daily_index_raw(), by = "benchmark_id")
 
-  if (return_tibble) {
-    return(dat %>% tibble::as_tibble() %>%
-             dplyr::mutate(effective_date = lubridate::as_date(effective_date)))
-  } else {
-    return(dat)
-  }
+ return(dat)
+
 }
 

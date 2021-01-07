@@ -6,15 +6,32 @@
 
 ###testing raw data
 test_that("get_benchmark_daily_index_raw() matches test data", {
-  benchmark_daily_index <- get_benchmark_daily_index_raw()
+
+  ##testing raw data##
+  benchmark_daily_index_RAW <- get_benchmark_daily_index_raw()
   expected_names <- c("benchmark_id", "effective_date", "index_value")
+
+  expect_equal(colnames(benchmark_daily_index_RAW), expected_names)
+
+  expect_equal(as.character(lapply(benchmark_daily_index_RAW, class)), c("character", "Date", "numeric"  ))
+
+
+  expect_true(dplyr::count(benchmark_daily_index_RAW) %>% dplyr::pull(n) > 40000)
+
+
+  ###checking function
+  benchmark_daily_index <- get_benchmark_daily_index()
+
+  expected_names <- c( "benchmark_info_id", "benchmark_id", "effective_date", "index_value" )
 
   expect_equal(colnames(benchmark_daily_index), expected_names)
 
-  expect_equal(as.character(lapply(benchmark_daily_index, class)), c("character", "Date", "numeric"  ))
+  expect_equal(as.character(lapply(benchmark_daily_index, class)), c("numeric", "character", "Date", "numeric" ))
 
 
-  expect_true(dplyr::count(benchmark_daily_index) %>% dplyr::pull(n) > 1)
+  expect_true(dplyr::count(benchmark_daily_index) %>% dplyr::pull(n) > 40000)
+
+
 })
 
 
