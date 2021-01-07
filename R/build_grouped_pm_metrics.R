@@ -23,7 +23,7 @@ build_grouped_pm_metrics <- function(...,
                                      nav_daily = get_pm_nav_daily(),
                                      cf_daily = get_pm_cash_flow_daily(),
                                      bench_daily = get_benchmark_daily_index(),
-                                     bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = benchmark_type, return_tibble = TRUE),
+                                     bench_relationships = get_benchmark_fund_relationship(),
                                      pm_fund_info = get_pm_fund_info(),
                                      cash_adjusted_all = FALSE) {
 
