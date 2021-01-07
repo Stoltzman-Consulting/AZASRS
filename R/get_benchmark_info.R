@@ -1,7 +1,7 @@
 #' Get all benchmark_info RAW
 #'
-#' @description A view to get all private market benchmark info
-#' @return Returns a tibble or data.frame result with all benchmark_info metadata.
+#' @description A view to get all raw private market benchmark info
+#' @return Returns a tibble or data.frame result with all raw benchmark_info
 #' @examples
 #' get_benchmark_info_raw()
 #' @export
