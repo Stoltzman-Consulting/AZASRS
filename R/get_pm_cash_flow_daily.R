@@ -1,8 +1,23 @@
+#' Daily private market cash flows RAW
+#'
+#' @description pm_cash_flow_daily table from database joined with metadata
+#' @return Returns a tibble or database object.
+#' @examples
+#' get_pm_cash_flow_daily_raw()
+#' @export
+get_pm_cash_flow_daily_raw <- function() {
+
+  dat <- get_url_data("pm_fund_cash_flow_daily")
+
+  return(dat)
+
+}
+
 #' Daily private market cash flows
 #'
 #' @description pm_cash_flow_daily table from database joined with metadata
-#' @param con is a database connection object from AZASRS::AZASRS_DATABASE_CONNECTION()
-#' @param return_tibble is a boolean that determines whether or not a tibble is returned instead
+#' @param con default TRUE
+#' @param return_tibble default TRUE, is a boolean that determines whether or not a tibble is returned instead
 #' @return Returns a tibble or database object.
 #' @examples
 #' get_pm_cash_flow_daily()
@@ -18,19 +33,16 @@
 #' #   fund_size_m <dbl>, closed <chr>, pm_fund_category <chr>, pm_fund_category_description <chr>,
 #' #   pm_fund_portfolio <chr>, pm_fund_sponsor <chr>, pm_fund_city <chr>, pm_fund_sector <chr>
 #' @export
-get_pm_cash_flow_daily <- function(con = AZASRS_DATABASE_CONNECTION(), return_tibble = TRUE) {
-  dat <- tbl_pm_fund_cash_flow_daily(con = con) %>%
+get_pm_cash_flow_daily <- function(con = TRUE, return_tibble = TRUE) {
+
+  dat <- get_pm_cash_flow_daily_raw() %>%
     dplyr::mutate(
       contributions = ifelse(cash_flow < 0, cash_flow, 0),
       distributions = ifelse(cash_flow > 0, cash_flow, 0)
     ) %>%
-    dplyr::left_join(tbl_view_all_pm_fund_info(con = con), by = "pm_fund_info_id")
+    dplyr::left_join(get_pm_fund_info(), by = "pm_fund_id")
 
-  if (return_tibble) {
-    return(dat %>%
-      tibble::as_tibble() %>%
-      dplyr::mutate(effective_date = lubridate::as_date(effective_date)))
-  } else {
     return(dat)
-  }
 }
+
+

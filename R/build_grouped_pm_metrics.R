@@ -16,15 +16,15 @@
 build_grouped_pm_metrics <- function(...,
                                      con = AZASRS_DATABASE_CONNECTION(),
                                      start_date = "2016-12-31",
-                                     end_date = get_value_date(con = con),
+                                     end_date = get_value_date(),
                                      itd = FALSE,
                                      cash_adjusted = FALSE,
                                      benchmark_type = "PVT",
-                                     nav_daily = get_pm_nav_daily(con = con),
-                                     cf_daily = get_pm_cash_flow_daily(con = con),
-                                     bench_daily = get_benchmark_daily_index(con = con, benchmark_type = benchmark_type, return_tibble = TRUE),
-                                     bench_relationships = get_benchmark_fund_relationship(con = con, bench_type = benchmark_type, return_tibble = TRUE),
-                                     pm_fund_info = get_pm_fund_info(con = con),
+                                     nav_daily = get_pm_nav_daily(),
+                                     cf_daily = get_pm_cash_flow_daily(),
+                                     bench_daily = get_benchmark_daily_index(),
+                                     bench_relationships = get_benchmark_fund_relationship(),
+                                     pm_fund_info = get_pm_fund_info(),
                                      cash_adjusted_all = FALSE) {
 
   nav_daily = nav_daily %>% dplyr::filter(nav != 0)
